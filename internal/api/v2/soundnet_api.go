@@ -13,6 +13,7 @@ package api
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -35,6 +36,8 @@ func (c *Controller) initSoundNetRoutes() {
 	g.GET("/taxonomy", c.GetSoundNetTaxonomy)
 	// Corrections change data, so they sit behind the same auth as other writes.
 	g.POST("/detections/:id/correction", c.PostSoundNetCorrection, c.AuthMiddleware)
+	g.GET("/confusions", c.GetSoundNetConfusions)
+	g.GET("/training-export", c.GetSoundNetTrainingExport)
 }
 
 // soundNetDetectionResponse is what a detection looks like through this lens.
@@ -369,3 +372,145 @@ func (c *Controller) PostSoundNetCorrection(ctx echo.Context) error {
 // errDetectionNotFound distinguishes a missing detection from a storage failure,
 // so the caller gets 404 rather than a misleading 400.
 var errDetectionNotFound = errors.New("detection not found")
+
+// GetSoundNetConfusions returns detections whose class is one a single
+// microphone cannot reliably separate from its neighbours.
+//
+// This is the paired-review surface. Gunshot versus vehicle backfire is the
+// motivating case: both are short, loud and broadband, and the scope is explicit
+// that the distinction is not recoverable from one microphone. What a human can
+// do, given the audio and the context, is decide - and each decision becomes a
+// labelled example for exactly the discrimination the model finds hardest.
+func (c *Controller) GetSoundNetConfusions(ctx echo.Context) error {
+	label := ctx.QueryParam("label")
+	if label == "" {
+		// Without a label there is no pair to review. Listing every ambiguous
+		// class instead lets the UI offer a starting point.
+		sets := map[string][]string{}
+		for _, d := range eventclass.AllDomains() {
+			for _, cl := range eventclass.InDomain(d) {
+				if set := eventclass.ConfusionSet(cl.Label); len(set) > 0 {
+					sets[cl.Label] = set
+				}
+			}
+		}
+		return ctx.JSON(http.StatusOK, map[string]any{"sets": sets})
+	}
+
+	set := eventclass.ConfusionSet(label)
+	if len(set) == 0 {
+		// Not an error: most classes have no genuine confusion, and saying so is
+		// more useful than an empty list the caller has to interpret.
+		return ctx.JSON(http.StatusOK, map[string]any{
+			"label": label,
+			"set":   []string{},
+			"note":  "this class has no genuine confusion from a single microphone; paired review would not add information",
+		})
+	}
+	return ctx.JSON(http.StatusOK, map[string]any{"label": label, "set": set})
+}
+
+// GetSoundNetTrainingExport describes the labelled corpus a retrain would use.
+//
+// A manifest rather than an archive. The clips already exist on disk, and
+// copying gigabytes to describe them would be slow, duplicative and immediately
+// stale. A manifest can also be regenerated cheaply as review continues.
+func (c *Controller) GetSoundNetTrainingExport(ctx echo.Context) error {
+	if c.DS == nil {
+		return ctx.JSON(http.StatusServiceUnavailable, map[string]string{soundNetErrKey: "datastore unavailable"})
+	}
+
+	type example struct {
+		DetectionID uint   `json:"detectionId"`
+		Label       string `json:"label"`
+		Origin      string `json:"origin"`
+		ClipName    string `json:"clipName,omitempty"`
+	}
+	examples := []example{}
+	counts := map[string]int{}
+
+	err := c.DS.Transaction(func(tx *gorm.DB) error {
+		// Corrections first. A corrected example is worth more than a confirmed
+		// one: it marks a case the model got wrong, which is where the training
+		// signal actually is.
+		type correctedRow struct {
+			DetectionID uint
+			Label       string
+			ClipName    string
+		}
+		var corrected []correctedRow
+		if e := tx.Raw(`
+			select c.detection_id as detection_id,
+			       l.scientific_name as label,
+			       coalesce(d.clip_name, '') as clip_name
+			from soundnet_corrections c
+			join labels l on l.id = c.corrected_label_id
+			join detections d on d.id = c.detection_id
+		`).Scan(&corrected).Error; e != nil {
+			return e
+		}
+		for i := range corrected {
+			examples = append(examples, example{
+				DetectionID: corrected[i].DetectionID,
+				Label:       corrected[i].Label,
+				Origin:      "corrected",
+				ClipName:    corrected[i].ClipName,
+			})
+			counts[corrected[i].Label]++
+		}
+
+		type confirmedRow struct {
+			DetectionID uint
+			Label       string
+			ClipName    string
+		}
+		var confirmed []confirmedRow
+		if e := tx.Raw(`
+			select d.id as detection_id,
+			       l.scientific_name as label,
+			       coalesce(d.clip_name, '') as clip_name
+			from detection_reviews r
+			join detections d on d.id = r.detection_id
+			join labels l on l.id = d.label_id
+			where r.verified = 'correct'
+			  and d.id not in (select detection_id from soundnet_corrections)
+		`).Scan(&confirmed).Error; e != nil {
+			// A missing review table is not fatal: corrections alone are a
+			// usable corpus, and failing the whole export would hide them.
+			return nil //nolint:nilerr // corrections alone still constitute a corpus
+		}
+		for i := range confirmed {
+			examples = append(examples, example{
+				DetectionID: confirmed[i].DetectionID,
+				Label:       confirmed[i].Label,
+				Origin:      "confirmed",
+				ClipName:    confirmed[i].ClipName,
+			})
+			counts[confirmed[i].Label]++
+		}
+		return nil
+	})
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{soundNetErrKey: err.Error()})
+	}
+
+	// Classes with too few examples to train on are reported rather than
+	// silently included: a class with three examples will not produce a usable
+	// head, and discovering that after a training run wastes an afternoon.
+	const minUsable = 20
+	thin := []string{}
+	for label, n := range counts {
+		if n < minUsable {
+			thin = append(thin, fmt.Sprintf("%s (%d)", label, n))
+		}
+	}
+
+	return ctx.JSON(http.StatusOK, map[string]any{
+		"examples":    examples,
+		"total":       len(examples),
+		"perLabel":    counts,
+		"thinClasses": thin,
+		"minUsable":   minUsable,
+		"clipsNote":   "clip files are referenced, not copied; they remain in the configured clip directory",
+	})
+}

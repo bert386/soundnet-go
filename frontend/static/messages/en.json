@@ -5800,6 +5800,22 @@
       "correctionPlaceholder": "Label ID",
       "saveCorrection": "Save correction",
       "correctionHint": "The original label is kept alongside your correction, so the pair can be used to retrain."
+    },
+    "export": {
+      "title": "Training data",
+      "loading": "Counting reviewed examples…",
+      "failed": "Could not load the training export: {{error}}",
+      "total": "Examples",
+      "corrected": "Corrected",
+      "correctedHint": "cases the model got wrong",
+      "confirmed": "Confirmed",
+      "thinHeading": "These classes have fewer than {{count}} examples and will not train usefully yet",
+      "label": "Class",
+      "examples": "Examples",
+      "download": "Download manifest",
+      "manifestNote": "The manifest lists where each clip already lives; audio is not copied.",
+      "empty": "No reviewed examples yet",
+      "emptyHint": "Confirm or correct detections in the review queue and they will appear here."
     }
   }
 }
