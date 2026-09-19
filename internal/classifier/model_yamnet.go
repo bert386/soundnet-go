@@ -84,9 +84,14 @@ func init() {
 		DetectionName:    RegistryIDYAMNet,
 		DetectionVersion: "1",
 		Description:      "AudioSet acoustic event classifier (521 classes: aircraft, vehicles, gunshots, thunder, tools and more)",
+		// The analysis window is 3 s, not the model's own 0.975 s frame. YAMNet
+		// tiles the window with four frames internally (see yamnet.go). Sharing
+		// BirdNET's window keeps a detection and its diagnostics describing the
+		// same audio, and avoids ModelSpec.ClipSizeBytes truncating a sub-second
+		// ClipLength to a zero-byte buffer.
 		Spec: ModelSpec{
 			SampleRate: yamnetSampleRate,
-			ClipLength: yamnetClipLength,
+			ClipLength: yamnetClipSeconds * time.Second,
 		},
 		ConfigAliases: []string{"yamnet", "yamnet-v1"},
 		// Deliberately no locale list. YAMNet's labels are AudioSet display

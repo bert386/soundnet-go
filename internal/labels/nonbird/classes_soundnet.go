@@ -1,6 +1,9 @@
 package nonbird
 
-import "strings"
+import (
+	"maps"
+	"strings"
+)
 
 // SoundNet: the AudioSet classes YAMNet can emit that upstream's table does not
 // already cover.
@@ -99,9 +102,7 @@ var soundNetClasses = map[string]Category{
 // it, IsNonBirdName would miss every multi-word class added above, and would
 // miss it silently.
 func init() {
-	for label, category := range soundNetClasses {
-		classes[label] = category
-	}
+	maps.Copy(classes, soundNetClasses)
 	rebuildFirstTokenSet()
 }
 
