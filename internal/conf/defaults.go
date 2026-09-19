@@ -7,6 +7,9 @@ import "github.com/spf13/viper"
 func setDefaultConfig() {
 	viper.SetDefault("debug", false)
 
+	// SOUNDNET: fork defaults, defined in config_soundnet.go
+	setSoundNetDefaults()
+
 	// Logging configuration
 	viper.SetDefault("logging.default_level", "info")
 	viper.SetDefault("logging.timezone", "Local")

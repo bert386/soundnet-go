@@ -1042,6 +1042,10 @@ func getSettingsSectionValue(settings *conf.Settings, section string) (any, erro
 
 	// Map section names to their corresponding pointers
 	switch section {
+	case "soundnet":
+		// SOUNDNET: exposes the fork's settings through the existing settings
+		// API, so the shipped web UI can edit them like any other section.
+		return &settings.SoundNet, nil
 	case SettingsSectionBirdnet:
 		return &settings.BirdNET, nil
 	case SettingsSectionWebserver:

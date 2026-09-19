@@ -1874,6 +1874,11 @@ type Settings struct {
 	// Logging configuration
 	Logging logger.LoggingConfig `yaml:"logging" json:"logging" mapstructure:"logging"` // centralized logging configuration
 
+	// SOUNDNET: acoustic event detection, diagnostics and external identity.
+	// Defined in config_soundnet.go so the fork's settings stay in one added
+	// file rather than spread through this one.
+	SoundNet SoundNetSettings `yaml:"soundnet" json:"soundnet" mapstructure:"soundnet"`
+
 	Main struct {
 		Name      string `yaml:"name" json:"name"`           // name of BirdNET-Go node, can be used to identify source of notes
 		TimeAs24h bool   `yaml:"timeas24h" json:"timeAs24h"` // true 24-hour time format, false 12-hour time format
