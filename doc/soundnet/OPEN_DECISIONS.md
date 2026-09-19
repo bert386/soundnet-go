@@ -51,33 +51,82 @@ before; a pinned mirror does not rot.
 
 ---
 
-## 2. YAMNet inference adapter — not yet written
+## 2. YAMNet inference adapter — RESOLVED, closed
 
-**Blocks:** YAMNet actually producing detections. Registration and the catalog
-entry are done; the code that runs the model and reshapes its output is not.
+**Done.** `internal/classifier/yamnet.go` implements `ModelInstance`;
+`orchestrator_yamnet.go` registers the loader. Both extend package-level maps
+from `init()`, so `orchestrator.go` is untouched. Verified against the real
+artefact: silence classifies as `silence` at 0.80, and a gallery install laid
+out on disk resolves through `resolveFamilyPaths` to the loader.
 
-YAMNet's output differs from every model upstream ships:
+**The framing risk flagged here is resolved.** The analysis window is 3 s, not
+YAMNet's 0.975 s frame, tiled with four evenly spaced frames (offsets 0, 10800,
+21600, 32400 at 16 kHz) combined by per-class maximum. Maximum rather than mean
+because events are sparse and local: a two-second siren inside a three-second
+window is a siren, not a third of one. Sharing BirdNET's 3 s window means a
+detection and its diagnostics describe the same audio, which was the original
+worry.
 
-- 521 scores over the AudioSet ontology, not species
-- a 1024-dimensional embedding per frame, which M4's sub-classification heads
-  consume rather than raw audio
-- 15600-sample frames at 16 kHz, where upstream's default path assumes 3 s at
-  48 kHz
+It also side-steps a trap. `ModelSpec.ClipSizeBytes` computes
+`SampleRate * int(ClipLength.Seconds())`, and `int(0.975)` is 0 — so the 0.975 s
+spec registered earlier would have produced a zero-byte analysis buffer, a read
+size of zero, and a model that loads, reports healthy and never infers once.
+A test now guards this for every registered model.
 
-**No decision needed — this is just work remaining.** Recorded here so it is not
-mistaken for done. Item 1 is now closed, so the model file can be installed from
-the gallery and there is something real to test the adapter against; this is the
-next thing standing between the fork and its first non-bird detection.
+**What was read off the artefact rather than assumed:**
 
-**One risk worth flagging now:** a 0.975 s frame is shorter than the 3 s clip the
-diagnostics engine expects. Doppler analysis in particular needs several seconds
-to see a pass-by. The likely resolution is that YAMNet classifies on its own
-short frames while diagnostics continue to run over the retained 3 s clip, but
-that needs confirming against the capture buffer rather than assumed.
+| | |
+|---|---|
+| Input | one tensor, `waveform_binary`, float32 `[15600]` |
+| Output | **one** tensor, float32 `[1 521]` |
+| Activation | already per-class sigmoid; no further activation applied |
+
+The activation was checked empirically rather than inferred: silence scores
+`Silence` 0.80, a 440 Hz tone scores `Sine wave` 0.996, and the vector sums
+above 1.0. BirdNET applies a sigmoid and Perch a softmax to their backends' raw
+logits; either here would be wrong, and a second sigmoid in particular would
+compress every score into [0.5, 0.73] and make everything look like a
+half-confident detection.
 
 ---
 
-## 3. SoundNet configuration is not bound to `config.yaml`
+## 3. M4 has lost its feature source — NEW, needs a decision
+
+**Blocks:** M4 sub-classification heads. Nothing else.
+
+The scope has M4 training small heads on YAMNet's 1024-dimensional embeddings,
+which is what makes them cheap enough to run on a Pi alongside everything else.
+**This build of YAMNet does not expose embeddings.** The published graph has
+three outputs — scores, embeddings, log-mel patches — but the MediaPipe artefact
+mirrored for this fork has exactly one: the 521 scores. Confirmed by reading the
+tensor layout off the file, not inferred.
+
+Options:
+
+1. **Mirror a YAMNet build that exposes all three outputs** (the TF-Hub/Kaggle
+   saved-model conversion rather than the MediaPipe one). Costs a second
+   artefact and a re-pin; the adapter would need a second constructor, because
+   upstream's TFLite wrapper only ever reads output tensor 0.
+2. **Train the heads on the 521 scores instead of embeddings.** No new artefact.
+   Much weaker: the scores are a 521-way bottleneck already shaped by AudioSet's
+   own classes, and they arrive quantised to 1/256 steps, so fine distinctions
+   within a class — which is exactly what a sub-classification head is for — are
+   largely gone before the head sees them.
+3. **Use the DSP feature vector from `internal/acoustics`** as the head's input.
+   Cheap, already computed, and interpretable; but it was designed to measure
+   properties, not to discriminate classes, so it would need evaluating rather
+   than assuming.
+
+**Recommended: (1).** It is the only option that keeps M4 doing what the scope
+intends, the cost is one more mirrored file, and the checksum-pinning machinery
+for that already exists. Worth deciding before M4 starts rather than during.
+
+**Not urgent.** M4 is last in the plan and trains on M6's corpus, which is not
+collected yet.
+
+---
+
+## 4. SoundNet configuration is not bound to `config.yaml`
 
 **Blocks:** turning the diagnostics and enrichment layers on without a code
 change. The pipeline hook is in place and inert; `ConfigureSoundNet` installs the
@@ -93,7 +142,7 @@ station part already has a validated type ready to bind to
 
 ---
 
-## 4. OpenSky credentials are in a local file, not configuration
+## 5. OpenSky credentials are in a local file, not configuration
 
 Currently read from `secrets/opensky-credentials.json` outside the repository.
 That is correct for development, but the running service needs a defined
@@ -101,11 +150,11 @@ location.
 
 **Recommended:** a config key holding a *path* or an environment variable name,
 never the secret itself, so credentials stay out of any versioned file and out
-of support dumps. Depends on item 3.
+of support dumps. Depends on item 4.
 
 ---
 
-## 5. Station coordinates are recorded but not yet operator-editable
+## 6. Station coordinates are recorded but not yet operator-editable
 
 Latitude, longitude and elevation are supplied and used as the development
 fixture. `StationConfig` validates operator input, including DMS and decimal
@@ -117,7 +166,7 @@ interface.
 
 ---
 
-## 6. Aircraft type and registration depend on a third-party service
+## 7. Aircraft type and registration depend on a third-party service
 
 Resolved through adsbdb.com, which is free and unauthenticated. It works, is
 cached, and a failure never costs the identification.
@@ -130,16 +179,21 @@ safely.
 
 ---
 
-## 7. Not yet started
+## 8. Not yet started
 
-For completeness, so the status is not overstated:
+For completeness, so the status is not overstated. STATE.md holds the
+authoritative milestone table; this list is what remains untouched or partial:
 
 - **M4** sub-classification heads (aircraft type, saw type) and their training
-  pipeline. Depends on M6 for training data.
-- **M6** ADS-B auto-labelling collector.
-- **M7** the web UI: detection detail, review queue, threshold tuning, training
-  export.
-- **M8** enriched alerts through the existing alert engine.
+  pipeline. Depends on M6 for training data, and now on item 3 for a feature
+  source.
+- **M6** ADS-B auto-labelling collector: the collector logic and its `Capturer`
+  interface exist and are tested, but nothing implements the interface, so it is
+  not wired to the audio buffer or to a config section.
+- **M7** the web UI: detection detail, review queue and training export are
+  built, along with the confusion-pair and threshold-preview endpoints. The
+  threshold tuner UI and live diagnostics re-computation are not.
+- **M8** enriched alerts through the existing alert engine. Untouched.
 - **De-birding the UI copy** — 215 hardcoded "BirdNET-Go" strings across 130
   files. The binary still announces itself as BirdNET-Go at startup; the
   branding hook covers MQTT discovery, API links and user agents only.
