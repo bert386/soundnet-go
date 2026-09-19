@@ -656,6 +656,9 @@ func (c *Controller) SetSourceRestarter(fn control.SourceRestarterFunc) {
 
 // initRoutes registers all API endpoints
 func (c *Controller) initRoutes() {
+	// SOUNDNET: diagnostics and identity inspection endpoints. See soundnet_api.go.
+	c.initSoundNetRoutes()
+
 	// Health check endpoint - publicly accessible
 	c.Group.GET("/health", c.HealthCheck)
 
