@@ -5724,5 +5724,61 @@
       "patternTransient": "Transient",
       "patternSustained": "Sustained"
     }
+  },
+  "soundnet": {
+    "title": "Acoustic analysis",
+    "loading": "Analysing…",
+    "loadFailed": "Could not load acoustic analysis: {{error}}",
+    "domain": "Event type: {{domain}}",
+    "computeTimeHint": "Time spent measuring this clip",
+    "proximity": {
+      "near": "Near",
+      "mid": "Mid-range",
+      "far": "Far",
+      "unknown": "Not determined"
+    },
+    "level": {
+      "heading": "Level and distance",
+      "proximity": "Distance",
+      "tilt": "High-frequency roll-off",
+      "peak": "Peak",
+      "rms": "Average",
+      "relativeOnly": "Distance is relative, not measured in metres. Absolute distance needs a calibrated microphone and a known source level.",
+      "calibrated": "Estimated {{metres}} m, using the configured microphone calibration."
+    },
+    "onsets": {
+      "heading": "Separate sounds counted",
+      "interval": "About {{seconds}} s apart",
+      "regular": "evenly spaced, suggesting a machine",
+      "single": "A single sound"
+    },
+    "doppler": {
+      "heading": "Pass-by",
+      "speed": "Speed",
+      "cpa": "Closest approach",
+      "fit": "Fit quality",
+      "weakFit": "The pitch shift was weak, so treat the speed and distance as rough."
+    },
+    "envelope": {
+      "heading": "Duration",
+      "duration": "{{seconds}} s from onset to decay"
+    },
+    "impulse": {
+      "heading": "Impulse shape",
+      "crest": "Crest factor",
+      "rise": "Rise time",
+      "centroid": "Brightness",
+      "lowConfidence": "These measurements describe the sound but cannot identify it on their own."
+    },
+    "aircraft": {
+      "heading": "Aircraft identified",
+      "registration": "Registration",
+      "type": "Type",
+      "operator": "Operator",
+      "route": "Route",
+      "altitude": "Altitude",
+      "provenance": "Matched by rewinding {{lag}} s of sound travel · {{confidence}}% confidence · source {{source}}",
+      "noMatch": "No aircraft was close enough to account for this sound."
+    }
   }
 }

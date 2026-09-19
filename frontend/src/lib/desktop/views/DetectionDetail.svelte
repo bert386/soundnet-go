@@ -29,6 +29,8 @@
   import { loggers } from '$lib/utils/logger';
   import { localizeSpeciesName } from '$lib/utils/speciesDisplay';
   import SourceBadge from '$lib/desktop/features/dashboard/components/SourceBadge.svelte';
+  // SOUNDNET: acoustic diagnostics and externally resolved identity.
+  import SoundNetPanel from '$lib/desktop/features/soundnet/components/SoundNetPanel.svelte';
   import {
     Download,
     Camera,
@@ -709,6 +711,17 @@
 {/snippet}
 
 {#snippet overviewTab(det: Detection)}
+  <!--
+    SOUNDNET: acoustic diagnostics and externally resolved identity. Renders
+    above the two-column grid because it is about this detection specifically,
+    rather than background context. The panel explains its own empty states, so
+    it is safe to show for every detection - a bird simply reports that there is
+    nothing measurable about it.
+  -->
+  <div class="mb-8">
+    <SoundNetPanel detectionId={String(det.id)} />
+  </div>
+
   <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
     <!-- Species Rarity -->
     {#if speciesInfo?.rarity}
