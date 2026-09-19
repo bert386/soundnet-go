@@ -1,5 +1,13 @@
 # OpenVINO Acceleration Guide
 
+> **Inherited documentation.** This page came from upstream
+> [BirdNET-Go](https://github.com/tphakala/birdnet-go) and has not yet been revised for
+> SoundNet. Where it refers to installers, releases, `ghcr.io` container images, issue
+> trackers or support channels, those belong to **upstream**, not to this fork — SoundNet
+> publishes none of them and is built from source. Technical descriptions of how the
+> software works generally still apply. See [the SoundNet README](../../README.md) for
+> what this fork changes.
+
 OpenVINO is an optional inference backend that can run BirdNET-Go's neural network models faster than the default ONNX Runtime path on supported hardware. Its two main uses are:
 
 - **Intel iGPU / dGPU offload** on x86-64 (amd64) hosts: move BirdNET v2.4 and Perch v2 inference onto an Intel integrated GPU, freeing the CPU. This is the headline use case for people running multiple RTSP streams on Intel N100/N305/Core machines.

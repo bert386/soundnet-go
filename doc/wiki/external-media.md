@@ -1,5 +1,13 @@
 # External Media (USB, SD Card, File Shares)
 
+> **Inherited documentation.** This page came from upstream
+> [BirdNET-Go](https://github.com/tphakala/birdnet-go) and has not yet been revised for
+> SoundNet. Where it refers to installers, releases, `ghcr.io` container images, issue
+> trackers or support channels, those belong to **upstream**, not to this fork — SoundNet
+> publishes none of them and is built from source. Technical descriptions of how the
+> software works generally still apply. See [the SoundNet README](../../README.md) for
+> what this fork changes.
+
 BirdNET-Go can read from and write to removable or network-attached storage
 mounted on the host. The `/external` directory inside the container maps to
 `/mnt/birdnet-go/external` on the host. Planned uses include importing

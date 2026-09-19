@@ -1,6 +1,6 @@
-# Contributing to BirdNET-Go
+# Contributing to SoundNet
 
-Thank you for your interest in contributing to BirdNET-Go!
+SoundNet is a private, non-commercial fork of [BirdNET-Go](https://github.com/tphakala/birdnet-go). It does not accept outside contributions. **Improvements that are not specific to this fork belong upstream**, where they benefit everyone — please send them to the BirdNET-Go repository instead. This document is retained because the development workflow below still applies to work on the fork.
 
 ## TL;DR - Quick Start
 
@@ -9,7 +9,7 @@ Thank you for your interest in contributing to BirdNET-Go!
 **Automated Setup (Linux/macOS):**
 
 ```bash
-git clone https://github.com/tphakala/birdnet-go.git && cd birdnet-go
+git clone https://github.com/bert386/soundnet-go.git && cd soundnet-go
 # install Task
 sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
 # install development tools (compilers, linters, etc)
@@ -23,7 +23,7 @@ air realtime
 **Dev Container (All Platforms):**
 
 ```bash
-git clone https://github.com/tphakala/birdnet-go.git && cd birdnet-go
+git clone https://github.com/bert386/soundnet-go.git && cd soundnet-go
 code .
 # Press F1 → "Dev Containers: Reopen in Container"
 air realtime
@@ -175,7 +175,7 @@ air realtime      # Hot reload dev server (or: task dev_server)
 
 **Setup:**
 
-1. Clone: `git clone https://github.com/tphakala/birdnet-go.git && cd birdnet-go`
+1. Clone: `git clone https://github.com/bert386/soundnet-go.git && cd soundnet-go`
 2. Open: `code .`
 3. Press `F1` → "Dev Containers: Reopen in Container"
 4. Wait ~5-10 minutes for setup (frontend will be built automatically)

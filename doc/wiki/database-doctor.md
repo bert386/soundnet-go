@@ -1,5 +1,13 @@
 # Database Doctor
 
+> **Inherited documentation.** This page came from upstream
+> [BirdNET-Go](https://github.com/tphakala/birdnet-go) and has not yet been revised for
+> SoundNet. Where it refers to installers, releases, `ghcr.io` container images, issue
+> trackers or support channels, those belong to **upstream**, not to this fork — SoundNet
+> publishes none of them and is built from source. Technical descriptions of how the
+> software works generally still apply. See [the SoundNet README](../../README.md) for
+> what this fork changes.
+
 The Database Doctor is a standalone diagnostic and repair tool for BirdNET-Go SQLite databases. Run it outside the application to identify and fix database issues that prevent startup after upgrading between nightly builds.
 
 **Requirements:** Python 3.9+ (no additional packages needed)

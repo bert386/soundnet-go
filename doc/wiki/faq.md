@@ -1,5 +1,13 @@
 # Frequently Asked Questions
 
+> **Inherited documentation.** This page came from upstream
+> [BirdNET-Go](https://github.com/tphakala/birdnet-go) and has not yet been revised for
+> SoundNet. Where it refers to installers, releases, `ghcr.io` container images, issue
+> trackers or support channels, those belong to **upstream**, not to this fork — SoundNet
+> publishes none of them and is built from source. Technical descriptions of how the
+> software works generally still apply. See [the SoundNet README](../../README.md) for
+> what this fork changes.
+
 Common questions, problems, and fixes for BirdNET-Go. For step-by-step guides see the [Installation Guide](installation.md), [Recommended Hardware](hardware.md), [RTSP Troubleshooting](rtsp-troubleshooting.md), [Detection Pipeline](detection-pipeline.md), and [Remote Access / Cloudflare Tunnel](cloudflare_tunnel_guide.md).
 
 If your problem isn't covered here, generate a support dump from **Settings > Support** (it bundles your config and logs) and open a [discussion](https://github.com/tphakala/birdnet-go/discussions) or [issue](https://github.com/tphakala/birdnet-go/issues).

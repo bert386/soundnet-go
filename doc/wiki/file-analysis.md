@@ -1,3 +1,10 @@
+> **Inherited documentation.** This page came from upstream
+> [BirdNET-Go](https://github.com/tphakala/birdnet-go) and has not yet been revised for
+> SoundNet. Where it refers to installers, releases, `ghcr.io` container images, issue
+> trackers or support channels, those belong to **upstream**, not to this fork — SoundNet
+> publishes none of them and is built from source. Technical descriptions of how the
+> software works generally still apply. See [the SoundNet README](../../README.md) for
+> what this fork changes.
 File analysis is enabled by **file** flag, you can define additional options such as BirdNET detection threshold, sensitivity or number of CPU threads used by tflite. Default format for file analysis results is Raven table and output is saved in _output/inputfilename.wav.txt_.
 
 File analysis works best with WAV files which are recorded in 48k sample rate, BirdNET-Go has very simple resampling algorithm which allows ingestion of audio files with alternative sample rates but detection accuracy will be degraded. Input file bit depths of 16, 24 and 32 (int) are supported.

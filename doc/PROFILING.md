@@ -1,5 +1,13 @@
 # BirdNET-Go Profiling Guide
 
+> **Inherited documentation.** This page came from upstream
+> [BirdNET-Go](https://github.com/tphakala/birdnet-go) and has not yet been revised for
+> SoundNet. Where it refers to installers, releases, `ghcr.io` container images, issue
+> trackers or support channels, those belong to **upstream**, not to this fork — SoundNet
+> publishes none of them and is built from source. Technical descriptions of how the
+> software works generally still apply. See [the SoundNet README](../README.md) for
+> what this fork changes.
+
 This guide explains how to use the built-in profiling capabilities in BirdNET-Go
 to diagnose performance issues and memory usage.
 

@@ -1,5 +1,13 @@
 # Non-Bird Species in BirdNET v2.4
 
+> **Inherited documentation.** This page came from upstream
+> [BirdNET-Go](https://github.com/tphakala/birdnet-go) and has not yet been revised for
+> SoundNet. Where it refers to installers, releases, `ghcr.io` container images, issue
+> trackers or support channels, those belong to **upstream**, not to this fork — SoundNet
+> publishes none of them and is built from source. Technical descriptions of how the
+> software works generally still apply. See [the SoundNet README](../../README.md) for
+> what this fork changes.
+
 BirdNET can detect several non-bird species, including mammals, amphibians, and insects, as well as some common environmental sounds. Below is the full list of non-bird labels supported in the BirdNET v2.4 model.
 
 ## Biological Species

@@ -1,5 +1,11 @@
 # BirdNET-Go Architecture
 
+> **Scope note.** This document describes the architecture inherited from upstream
+> BirdNET-Go and remains broadly accurate. The layers SoundNet adds — `internal/diagnostics`
+> (DSP properties) and `internal/enrichment` (external identity) — are specified in
+> [doc/soundnet/SCOPE.md](doc/soundnet/SCOPE.md) and are documented here as they land.
+
+
 This document provides a comprehensive overview of BirdNET-Go's architecture, tech stack, and design decisions.
 
 ## Table of Contents

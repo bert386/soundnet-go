@@ -1,5 +1,13 @@
 # ONNX Runtime Installation Guide
 
+> **Inherited documentation.** This page came from upstream
+> [BirdNET-Go](https://github.com/tphakala/birdnet-go) and has not yet been revised for
+> SoundNet. Where it refers to installers, releases, `ghcr.io` container images, issue
+> trackers or support channels, those belong to **upstream**, not to this fork — SoundNet
+> publishes none of them and is built from source. Technical descriptions of how the
+> software works generally still apply. See [the SoundNet README](../README.md) for
+> what this fork changes.
+
 ONNX Runtime is a shared library required by BirdNET-Go for neural network inference. It powers the BirdNET v2.4 classifier, Perch v2 embeddings, BattyBirdNET bat detection, range filtering, and BirdNET Geomodel features.
 
 > **Note:** ONNX Runtime will become the sole inference backend in a future release. TensorFlow Lite support is being phased out. If you are setting up a new installation, only ONNX Runtime is needed going forward.

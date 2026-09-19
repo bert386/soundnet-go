@@ -1,7 +1,61 @@
-# AI Agent Instructions for BirdNET-Go
+# AI Agent Instructions for SoundNet
 
 These instructions apply to all AI coding agents working on this repository,
 regardless of tool (Claude Code, Codex, Cursor, Gemini, Windsurf, Copilot, etc.).
+
+## SoundNet fork - architectural rules
+
+SoundNet is a private, non-commercial fork of BirdNET-Go, extended from a bird-focused
+soundscape analyser into a general acoustic event detector. Read `doc/soundnet/SCOPE.md`
+for the full brief and `doc/soundnet/DECISIONS.md` for decisions already made.
+
+These rules override nothing below; they are additional and they are not negotiable.
+
+### Keep upstream mergeable
+
+This fork tracks upstream. Every avoidable edit to an upstream file costs a merge conflict
+later, forever.
+
+- **All new code goes in new `internal/*` packages.** Do not grow upstream packages.
+- **Touch upstream files with thin hooks only** - ideally one clearly-marked integration
+  point per pipeline stage, calling into a new package.
+- Before merging upstream, run `scripts/rewrite-module-path.sh` on the upstream branch so
+  its import paths match the fork's. That converts ~1,190 conflicting files into a clean merge.
+- The module path is `github.com/bert386/soundnet-go`. External dependency
+  `github.com/tphakala/go-tflite` is NOT part of the rename - leave it alone.
+
+### The three layers are separate, and must stay separate
+
+| Layer | Package | Emits |
+|---|---|---|
+| Class | models / gallery | a coarse label |
+| Properties | `internal/diagnostics` | measurements - near/far, speed, count, duration |
+| Identity | `internal/enrichment` | an externally-resolved identity |
+
+Do not let these bleed into one another. Diagnostics emit **measurements, not labels**.
+Enrichment resolves identity from an authoritative external source or **returns null** -
+never a guess. For siren, gunshot and vehicle there is no public authority: returning
+nothing is the correct behaviour, and fabricating an identity is a defect.
+
+Where a discrimination is genuinely unreliable from a single microphone - gunshot versus
+vehicle backfire is the known case - expose the features and a **low-confidence flag**.
+Do not assert.
+
+### Cost and configuration
+
+- **Perf budget is a Raspberry Pi 4.** Diagnostics must run under 100 ms per clip. Every
+  stage must be skippable per class. Benchmark in CI.
+- **All new behaviour sits behind `config.yaml` keys, defaulting to off where it adds cost.**
+  Validate configuration on load.
+- **Privacy by design, matching upstream.** No external call without explicit opt-in.
+  Provider credentials are read from an operator-supplied path or env var - never committed,
+  never written into a versioned `config.yaml`, never logged or included in support dumps.
+- **No network in tests.** Provider tests run against captured fixture snapshots.
+
+### Attribution is a licence obligation
+
+`LICENSE`, `NOTICE` and `AUTHORS` credit upstream and must not be rewritten to remove that
+credit. CC BY-NC-SA 4.0 requires it. Automated rewrites must exclude these files.
 
 ## PR Scope Rule
 

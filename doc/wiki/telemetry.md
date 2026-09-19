@@ -1,5 +1,13 @@
 # Error Tracking & Telemetry
 
+> **Inherited documentation.** This page came from upstream
+> [BirdNET-Go](https://github.com/tphakala/birdnet-go) and has not yet been revised for
+> SoundNet. Where it refers to installers, releases, `ghcr.io` container images, issue
+> trackers or support channels, those belong to **upstream**, not to this fork — SoundNet
+> publishes none of them and is built from source. Technical descriptions of how the
+> software works generally still apply. See [the SoundNet README](../../README.md) for
+> what this fork changes.
+
 BirdNET-Go includes an optional, privacy-first error tracking system designed to help developers identify and fix issues that affect system reliability and performance. This system is **completely opt-in** and follows privacy-by-design principles.
 
 📋 **For comprehensive privacy information, please see our [Privacy Statement](../../PRIVACY.md)**
