@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/tphakala/birdnet-go/internal/datastore"
+	"github.com/bert386/soundnet-go/internal/datastore"
 	"gorm.io/gorm"
 	gormlogger "gorm.io/gorm/logger"
 )

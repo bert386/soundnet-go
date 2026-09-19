@@ -11,11 +11,11 @@ const (
 	// repoBlobBase is the prefix for linking to a file in the repository's
 	// default branch. Relative links that point at repo files (not wiki pages)
 	// are rewritten to absolute blob URLs so they resolve on the wiki.
-	repoBlobBase = "https://github.com/tphakala/birdnet-go/blob/main/"
+	repoBlobBase = "https://github.com/bert386/soundnet-go/blob/main/"
 
 	// wikiURLPrefix is the public base URL of the project wiki. Absolute links
 	// that point back at our own wiki are normalized to relative page slugs.
-	wikiURLPrefix = "https://github.com/tphakala/birdnet-go/wiki/"
+	wikiURLPrefix = "https://github.com/bert386/soundnet-go/wiki/"
 
 	// bannerMarker is an HTML comment that flags a page as managed by the sync.
 	// It is also used to make banner injection idempotent.

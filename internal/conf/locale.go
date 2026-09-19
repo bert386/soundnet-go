@@ -10,8 +10,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/tphakala/birdnet-go/internal/errors"
-	"github.com/tphakala/birdnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/errors"
+	"github.com/bert386/soundnet-go/internal/logger"
 )
 
 // DefaultFallbackLocale is the default locale used when the requested locale is not supported

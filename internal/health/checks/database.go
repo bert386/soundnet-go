@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/tphakala/birdnet-go/internal/health"
+	"github.com/bert386/soundnet-go/internal/health"
 )
 
 // DatabaseSizeCheck reports the size of the SQLite database file and warns when it is large.

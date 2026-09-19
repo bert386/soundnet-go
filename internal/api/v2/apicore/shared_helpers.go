@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/tphakala/birdnet-go/internal/classifier"
-	"github.com/tphakala/birdnet-go/internal/speciesindex"
+	"github.com/bert386/soundnet-go/internal/classifier"
+	"github.com/bert386/soundnet-go/internal/speciesindex"
 )
 
 // BirdNET week-model constants, shared across api/v2 domains. BirdNET uses a

@@ -18,16 +18,16 @@ import (
 	"strings"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/api/auth"
+	"github.com/bert386/soundnet-go/internal/api/v2/apicore"
+	"github.com/bert386/soundnet-go/internal/classifier"
+	"github.com/bert386/soundnet-go/internal/classifier/recommend"
+	"github.com/bert386/soundnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/errors"
+	"github.com/bert386/soundnet-go/internal/hwprofile"
+	"github.com/bert386/soundnet-go/internal/inference"
+	"github.com/bert386/soundnet-go/internal/logger"
 	"github.com/labstack/echo/v4"
-	"github.com/tphakala/birdnet-go/internal/api/auth"
-	"github.com/tphakala/birdnet-go/internal/api/v2/apicore"
-	"github.com/tphakala/birdnet-go/internal/classifier"
-	"github.com/tphakala/birdnet-go/internal/classifier/recommend"
-	"github.com/tphakala/birdnet-go/internal/conf"
-	"github.com/tphakala/birdnet-go/internal/errors"
-	"github.com/tphakala/birdnet-go/internal/hwprofile"
-	"github.com/tphakala/birdnet-go/internal/inference"
-	"github.com/tphakala/birdnet-go/internal/logger"
 )
 
 // Handler serves the models domain endpoints. It embeds *apicore.Core BY

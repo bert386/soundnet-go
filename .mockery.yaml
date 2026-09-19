@@ -9,7 +9,7 @@ outpkg: mocks  # Package name for generated mocks
 
 # Package-specific configurations
 packages:
-  github.com/tphakala/birdnet-go/internal/datastore:
+  github.com/bert386/soundnet-go/internal/datastore:
     config:
       # All interfaces in this package should be mocked
       all: true
@@ -20,7 +20,7 @@ packages:
           filename: "mock_Interface.go"
           mockname: "MockInterface"
 
-  github.com/tphakala/birdnet-go/internal/notification:
+  github.com/bert386/soundnet-go/internal/notification:
     interfaces:
       # Provider interface for push notification providers
       Provider:
@@ -38,7 +38,7 @@ packages:
           filename: "mock_TelemetryReporter.go"
           mockname: "MockTelemetryReporter"
 
-  github.com/tphakala/birdnet-go/internal/events:
+  github.com/bert386/soundnet-go/internal/events:
     interfaces:
       # ErrorEvent interface for error event handling
       ErrorEvent:
@@ -46,7 +46,7 @@ packages:
           filename: "mock_ErrorEvent.go"
           mockname: "MockErrorEvent"
 
-  github.com/tphakala/birdnet-go/internal/datastore/v2/repository:
+  github.com/bert386/soundnet-go/internal/datastore/v2/repository:
     interfaces:
       # Alert rule CRUD and history repository - used by the api/v2 alerts domain tests
       AlertRuleRepository:

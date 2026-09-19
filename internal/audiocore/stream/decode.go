@@ -10,7 +10,7 @@ import (
 	mp3 "github.com/tphakala/go-mp3"
 	"github.com/tphakala/go-opus/opus"
 
-	"github.com/tphakala/birdnet-go/internal/errors"
+	"github.com/bert386/soundnet-go/internal/errors"
 )
 
 // errCodecConfigPending signals that a track's codec configuration is not yet

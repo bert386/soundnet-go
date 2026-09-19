@@ -16,20 +16,20 @@ import (
 	"time"
 	"unicode/utf8"
 
+	"github.com/bert386/soundnet-go/internal/api/auth"
+	"github.com/bert386/soundnet-go/internal/api/v2/apicore"
+	"github.com/bert386/soundnet-go/internal/api/v2/apitest"
+	"github.com/bert386/soundnet-go/internal/branding"
+	"github.com/bert386/soundnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/datastore/mocks"
+	"github.com/bert386/soundnet-go/internal/security/securitytest"
+	"github.com/bert386/soundnet-go/internal/speciesdict"
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo/v4"
 	"github.com/markbates/goth/gothic"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/api/auth"
-	"github.com/tphakala/birdnet-go/internal/api/v2/apicore"
-	"github.com/tphakala/birdnet-go/internal/api/v2/apitest"
-	"github.com/tphakala/birdnet-go/internal/branding"
-	"github.com/tphakala/birdnet-go/internal/conf"
-	"github.com/tphakala/birdnet-go/internal/datastore/mocks"
-	"github.com/tphakala/birdnet-go/internal/security/securitytest"
-	"github.com/tphakala/birdnet-go/internal/speciesdict"
 )
 
 // =============================================================================

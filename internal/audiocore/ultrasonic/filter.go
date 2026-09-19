@@ -7,7 +7,7 @@ import (
 	"math"
 	"math/cmplx"
 
-	"github.com/tphakala/birdnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/conf"
 )
 
 // ComputeUSFrameCV computes the coefficient of variation of per-frame ultrasonic

@@ -3,9 +3,9 @@ package classifier
 import (
 	"testing"
 
+	"github.com/bert386/soundnet-go/internal/hwprofile"
+	"github.com/bert386/soundnet-go/internal/inference"
 	"github.com/stretchr/testify/assert"
-	"github.com/tphakala/birdnet-go/internal/hwprofile"
-	"github.com/tphakala/birdnet-go/internal/inference"
 )
 
 // TestOpenVINOPrecisionFor verifies the per-(model, device) precision policy:

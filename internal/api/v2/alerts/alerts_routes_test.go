@@ -21,12 +21,12 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/tphakala/birdnet-go/internal/alerting"
-	"github.com/tphakala/birdnet-go/internal/api/v2/apitest"
-	"github.com/tphakala/birdnet-go/internal/datastore/v2/entities"
-	"github.com/tphakala/birdnet-go/internal/datastore/v2/repository/mocks"
-	"github.com/tphakala/birdnet-go/internal/logger"
-	"github.com/tphakala/birdnet-go/internal/notification"
+	"github.com/bert386/soundnet-go/internal/alerting"
+	"github.com/bert386/soundnet-go/internal/api/v2/apitest"
+	"github.com/bert386/soundnet-go/internal/datastore/v2/entities"
+	"github.com/bert386/soundnet-go/internal/datastore/v2/repository/mocks"
+	"github.com/bert386/soundnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/notification"
 )
 
 // passthroughMiddleware allows all requests through. The protected alert subgroup

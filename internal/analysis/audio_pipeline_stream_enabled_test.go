@@ -3,12 +3,12 @@ package analysis
 import (
 	"testing"
 
+	"github.com/bert386/soundnet-go/internal/audiocore"
+	enginepkg "github.com/bert386/soundnet-go/internal/audiocore/engine"
+	"github.com/bert386/soundnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/conf/conftest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/audiocore"
-	enginepkg "github.com/tphakala/birdnet-go/internal/audiocore/engine"
-	"github.com/tphakala/birdnet-go/internal/conf"
-	"github.com/tphakala/birdnet-go/internal/conf/conftest"
 )
 
 func TestBuildSourceConfigsWithModels_SkipsDisabledStreams(t *testing.T) {

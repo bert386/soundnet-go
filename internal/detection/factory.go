@@ -4,7 +4,7 @@ import (
 	"math"
 	"time"
 
-	"github.com/tphakala/birdnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/conf"
 )
 
 // DetectionTimeOffset is subtracted from the current time when creating detections.

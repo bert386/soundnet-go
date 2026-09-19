@@ -108,43 +108,43 @@ func TestMatchesPathSegment(t *testing.T) {
 	}{
 		{
 			name:    "birdnet should not match birdnet-go module path",
-			s:       "github.com/tphakala/birdnet-go/internal/datastore.Save",
+			s:       "github.com/bert386/soundnet-go/internal/datastore.Save",
 			pattern: "birdnet",
 			want:    false,
 		},
 		{
 			name:    "classifier should match classifier package segment",
-			s:       "github.com/tphakala/birdnet-go/internal/classifier.Predict",
+			s:       "github.com/bert386/soundnet-go/internal/classifier.Predict",
 			pattern: "classifier",
 			want:    true,
 		},
 		{
 			name:    "myaudio should match myaudio package",
-			s:       "github.com/tphakala/birdnet-go/internal/myaudio.ProcessSoundLevelData",
+			s:       "github.com/bert386/soundnet-go/internal/myaudio.ProcessSoundLevelData",
 			pattern: "myaudio",
 			want:    true,
 		},
 		{
 			name:    "soundlevel does not match camelCase SoundLevel",
-			s:       "github.com/tphakala/birdnet-go/internal/analysis.registerSoundLevelProcessors",
+			s:       "github.com/bert386/soundnet-go/internal/analysis.registerSoundLevelProcessors",
 			pattern: "soundlevel",
 			want:    false, // case-sensitive: "soundlevel" != "SoundLevel"
 		},
 		{
 			name:    "analysis matches as path segment",
-			s:       "github.com/tphakala/birdnet-go/internal/analysis.registerSoundLevelProcessors",
+			s:       "github.com/bert386/soundnet-go/internal/analysis.registerSoundLevelProcessors",
 			pattern: "analysis",
 			want:    true,
 		},
 		{
 			name:    "analysis/processor matches subpackage path",
-			s:       "github.com/tphakala/birdnet-go/internal/analysis/processor.Process",
+			s:       "github.com/bert386/soundnet-go/internal/analysis/processor.Process",
 			pattern: "analysis/processor",
 			want:    true,
 		},
 		{
 			name:    "pattern at end of string",
-			s:       "github.com/tphakala/birdnet-go/internal/datastore",
+			s:       "github.com/bert386/soundnet-go/internal/datastore",
 			pattern: "datastore",
 			want:    true,
 		},
@@ -170,11 +170,11 @@ func TestLookupComponentAvoidsMisdetection(t *testing.T) {
 
 	// A function in the datastore package should not be detected as "birdnet"
 	// just because "birdnet" appears in the module path "birdnet-go"
-	result := lookupComponent("github.com/tphakala/birdnet-go/internal/datastore.Save")
+	result := lookupComponent("github.com/bert386/soundnet-go/internal/datastore.Save")
 	assert.Equal(t, "datastore", result, "should match datastore, not birdnet")
 
 	// A function in the actual classifier package should match birdnet (classifier is the renamed birdnet package)
-	result = lookupComponent("github.com/tphakala/birdnet-go/internal/classifier.Predict")
+	result = lookupComponent("github.com/bert386/soundnet-go/internal/classifier.Predict")
 	assert.Equal(t, "birdnet", result, "should match birdnet component via classifier package path")
 }
 
@@ -191,10 +191,10 @@ func TestLookupComponentLongestMatchWins(t *testing.T) {
 		funcName string
 		want     string
 	}{
-		{"stream beats audiocore", "github.com/tphakala/birdnet-go/internal/audiocore/stream.newStream", "native-stream"},
-		{"engine beats audiocore", "github.com/tphakala/birdnet-go/internal/audiocore/engine.New", "audiocore.engine"},
-		{"processor beats analysis", "github.com/tphakala/birdnet-go/internal/analysis/processor.Process", "analysis.processor"},
-		{"imports/audio beats imports", "github.com/tphakala/birdnet-go/internal/imports/audio.Import", "imports.audio"},
+		{"stream beats audiocore", "github.com/bert386/soundnet-go/internal/audiocore/stream.newStream", "native-stream"},
+		{"engine beats audiocore", "github.com/bert386/soundnet-go/internal/audiocore/engine.New", "audiocore.engine"},
+		{"processor beats analysis", "github.com/bert386/soundnet-go/internal/analysis/processor.Process", "analysis.processor"},
+		{"imports/audio beats imports", "github.com/bert386/soundnet-go/internal/imports/audio.Import", "imports.audio"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

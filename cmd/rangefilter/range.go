@@ -2,8 +2,8 @@
 package rangefilter
 
 import (
+	"github.com/bert386/soundnet-go/internal/conf"
 	"github.com/spf13/cobra"
-	"github.com/tphakala/birdnet-go/internal/conf"
 )
 
 // Command creates the range parent command

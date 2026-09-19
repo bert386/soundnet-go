@@ -16,8 +16,8 @@
 package api
 
 import (
-	"github.com/tphakala/birdnet-go/internal/api/v2/apicore"
-	"github.com/tphakala/birdnet-go/internal/speciesindex"
+	"github.com/bert386/soundnet-go/internal/api/v2/apicore"
+	"github.com/bert386/soundnet-go/internal/speciesindex"
 )
 
 // loadNameMaps returns the current species-name snapshot. Always returns a

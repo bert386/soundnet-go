@@ -4,8 +4,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/tphakala/birdnet-go/internal/audiocore/audiotemp"
-	"github.com/tphakala/birdnet-go/internal/errors"
+	"github.com/bert386/soundnet-go/internal/audiocore/audiotemp"
+	"github.com/bert386/soundnet-go/internal/errors"
 	wavpcm "github.com/tphakala/go-wav/pcm"
 )
 

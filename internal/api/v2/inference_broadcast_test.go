@@ -5,9 +5,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/api/v2/apicore"
+	"github.com/bert386/soundnet-go/internal/observability"
 	"github.com/stretchr/testify/assert"
-	"github.com/tphakala/birdnet-go/internal/api/v2/apicore"
-	"github.com/tphakala/birdnet-go/internal/observability"
 )
 
 // TestBroadcastInferenceTopologyChanged_ReachesConsumer verifies that the

@@ -5,7 +5,7 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/tphakala/birdnet-go/internal/templatefuncs"
+	"github.com/bert386/soundnet-go/internal/templatefuncs"
 )
 
 // TemplateFuncs re-exports the shared template function map for use within the

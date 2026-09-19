@@ -4,9 +4,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/errors"
+	"github.com/bert386/soundnet-go/internal/logger"
 	"github.com/smallnest/ringbuffer"
-	"github.com/tphakala/birdnet-go/internal/errors"
-	"github.com/tphakala/birdnet-go/internal/logger"
 )
 
 // Overwrite monitoring constants.

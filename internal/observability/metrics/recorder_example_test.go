@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/tphakala/birdnet-go/internal/observability/metrics"
+	"github.com/bert386/soundnet-go/internal/observability/metrics"
 )
 
 // ExampleComponent demonstrates how a component can use the Recorder interface

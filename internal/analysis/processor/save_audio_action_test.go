@@ -15,10 +15,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/tphakala/birdnet-go/internal/analysis/jobqueue"
-	audioBuffer "github.com/tphakala/birdnet-go/internal/audiocore/buffer"
-	"github.com/tphakala/birdnet-go/internal/conf"
-	"github.com/tphakala/birdnet-go/internal/conf/conftest"
+	"github.com/bert386/soundnet-go/internal/analysis/jobqueue"
+	audioBuffer "github.com/bert386/soundnet-go/internal/audiocore/buffer"
+	"github.com/bert386/soundnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/conf/conftest"
 )
 
 func TestSaveAudioActionExecute_DefersUntilCaptureReady(t *testing.T) {

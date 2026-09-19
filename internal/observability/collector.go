@@ -7,10 +7,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/classifier/inferencestats"
+	"github.com/bert386/soundnet-go/internal/datastore/dbstats"
 	"github.com/shirou/gopsutil/v3/disk"
 	"github.com/shirou/gopsutil/v3/mem"
-	"github.com/tphakala/birdnet-go/internal/classifier/inferencestats"
-	"github.com/tphakala/birdnet-go/internal/datastore/dbstats"
 )
 
 // CPUUsageFunc is a function that returns the current total CPU usage percentage.

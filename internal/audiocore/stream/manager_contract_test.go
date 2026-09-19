@@ -10,10 +10,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/tphakala/birdnet-go/internal/audiocore"
-	"github.com/tphakala/birdnet-go/internal/audiocore/stream"
-	"github.com/tphakala/birdnet-go/internal/audiocore/streamtest"
-	"github.com/tphakala/birdnet-go/internal/testutil/containers"
+	"github.com/bert386/soundnet-go/internal/audiocore"
+	"github.com/bert386/soundnet-go/internal/audiocore/stream"
+	"github.com/bert386/soundnet-go/internal/audiocore/streamtest"
+	"github.com/bert386/soundnet-go/internal/testutil/containers"
 )
 
 // nativeManagerAdapter adapts *stream.Manager to the producer-agnostic

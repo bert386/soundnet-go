@@ -5,14 +5,14 @@ package mocks
 import (
 	context "context"
 
-	datastore "github.com/tphakala/birdnet-go/internal/datastore"
-	detection "github.com/tphakala/birdnet-go/internal/detection"
+	datastore "github.com/bert386/soundnet-go/internal/datastore"
+	detection "github.com/bert386/soundnet-go/internal/detection"
 
-	diskmanager "github.com/tphakala/birdnet-go/internal/diskmanager"
+	diskmanager "github.com/bert386/soundnet-go/internal/diskmanager"
 
 	gorm "gorm.io/gorm"
 
-	metrics "github.com/tphakala/birdnet-go/internal/observability/metrics"
+	metrics "github.com/bert386/soundnet-go/internal/observability/metrics"
 
 	mock "github.com/stretchr/testify/mock"
 

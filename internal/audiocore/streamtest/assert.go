@@ -3,7 +3,7 @@ package streamtest
 import (
 	"math"
 
-	"github.com/tphakala/birdnet-go/internal/audiocore/convert"
+	"github.com/bert386/soundnet-go/internal/audiocore/convert"
 )
 
 // Signal-analysis constants for the tone assertions.

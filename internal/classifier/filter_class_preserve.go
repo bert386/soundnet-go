@@ -1,8 +1,8 @@
 package classifier
 
 import (
-	"github.com/tphakala/birdnet-go/internal/datastore"
-	"github.com/tphakala/birdnet-go/internal/labels/vocalization"
+	"github.com/bert386/soundnet-go/internal/datastore"
+	"github.com/bert386/soundnet-go/internal/labels/vocalization"
 )
 
 // maxPreservedFilterClasses is the most results preserveFilterClasses can append

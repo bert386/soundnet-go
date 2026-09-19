@@ -7,10 +7,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/api/v2/apitest"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/api/v2/apitest"
 )
 
 func TestHandleRequestContextError(t *testing.T) {

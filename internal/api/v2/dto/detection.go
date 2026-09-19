@@ -4,7 +4,7 @@ package dto
 import (
 	"time"
 
-	"github.com/tphakala/birdnet-go/internal/detection"
+	"github.com/bert386/soundnet-go/internal/detection"
 )
 
 // DetectionResponse is the API response for detection endpoints.

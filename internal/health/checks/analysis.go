@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/tphakala/birdnet-go/internal/health"
-	"github.com/tphakala/birdnet-go/internal/observability"
+	"github.com/bert386/soundnet-go/internal/health"
+	"github.com/bert386/soundnet-go/internal/observability"
 )
 
 const (

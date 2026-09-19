@@ -6,9 +6,9 @@ import (
 
 	"github.com/labstack/echo/v4"
 
-	"github.com/tphakala/birdnet-go/internal/errors"
-	"github.com/tphakala/birdnet-go/internal/logger"
-	"github.com/tphakala/birdnet-go/internal/privacy"
+	"github.com/bert386/soundnet-go/internal/errors"
+	"github.com/bert386/soundnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/privacy"
 )
 
 // tunnelProviderUnknown is the tunnel provider label for unknown providers.

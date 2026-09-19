@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/tphakala/birdnet-go/internal/logger/logtest"
+	"github.com/bert386/soundnet-go/internal/logger/logtest"
 )
 
 // TestCleanupSummaryHitDeletionCap verifies the primary WARN predicate: a run

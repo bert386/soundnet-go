@@ -3,8 +3,8 @@ package support
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/tphakala/birdnet-go/internal/conf"
-	"github.com/tphakala/birdnet-go/internal/inference"
+	"github.com/bert386/soundnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/inference"
 )
 
 // OpenVINOProbeCommand creates the hidden `support openvino-probe` subcommand.

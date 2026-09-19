@@ -4,8 +4,8 @@ package mqtt
 import (
 	"time"
 
-	"github.com/tphakala/birdnet-go/internal/detection"
-	"github.com/tphakala/birdnet-go/internal/imageprovider"
+	"github.com/bert386/soundnet-go/internal/detection"
+	"github.com/bert386/soundnet-go/internal/imageprovider"
 )
 
 // MQTTEventDTO is the data transfer object for MQTT publishing.

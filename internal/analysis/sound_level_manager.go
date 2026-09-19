@@ -4,12 +4,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/tphakala/birdnet-go/internal/analysis/processor"
-	apiv2 "github.com/tphakala/birdnet-go/internal/api/v2"
-	"github.com/tphakala/birdnet-go/internal/audiocore/soundlevel"
-	"github.com/tphakala/birdnet-go/internal/conf"
-	"github.com/tphakala/birdnet-go/internal/logger"
-	"github.com/tphakala/birdnet-go/internal/observability"
+	"github.com/bert386/soundnet-go/internal/analysis/processor"
+	apiv2 "github.com/bert386/soundnet-go/internal/api/v2"
+	"github.com/bert386/soundnet-go/internal/audiocore/soundlevel"
+	"github.com/bert386/soundnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/observability"
 )
 
 // SoundLevelManager manages the lifecycle of sound level monitoring components

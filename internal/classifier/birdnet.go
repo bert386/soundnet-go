@@ -15,16 +15,16 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/cpuspec"
+	"github.com/bert386/soundnet-go/internal/datastore"
+	"github.com/bert386/soundnet-go/internal/detection"
+	"github.com/bert386/soundnet-go/internal/errors"
+	"github.com/bert386/soundnet-go/internal/inference"
+	"github.com/bert386/soundnet-go/internal/inference/tflite"
+	"github.com/bert386/soundnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/telemetry"
 	"github.com/getsentry/sentry-go"
-	"github.com/tphakala/birdnet-go/internal/conf"
-	"github.com/tphakala/birdnet-go/internal/cpuspec"
-	"github.com/tphakala/birdnet-go/internal/datastore"
-	"github.com/tphakala/birdnet-go/internal/detection"
-	"github.com/tphakala/birdnet-go/internal/errors"
-	"github.com/tphakala/birdnet-go/internal/inference"
-	"github.com/tphakala/birdnet-go/internal/inference/tflite"
-	"github.com/tphakala/birdnet-go/internal/logger"
-	"github.com/tphakala/birdnet-go/internal/telemetry"
 )
 
 // Default model version for the embedded model

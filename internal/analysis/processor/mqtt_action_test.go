@@ -14,11 +14,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/detection"
+	"github.com/bert386/soundnet-go/internal/mqtt"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/conf"
-	"github.com/tphakala/birdnet-go/internal/detection"
-	"github.com/tphakala/birdnet-go/internal/mqtt"
 )
 
 // MockMQTTClient captures published messages for testing.

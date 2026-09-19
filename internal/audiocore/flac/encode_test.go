@@ -12,9 +12,9 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/bert386/soundnet-go/internal/audiocore/pcmgain"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/audiocore/pcmgain"
 	goflac "github.com/tphakala/go-flac/pcm"
 )
 

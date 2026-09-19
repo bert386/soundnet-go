@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/tphakala/birdnet-go/internal/update/manifest"
+	"github.com/bert386/soundnet-go/internal/update/manifest"
 )
 
 // fakeSource is an in-memory releaseSource for tests.
@@ -62,7 +62,7 @@ func TestBuildManifest_AllChannels(t *testing.T) {
 				TagName: "v0.6.4", Name: "BirdNET-Go v0.6.4",
 				Body:        "Stable notes.\n" + manifest.CriticalMarker + "\n<!-- manifest:min-upgrade-from=v0.5.0 -->",
 				PublishedAt: time.Date(2026, 6, 20, 10, 0, 0, 0, time.UTC),
-				HTMLURL:     "https://github.com/tphakala/birdnet-go/releases/tag/v0.6.4",
+				HTMLURL:     "https://github.com/bert386/soundnet-go/releases/tag/v0.6.4",
 				Assets: []ghAsset{
 					tarball("birdnet-go-linux-arm64-v0.6.4.tar.gz", "https://dl/s-arm", 200),
 					tarball("birdnet-go-linux-amd64-v0.6.4.tar.gz", "https://dl/s-amd", 100),

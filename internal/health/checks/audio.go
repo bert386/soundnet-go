@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/tphakala/birdnet-go/internal/audiocore"
-	"github.com/tphakala/birdnet-go/internal/health"
-	"github.com/tphakala/birdnet-go/internal/observability"
+	"github.com/bert386/soundnet-go/internal/audiocore"
+	"github.com/bert386/soundnet-go/internal/health"
+	"github.com/bert386/soundnet-go/internal/observability"
 )
 
 // SourceStatusCheck monitors the health state of audio sources via the liveness watchdog.

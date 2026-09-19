@@ -4,9 +4,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/tphakala/birdnet-go/internal/errors"
-	"github.com/tphakala/birdnet-go/internal/logger"
-	"github.com/tphakala/birdnet-go/internal/suncalc"
+	"github.com/bert386/soundnet-go/internal/errors"
+	"github.com/bert386/soundnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/suncalc"
 )
 
 // reasonDaylightFilter is the discard reason returned by shouldDiscardDetection

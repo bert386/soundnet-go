@@ -8,7 +8,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 
-	"github.com/tphakala/birdnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/conf"
 )
 
 // TestIngressPath_RaceAgainstStoreSettings exercises the request-path reader

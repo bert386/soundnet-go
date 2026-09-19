@@ -1,6 +1,6 @@
 package apicore
 
-import "github.com/tphakala/birdnet-go/internal/formatutil"
+import "github.com/bert386/soundnet-go/internal/formatutil"
 
 // FormatBytesUint64 formats bytes into human-readable format (for uint64 values).
 // It is shared substrate: the system domain's database-stats/backup handlers and

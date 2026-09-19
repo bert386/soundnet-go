@@ -5,9 +5,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/bert386/soundnet-go/internal/conf"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/conf"
 )
 
 type hotReloadCategory string
@@ -487,5 +487,5 @@ func isProjectType(t reflect.Type) bool {
 	if pkg == "" {
 		return true // anonymous struct
 	}
-	return strings.HasPrefix(pkg, "github.com/tphakala/birdnet-go")
+	return strings.HasPrefix(pkg, "github.com/bert386/soundnet-go")
 }

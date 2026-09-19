@@ -10,7 +10,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/tphakala/birdnet-go/internal/errors"
+	"github.com/bert386/soundnet-go/internal/errors"
 )
 
 // snapshotFS holds the build-time region snapshots, one regions.json per model

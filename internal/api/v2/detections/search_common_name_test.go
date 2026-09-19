@@ -5,9 +5,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/tphakala/birdnet-go/internal/api/v2/apicore"
-	"github.com/tphakala/birdnet-go/internal/api/v2/apitest"
-	"github.com/tphakala/birdnet-go/internal/datastore"
+	"github.com/bert386/soundnet-go/internal/api/v2/apicore"
+	"github.com/bert386/soundnet-go/internal/api/v2/apitest"
+	"github.com/bert386/soundnet-go/internal/datastore"
 )
 
 // testLabels contains representative BirdNET label strings used across

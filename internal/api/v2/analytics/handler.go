@@ -25,9 +25,9 @@ package analytics
 import (
 	"github.com/labstack/echo/v4"
 
-	"github.com/tphakala/birdnet-go/internal/api/v2/apicore"
-	"github.com/tphakala/birdnet-go/internal/classifier"
-	"github.com/tphakala/birdnet-go/internal/datastore/v2/repository"
+	"github.com/bert386/soundnet-go/internal/api/v2/apicore"
+	"github.com/bert386/soundnet-go/internal/classifier"
+	"github.com/bert386/soundnet-go/internal/datastore/v2/repository"
 )
 
 // Handler serves the api/v2 analytics domain endpoints. It embeds the shared

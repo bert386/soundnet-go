@@ -8,9 +8,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/bert386/soundnet-go/internal/conf"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
-	"github.com/tphakala/birdnet-go/internal/conf"
 )
 
 // TestRequestBasePath tests the requestBasePath helper priority chain:

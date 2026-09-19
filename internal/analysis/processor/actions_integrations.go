@@ -8,16 +8,16 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/tphakala/birdnet-go/internal/alerting"
-	"github.com/tphakala/birdnet-go/internal/conf"
-	"github.com/tphakala/birdnet-go/internal/datastore"
-	"github.com/tphakala/birdnet-go/internal/errors"
-	"github.com/tphakala/birdnet-go/internal/events"
-	"github.com/tphakala/birdnet-go/internal/imageprovider"
-	"github.com/tphakala/birdnet-go/internal/logger"
-	"github.com/tphakala/birdnet-go/internal/mqtt"
-	"github.com/tphakala/birdnet-go/internal/notification"
-	"github.com/tphakala/birdnet-go/internal/privacy"
+	"github.com/bert386/soundnet-go/internal/alerting"
+	"github.com/bert386/soundnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/datastore"
+	"github.com/bert386/soundnet-go/internal/errors"
+	"github.com/bert386/soundnet-go/internal/events"
+	"github.com/bert386/soundnet-go/internal/imageprovider"
+	"github.com/bert386/soundnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/mqtt"
+	"github.com/bert386/soundnet-go/internal/notification"
+	"github.com/bert386/soundnet-go/internal/privacy"
 )
 
 // NoteWithBirdImage wraps a Note with bird image data for MQTT publishing.
@@ -25,7 +25,7 @@ import (
 //
 // IMPORTANT: JSON field names are part of the public MQTT API contract.
 // Changing them breaks existing Home Assistant and other MQTT integrations.
-// See: https://github.com/tphakala/birdnet-go/discussions/1759
+// See: https://github.com/bert386/soundnet-go/discussions/1759
 type NoteWithBirdImage struct {
 	datastore.Note
 

@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/tphakala/birdnet-go/internal/privacy"
+	"github.com/bert386/soundnet-go/internal/privacy"
 )
 
 // GenerateSystemID creates a unique system identifier

@@ -1,7 +1,7 @@
 // Package logger provides structured logging with privacy-aware field constructors.
 package logger
 
-import "github.com/tphakala/birdnet-go/internal/privacy"
+import "github.com/bert386/soundnet-go/internal/privacy"
 
 // Username creates a field with a hashed username for safe logging.
 // The username is converted to a hash prefix (e.g., "user-a1b2c3d4") that enables

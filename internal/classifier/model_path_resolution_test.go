@@ -7,10 +7,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/notification"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/conf"
-	"github.com/tphakala/birdnet-go/internal/notification"
 )
 
 // labelsRoleLocalName returns the labels file name a catalog variant declares.

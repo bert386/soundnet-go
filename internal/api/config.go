@@ -8,9 +8,9 @@ import (
 	"os"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/logger"
 	"github.com/spf13/viper"
-	"github.com/tphakala/birdnet-go/internal/conf"
-	"github.com/tphakala/birdnet-go/internal/logger"
 )
 
 // GetLogger returns the api package logger.

@@ -10,11 +10,11 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/bert386/soundnet-go/internal/api/v2/apitest"
+	"github.com/bert386/soundnet-go/internal/datastore"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/api/v2/apitest"
-	"github.com/tphakala/birdnet-go/internal/datastore"
 )
 
 // TestBatchDeleteDetections tests the BatchDeleteDetections endpoint.

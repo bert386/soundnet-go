@@ -7,9 +7,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/tphakala/birdnet-go/internal/errors"
-	"github.com/tphakala/birdnet-go/internal/logger"
-	"github.com/tphakala/birdnet-go/internal/observability/metrics"
+	"github.com/bert386/soundnet-go/internal/errors"
+	"github.com/bert386/soundnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/observability/metrics"
 )
 
 // ProviderHealth represents the health status of a push provider.

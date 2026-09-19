@@ -6,12 +6,12 @@ import (
 	"sync"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/datastore/v2/entities"
+	"github.com/bert386/soundnet-go/internal/diagnostics"
+	"github.com/bert386/soundnet-go/internal/events"
+	"github.com/bert386/soundnet-go/internal/privacy"
+	"github.com/bert386/soundnet-go/internal/telemetry"
 	"github.com/getsentry/sentry-go"
-	"github.com/tphakala/birdnet-go/internal/datastore/v2/entities"
-	"github.com/tphakala/birdnet-go/internal/diagnostics"
-	"github.com/tphakala/birdnet-go/internal/events"
-	"github.com/tphakala/birdnet-go/internal/privacy"
-	"github.com/tphakala/birdnet-go/internal/telemetry"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )

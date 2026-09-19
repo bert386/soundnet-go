@@ -3,7 +3,7 @@ package security
 import (
 	"testing"
 
-	"github.com/tphakala/birdnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/conf"
 )
 
 // newOAuth2ServerForTesting is the in-package counterpart of

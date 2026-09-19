@@ -21,8 +21,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/tphakala/birdnet-go/internal/inference"
-	"github.com/tphakala/birdnet-go/internal/inference/onnx"
+	"github.com/bert386/soundnet-go/internal/inference"
+	"github.com/bert386/soundnet-go/internal/inference/onnx"
 	ortlib "github.com/yalue/onnxruntime_go"
 )
 

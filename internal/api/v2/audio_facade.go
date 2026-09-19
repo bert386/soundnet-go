@@ -6,10 +6,10 @@ import (
 
 	"github.com/labstack/echo/v4"
 
-	"github.com/tphakala/birdnet-go/internal/api/v2/app"
-	audioapi "github.com/tphakala/birdnet-go/internal/api/v2/audio"
-	authapi "github.com/tphakala/birdnet-go/internal/api/v2/auth"
-	"github.com/tphakala/birdnet-go/internal/audiocore"
+	"github.com/bert386/soundnet-go/internal/api/v2/app"
+	audioapi "github.com/bert386/soundnet-go/internal/api/v2/audio"
+	authapi "github.com/bert386/soundnet-go/internal/api/v2/auth"
+	"github.com/bert386/soundnet-go/internal/audiocore"
 )
 
 // isClientAuthenticated checks if the current request is authenticated by

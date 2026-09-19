@@ -3,8 +3,8 @@
 package serviceapi
 
 import (
+	"github.com/bert386/soundnet-go/internal/classifier"
 	"github.com/labstack/echo/v4"
-	"github.com/tphakala/birdnet-go/internal/classifier"
 )
 
 // BirdNETProvider defines the minimal interface for accessing BirdNET functionality

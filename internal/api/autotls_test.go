@@ -13,13 +13,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/conf/conftest"
+	"github.com/bert386/soundnet-go/internal/testutil"
 	"github.com/labstack/echo/v4"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/conf"
-	"github.com/tphakala/birdnet-go/internal/conf/conftest"
-	"github.com/tphakala/birdnet-go/internal/testutil"
 )
 
 const testHost = "birdnet.example.com"
@@ -178,7 +178,7 @@ func TestConfigFromSettings_AutoTLS_PortConflict(t *testing.T) {
 
 // TestAutoTLS_DualListeners verifies that AutoTLS starts both an HTTP listener
 // (for ACME HTTP-01 challenges) and a TLS listener (for HTTPS).
-// This is a regression test for https://github.com/tphakala/birdnet-go/issues/3527
+// This is a regression test for https://github.com/bert386/soundnet-go/issues/3527
 func TestAutoTLS_DualListeners(t *testing.T) {
 	t.Parallel()
 

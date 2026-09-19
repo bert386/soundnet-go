@@ -7,10 +7,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/datastore"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/datastore"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	gormlogger "gorm.io/gorm/logger"

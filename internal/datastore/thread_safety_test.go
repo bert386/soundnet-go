@@ -5,9 +5,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/observability/metrics"
+	"github.com/bert386/soundnet-go/internal/suncalc"
 	"github.com/stretchr/testify/assert"
-	"github.com/tphakala/birdnet-go/internal/observability/metrics"
-	"github.com/tphakala/birdnet-go/internal/suncalc"
 )
 
 // TestDataStoreMetricsThreadSafety tests that metrics field access is thread-safe

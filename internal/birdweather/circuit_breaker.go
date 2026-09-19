@@ -14,8 +14,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/tphakala/birdnet-go/internal/errors"
-	"github.com/tphakala/birdnet-go/internal/notification"
+	"github.com/bert386/soundnet-go/internal/errors"
+	"github.com/bert386/soundnet-go/internal/notification"
 )
 
 // Circuit breaker tuning for outbound BirdWeather calls.

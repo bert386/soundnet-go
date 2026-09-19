@@ -10,12 +10,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/analysis/processor"
+	"github.com/bert386/soundnet-go/internal/audiocore/soundlevel"
+	"github.com/bert386/soundnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/conf/conftest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/analysis/processor"
-	"github.com/tphakala/birdnet-go/internal/audiocore/soundlevel"
-	"github.com/tphakala/birdnet-go/internal/conf"
-	"github.com/tphakala/birdnet-go/internal/conf/conftest"
 )
 
 // makeValidSoundLevelData returns a well-formed SoundLevelData value suitable

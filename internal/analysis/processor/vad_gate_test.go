@@ -7,12 +7,12 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/tphakala/birdnet-go/internal/classifier"
-	"github.com/tphakala/birdnet-go/internal/conf"
-	"github.com/tphakala/birdnet-go/internal/datastore"
-	"github.com/tphakala/birdnet-go/internal/errors"
-	"github.com/tphakala/birdnet-go/internal/inference/vad"
-	"github.com/tphakala/birdnet-go/internal/observability/metrics"
+	"github.com/bert386/soundnet-go/internal/classifier"
+	"github.com/bert386/soundnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/datastore"
+	"github.com/bert386/soundnet-go/internal/errors"
+	"github.com/bert386/soundnet-go/internal/inference/vad"
+	"github.com/bert386/soundnet-go/internal/observability/metrics"
 )
 
 // Chunk geometry used across these tests: a 3 s analysis chunk at 48 kHz.

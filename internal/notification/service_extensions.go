@@ -1,8 +1,8 @@
 package notification
 
 import (
-	"github.com/tphakala/birdnet-go/internal/errors"
-	"github.com/tphakala/birdnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/errors"
+	"github.com/bert386/soundnet-go/internal/logger"
 )
 
 // UpdateNotification persists changes to an existing notification in the store.

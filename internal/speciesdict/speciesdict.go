@@ -20,8 +20,8 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/tphakala/birdnet-go/internal/errors"
-	"github.com/tphakala/birdnet-go/internal/openfauna"
+	"github.com/bert386/soundnet-go/internal/errors"
+	"github.com/bert386/soundnet-go/internal/openfauna"
 )
 
 //go:generate go run ./gen

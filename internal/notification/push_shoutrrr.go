@@ -8,11 +8,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/errors"
+	"github.com/bert386/soundnet-go/internal/privacy"
 	shoutrrr "github.com/nicholas-fedor/shoutrrr"
 	router "github.com/nicholas-fedor/shoutrrr/pkg/router"
 	stypes "github.com/nicholas-fedor/shoutrrr/pkg/types"
-	"github.com/tphakala/birdnet-go/internal/errors"
-	"github.com/tphakala/birdnet-go/internal/privacy"
 )
 
 // shoutrrrDefaultTimeout is applied when no per-provider timeout is configured,

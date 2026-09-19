@@ -16,13 +16,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/mqtt"
+	"github.com/bert386/soundnet-go/internal/observability"
+	"github.com/bert386/soundnet-go/internal/testutil/containers"
 	paho "github.com/eclipse/paho.mqtt.golang"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/conf"
-	"github.com/tphakala/birdnet-go/internal/mqtt"
-	"github.com/tphakala/birdnet-go/internal/observability"
-	"github.com/tphakala/birdnet-go/internal/testutil/containers"
 )
 
 // integrationTestTopic is the base topic used across integration tests.

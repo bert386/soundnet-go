@@ -7,10 +7,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/bert386/soundnet-go/internal/conf"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/conf"
 )
 
 // TestBrowserLocationSettingsRoundTrip exercises the PUT and subsequent GET

@@ -3,8 +3,8 @@ package vad
 import (
 	ort "github.com/yalue/onnxruntime_go"
 
-	"github.com/tphakala/birdnet-go/internal/errors"
-	"github.com/tphakala/birdnet-go/internal/inference"
+	"github.com/bert386/soundnet-go/internal/errors"
+	"github.com/bert386/soundnet-go/internal/inference"
 )
 
 // Silero VAD sequence-model tensor contract (the official

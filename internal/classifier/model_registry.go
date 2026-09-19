@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/tphakala/birdnet-go/internal/conf"
-	"github.com/tphakala/birdnet-go/internal/detection"
+	"github.com/bert386/soundnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/detection"
 )
 
 // modelIDCustom is the sentinel ID used for user-supplied model files that

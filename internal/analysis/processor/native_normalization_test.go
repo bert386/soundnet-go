@@ -15,12 +15,12 @@ import (
 	"github.com/stretchr/testify/require"
 	goflac "github.com/tphakala/go-flac/pcm"
 
-	"github.com/tphakala/birdnet-go/internal/audiocore/audionorm"
-	"github.com/tphakala/birdnet-go/internal/audiocore/clipenc"
-	"github.com/tphakala/birdnet-go/internal/audiocore/ffmpeg"
-	"github.com/tphakala/birdnet-go/internal/audiocore/flac"
-	"github.com/tphakala/birdnet-go/internal/audiocore/pcmgain"
-	"github.com/tphakala/birdnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/audiocore/audionorm"
+	"github.com/bert386/soundnet-go/internal/audiocore/clipenc"
+	"github.com/bert386/soundnet-go/internal/audiocore/ffmpeg"
+	"github.com/bert386/soundnet-go/internal/audiocore/flac"
+	"github.com/bert386/soundnet-go/internal/audiocore/pcmgain"
+	"github.com/bert386/soundnet-go/internal/conf"
 )
 
 // sinePCMBytes builds a mono 16-bit LE PCM sine of the given peak amplitude,

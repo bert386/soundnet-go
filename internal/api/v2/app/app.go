@@ -6,14 +6,14 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/bert386/soundnet-go/internal/api/middleware"
+	"github.com/bert386/soundnet-go/internal/branding"
+	"github.com/bert386/soundnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/datastore/v2/repository"
+	"github.com/bert386/soundnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/speciesdict"
+	"github.com/bert386/soundnet-go/internal/telemetry"
 	"github.com/labstack/echo/v4"
-	"github.com/tphakala/birdnet-go/internal/api/middleware"
-	"github.com/tphakala/birdnet-go/internal/branding"
-	"github.com/tphakala/birdnet-go/internal/conf"
-	"github.com/tphakala/birdnet-go/internal/datastore/v2/repository"
-	"github.com/tphakala/birdnet-go/internal/logger"
-	"github.com/tphakala/birdnet-go/internal/speciesdict"
-	"github.com/tphakala/birdnet-go/internal/telemetry"
 )
 
 // App config endpoint constants

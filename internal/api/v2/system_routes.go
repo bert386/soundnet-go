@@ -4,9 +4,9 @@ package api
 import (
 	"time"
 
-	"github.com/tphakala/birdnet-go/internal/api/v2/system"
-	"github.com/tphakala/birdnet-go/internal/logger"
-	"github.com/tphakala/birdnet-go/internal/observability"
+	"github.com/bert386/soundnet-go/internal/api/v2/system"
+	"github.com/bert386/soundnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/observability"
 )
 
 // MetricsHistoryMaxPoints re-exports the system domain's metrics-history ring

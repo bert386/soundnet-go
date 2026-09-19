@@ -4,9 +4,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/datastore"
+	"github.com/bert386/soundnet-go/internal/datastore/v2/entities"
 	"github.com/stretchr/testify/assert"
-	"github.com/tphakala/birdnet-go/internal/datastore"
-	"github.com/tphakala/birdnet-go/internal/datastore/v2/entities"
 )
 
 // testSpeciesTurdus is the scientific name used across test assertions.

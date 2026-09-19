@@ -16,9 +16,9 @@ import (
 	"os"
 	"testing"
 
+	v2 "github.com/bert386/soundnet-go/internal/datastore/v2"
+	"github.com/bert386/soundnet-go/internal/datastore/v2/entities"
 	"github.com/stretchr/testify/require"
-	v2 "github.com/tphakala/birdnet-go/internal/datastore/v2"
-	"github.com/tphakala/birdnet-go/internal/datastore/v2/entities"
 )
 
 func getEnvOrDefault(key, defaultValue string) string {

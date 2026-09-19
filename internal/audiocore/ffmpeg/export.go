@@ -12,8 +12,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/tphakala/birdnet-go/internal/audiocore/audiotemp"
-	"github.com/tphakala/birdnet-go/internal/errors"
+	"github.com/bert386/soundnet-go/internal/audiocore/audiotemp"
+	"github.com/bert386/soundnet-go/internal/errors"
 )
 
 // osWindows is runtime.GOOS on Windows, where the sox and ffprobe binaries carry

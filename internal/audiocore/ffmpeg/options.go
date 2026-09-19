@@ -3,7 +3,7 @@ package ffmpeg
 import (
 	"time"
 
-	"github.com/tphakala/birdnet-go/internal/audiocore"
+	"github.com/bert386/soundnet-go/internal/audiocore"
 )
 
 // Options carries manager-level defaults that apply to every stream a Manager

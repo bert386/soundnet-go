@@ -9,7 +9,7 @@ import (
 	"maps"
 	"slices"
 
-	"github.com/tphakala/birdnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/logger"
 )
 
 // CloneSettings returns a deep copy of src that shares no slice or map backing

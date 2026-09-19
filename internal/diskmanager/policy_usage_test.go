@@ -8,10 +8,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/conf"
+	mock_diskmanager "github.com/bert386/soundnet-go/internal/diskmanager/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/conf"
-	mock_diskmanager "github.com/tphakala/birdnet-go/internal/diskmanager/mocks"
 )
 
 // MockFileInfo implements os.FileInfo for testing

@@ -6,8 +6,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/tphakala/birdnet-go/internal/datastore/v2/entities"
-	"github.com/tphakala/birdnet-go/internal/labels/nonbird"
+	"github.com/bert386/soundnet-go/internal/datastore/v2/entities"
+	"github.com/bert386/soundnet-go/internal/labels/nonbird"
 )
 
 // TestDefaultLabelTypesDriftGuard asserts that DefaultLabelTypes() contains an

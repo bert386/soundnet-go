@@ -5,7 +5,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/tphakala/birdnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/logger"
 )
 
 // maxHostnameLen is the maximum allowed length for a hostname per RFC 1035.

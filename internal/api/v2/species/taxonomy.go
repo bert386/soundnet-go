@@ -7,8 +7,8 @@ import (
 	"unicode"
 	"unicode/utf8"
 
+	"github.com/bert386/soundnet-go/internal/errors"
 	"github.com/labstack/echo/v4"
-	"github.com/tphakala/birdnet-go/internal/errors"
 )
 
 // Cache headers for taxonomy endpoints (taxonomy data is static)

@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/bert386/soundnet-go/internal/errors"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/tphakala/birdnet-go/internal/errors"
 )
 
 const (

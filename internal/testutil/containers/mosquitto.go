@@ -13,10 +13,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/errors"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
-	"github.com/tphakala/birdnet-go/internal/errors"
 )
 
 // MosquittoContainer wraps a testcontainers Eclipse Mosquitto MQTT broker instance.

@@ -3,8 +3,8 @@ package vocalization
 import (
 	"testing"
 
+	"github.com/bert386/soundnet-go/internal/labels/nonbird"
 	"github.com/stretchr/testify/assert"
-	"github.com/tphakala/birdnet-go/internal/labels/nonbird"
 )
 
 func TestIsHuman(t *testing.T) {

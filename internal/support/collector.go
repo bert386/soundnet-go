@@ -18,15 +18,15 @@ import (
 	"strings"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/conf"
+	diagpkg "github.com/bert386/soundnet-go/internal/diagnostics"
+	"github.com/bert386/soundnet-go/internal/errors"
+	"github.com/bert386/soundnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/privacy"
+	"github.com/bert386/soundnet-go/internal/sysinfo"
 	"github.com/google/uuid"
 	"github.com/shirou/gopsutil/v3/disk"
 	"github.com/shirou/gopsutil/v3/mem"
-	"github.com/tphakala/birdnet-go/internal/conf"
-	diagpkg "github.com/tphakala/birdnet-go/internal/diagnostics"
-	"github.com/tphakala/birdnet-go/internal/errors"
-	"github.com/tphakala/birdnet-go/internal/logger"
-	"github.com/tphakala/birdnet-go/internal/privacy"
-	"github.com/tphakala/birdnet-go/internal/sysinfo"
 	"gopkg.in/yaml.v3"
 )
 

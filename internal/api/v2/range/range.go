@@ -21,13 +21,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/api/v2/apicore"
+	"github.com/bert386/soundnet-go/internal/api/v2/dto"
+	"github.com/bert386/soundnet-go/internal/classifier"
+	"github.com/bert386/soundnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/detection"
+	"github.com/bert386/soundnet-go/internal/logger"
 	"github.com/labstack/echo/v4"
-	"github.com/tphakala/birdnet-go/internal/api/v2/apicore"
-	"github.com/tphakala/birdnet-go/internal/api/v2/dto"
-	"github.com/tphakala/birdnet-go/internal/classifier"
-	"github.com/tphakala/birdnet-go/internal/conf"
-	"github.com/tphakala/birdnet-go/internal/detection"
-	"github.com/tphakala/birdnet-go/internal/logger"
 )
 
 // Handler serves the range-filter domain endpoints. It embeds *apicore.Core BY

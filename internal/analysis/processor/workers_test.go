@@ -8,12 +8,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/analysis/jobqueue"
+	"github.com/bert386/soundnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/detection"
+	"github.com/bert386/soundnet-go/internal/privacy"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/analysis/jobqueue"
-	"github.com/tphakala/birdnet-go/internal/conf"
-	"github.com/tphakala/birdnet-go/internal/detection"
-	"github.com/tphakala/birdnet-go/internal/privacy"
 )
 
 // Mock types are now defined in test_helpers_test.go:

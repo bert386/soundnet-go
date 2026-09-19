@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/tphakala/birdnet-go/internal/health"
+	"github.com/bert386/soundnet-go/internal/health"
 )
 
 // RangeFilterStatusInfo is a minimal snapshot of range-filter state for health reporting.

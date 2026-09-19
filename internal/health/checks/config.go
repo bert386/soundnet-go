@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/tphakala/birdnet-go/internal/health"
+	"github.com/bert386/soundnet-go/internal/health"
 )
 
 // ToolInfo holds the runtime availability status of an external tool (FFmpeg, Sox, etc.).

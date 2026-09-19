@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/bert386/soundnet-go/internal/conf"
 	"github.com/spf13/viper"
-	"github.com/tphakala/birdnet-go/internal/conf"
 )
 
 // Config holds the configuration for the export tool.

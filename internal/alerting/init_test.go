@@ -6,13 +6,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/conf/conftest"
+	"github.com/bert386/soundnet-go/internal/datastore/v2/entities"
+	"github.com/bert386/soundnet-go/internal/datastore/v2/repository"
+	"github.com/bert386/soundnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/notification"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/conf/conftest"
-	"github.com/tphakala/birdnet-go/internal/datastore/v2/entities"
-	"github.com/tphakala/birdnet-go/internal/datastore/v2/repository"
-	"github.com/tphakala/birdnet-go/internal/logger"
-	"github.com/tphakala/birdnet-go/internal/notification"
 )
 
 // initMockRepo implements repository.AlertRuleRepository for initialization tests.

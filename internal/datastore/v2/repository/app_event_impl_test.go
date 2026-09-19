@@ -5,9 +5,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/datastore/v2/entities"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/datastore/v2/entities"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	gorm_logger "gorm.io/gorm/logger"

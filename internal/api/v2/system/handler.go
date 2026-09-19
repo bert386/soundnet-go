@@ -18,12 +18,12 @@ import (
 	"sync"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/api/v2/apicore"
+	"github.com/bert386/soundnet-go/internal/audiocore"
+	"github.com/bert386/soundnet-go/internal/health"
+	"github.com/bert386/soundnet-go/internal/observability"
 	"github.com/labstack/echo/v4"
 	"github.com/shirou/gopsutil/v3/process"
-	"github.com/tphakala/birdnet-go/internal/api/v2/apicore"
-	"github.com/tphakala/birdnet-go/internal/audiocore"
-	"github.com/tphakala/birdnet-go/internal/health"
-	"github.com/tphakala/birdnet-go/internal/observability"
 )
 
 // Handler serves the system-domain endpoints around the shared core.

@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/tphakala/birdnet-go/internal/datastore"
+	"github.com/bert386/soundnet-go/internal/datastore"
 )
 
 // yearOverYearPointJSON mirrors one point on the year-over-year wire shape.

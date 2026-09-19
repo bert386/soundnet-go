@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/tphakala/birdnet-go/internal/datastore"
+	"github.com/bert386/soundnet-go/internal/datastore"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"

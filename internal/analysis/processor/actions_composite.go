@@ -8,9 +8,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/tphakala/birdnet-go/internal/errors"
-	"github.com/tphakala/birdnet-go/internal/imageprovider"
-	"github.com/tphakala/birdnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/errors"
+	"github.com/bert386/soundnet-go/internal/imageprovider"
+	"github.com/bert386/soundnet-go/internal/logger"
 )
 
 // actionResult is a simple struct to pass action execution results through channels.

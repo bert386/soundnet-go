@@ -8,8 +8,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/tphakala/birdnet-go/internal/detection"
-	"github.com/tphakala/birdnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/detection"
+	"github.com/bert386/soundnet-go/internal/logger"
 )
 
 // builtInTaxonomySynonyms maps BirdNET scientific names (2021E taxonomy) to their updated

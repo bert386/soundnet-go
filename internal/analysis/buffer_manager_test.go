@@ -6,12 +6,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/audiocore/buffer"
+	"github.com/bert386/soundnet-go/internal/classifier"
+	"github.com/bert386/soundnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/logger"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/audiocore/buffer"
-	"github.com/tphakala/birdnet-go/internal/classifier"
-	"github.com/tphakala/birdnet-go/internal/conf"
-	"github.com/tphakala/birdnet-go/internal/logger"
 )
 
 // TestProcessMonitorTick_SkipsWhenModelNotLoaded verifies the monitor-layer guard

@@ -3,8 +3,8 @@ package migration
 import (
 	"testing"
 
+	"github.com/bert386/soundnet-go/internal/datastore"
 	"github.com/stretchr/testify/assert"
-	"github.com/tphakala/birdnet-go/internal/datastore"
 )
 
 func TestFilterBatchByConfidence(t *testing.T) {

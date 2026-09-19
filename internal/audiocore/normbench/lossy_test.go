@@ -13,7 +13,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/tphakala/birdnet-go/internal/audiocore/ffmpeg"
+	"github.com/bert386/soundnet-go/internal/audiocore/ffmpeg"
 )
 
 // lossyFormat is one FFmpeg-encoded export format under comparison, with the

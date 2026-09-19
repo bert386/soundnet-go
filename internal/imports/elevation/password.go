@@ -11,7 +11,7 @@ import (
 	"log/slog"
 	"unicode/utf8"
 
-	"github.com/tphakala/birdnet-go/internal/errors"
+	"github.com/bert386/soundnet-go/internal/errors"
 )
 
 // redactedPlaceholder is what a Password renders as in any string or JSON form.

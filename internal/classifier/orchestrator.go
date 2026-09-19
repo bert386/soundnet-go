@@ -17,14 +17,14 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/tphakala/birdnet-go/internal/conf"
-	"github.com/tphakala/birdnet-go/internal/datastore"
-	"github.com/tphakala/birdnet-go/internal/errors"
-	"github.com/tphakala/birdnet-go/internal/inference"
-	"github.com/tphakala/birdnet-go/internal/logger"
-	"github.com/tphakala/birdnet-go/internal/openfauna"
-	"github.com/tphakala/birdnet-go/internal/speciesindex"
-	"github.com/tphakala/birdnet-go/internal/suncalc"
+	"github.com/bert386/soundnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/datastore"
+	"github.com/bert386/soundnet-go/internal/errors"
+	"github.com/bert386/soundnet-go/internal/inference"
+	"github.com/bert386/soundnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/openfauna"
+	"github.com/bert386/soundnet-go/internal/speciesindex"
+	"github.com/bert386/soundnet-go/internal/suncalc"
 )
 
 // modelEntry holds a model instance with its own lock for concurrent access.

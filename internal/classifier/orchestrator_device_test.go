@@ -3,8 +3,8 @@ package classifier
 import (
 	"testing"
 
+	"github.com/bert386/soundnet-go/internal/inference"
 	"github.com/stretchr/testify/assert"
-	"github.com/tphakala/birdnet-go/internal/inference"
 )
 
 // TestGetModelRuntimeInfo covers the compound device/backend/precision accessor

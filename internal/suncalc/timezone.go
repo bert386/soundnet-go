@@ -7,7 +7,7 @@ import (
 
 	tzf "github.com/ringsaturn/tzf"
 
-	"github.com/tphakala/birdnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/logger"
 )
 
 // tzCache maps a rounded "lat,lon" key to the resolved *time.Location.

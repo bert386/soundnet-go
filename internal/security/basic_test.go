@@ -15,14 +15,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/conf/conftest"
+	"github.com/bert386/soundnet-go/internal/logger"
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo/v4"
 	"github.com/markbates/goth/gothic"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/conf"
-	"github.com/tphakala/birdnet-go/internal/conf/conftest"
-	"github.com/tphakala/birdnet-go/internal/logger"
 )
 
 // parseURLOrFail parses a URL string and fails the test if parsing fails

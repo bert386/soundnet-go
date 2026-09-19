@@ -8,13 +8,13 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/api/v2/apicore"
+	datastoreV2 "github.com/bert386/soundnet-go/internal/datastore/v2"
+	"github.com/bert386/soundnet-go/internal/datastore/v2/repository"
+	"github.com/bert386/soundnet-go/internal/imageprovider"
+	"github.com/bert386/soundnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/notification"
 	"github.com/labstack/echo/v4"
-	"github.com/tphakala/birdnet-go/internal/api/v2/apicore"
-	datastoreV2 "github.com/tphakala/birdnet-go/internal/datastore/v2"
-	"github.com/tphakala/birdnet-go/internal/datastore/v2/repository"
-	"github.com/tphakala/birdnet-go/internal/imageprovider"
-	"github.com/tphakala/birdnet-go/internal/logger"
-	"github.com/tphakala/birdnet-go/internal/notification"
 )
 
 // requireV2 checks that the enhanced database is available and returns an error

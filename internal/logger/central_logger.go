@@ -22,7 +22,7 @@ import (
 	// timezone operations work consistently on Linux, macOS, and Windows.
 	_ "time/tzdata"
 
-	"github.com/tphakala/birdnet-go/internal/errors"
+	"github.com/bert386/soundnet-go/internal/errors"
 )
 
 // Constants for logger configuration

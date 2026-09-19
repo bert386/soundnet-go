@@ -8,9 +8,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/tphakala/birdnet-go/internal/audiocore/clipenc"
-	"github.com/tphakala/birdnet-go/internal/audiocore/ffmpeg"
-	"github.com/tphakala/birdnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/audiocore/clipenc"
+	"github.com/bert386/soundnet-go/internal/audiocore/ffmpeg"
+	"github.com/bert386/soundnet-go/internal/conf"
 )
 
 // With the MP3 gate unset, MP3 must resolve to the FFmpeg path. This is the

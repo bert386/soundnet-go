@@ -6,9 +6,9 @@ import (
 	pathpkg "path"
 	"strings"
 
+	"github.com/bert386/soundnet-go/internal/logger"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"github.com/tphakala/birdnet-go/internal/logger"
 )
 
 // CSRF configuration constants used by both csrf.go and csrf_token.go.

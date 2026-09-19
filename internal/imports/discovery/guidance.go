@@ -4,7 +4,7 @@ import (
 	"runtime"
 	"slices"
 
-	"github.com/tphakala/birdnet-go/internal/sysinfo"
+	"github.com/bert386/soundnet-go/internal/sysinfo"
 )
 
 // nativeLinuxEnv is the Environment label used for native (non-container) Linux

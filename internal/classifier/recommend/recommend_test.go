@@ -4,10 +4,10 @@ import (
 	"slices"
 	"testing"
 
+	"github.com/bert386/soundnet-go/internal/classifier"
+	"github.com/bert386/soundnet-go/internal/hwprofile"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/classifier"
-	"github.com/tphakala/birdnet-go/internal/hwprofile"
 )
 
 // realEntry returns a copy of a real catalog entry by ID, so the matrix tests

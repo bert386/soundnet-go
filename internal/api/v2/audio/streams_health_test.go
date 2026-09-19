@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/audiocore"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/audiocore"
 )
 
 // Test error type constant for connection timeout scenarios

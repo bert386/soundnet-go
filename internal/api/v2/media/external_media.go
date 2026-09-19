@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"slices"
 
+	"github.com/bert386/soundnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/sysinfo"
 	"github.com/labstack/echo/v4"
-	"github.com/tphakala/birdnet-go/internal/logger"
-	"github.com/tphakala/birdnet-go/internal/sysinfo"
 )
 
 // ExternalMediaGuidance contains deployment-specific, copy-pasteable setup

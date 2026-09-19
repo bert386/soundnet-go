@@ -9,10 +9,10 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/tphakala/birdnet-go/internal/branding"
-	"github.com/tphakala/birdnet-go/internal/conf"
-	"github.com/tphakala/birdnet-go/internal/datastore"
-	"github.com/tphakala/birdnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/branding"
+	"github.com/bert386/soundnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/datastore"
+	"github.com/bert386/soundnet-go/internal/logger"
 )
 
 // Sensor type constants to avoid magic strings

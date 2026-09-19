@@ -2,7 +2,7 @@
 package mock_diskmanager
 
 import (
-	"github.com/tphakala/birdnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/conf"
 )
 
 // MockFunctions contains all mock functions for testing

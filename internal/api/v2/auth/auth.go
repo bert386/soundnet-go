@@ -30,13 +30,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/api/auth"
+	"github.com/bert386/soundnet-go/internal/api/v2/apicore"
+	"github.com/bert386/soundnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/notification"
+	"github.com/bert386/soundnet-go/internal/security"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"github.com/tphakala/birdnet-go/internal/api/auth"
-	"github.com/tphakala/birdnet-go/internal/api/v2/apicore"
-	"github.com/tphakala/birdnet-go/internal/logger"
-	"github.com/tphakala/birdnet-go/internal/notification"
-	"github.com/tphakala/birdnet-go/internal/security"
 )
 
 // apiV2Prefix is the base path prefix for all v2 API routes (the Echo group the

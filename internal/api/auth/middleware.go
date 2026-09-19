@@ -6,9 +6,9 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/bert386/soundnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/security"
 	"github.com/labstack/echo/v4"
-	"github.com/tphakala/birdnet-go/internal/logger"
-	"github.com/tphakala/birdnet-go/internal/security"
 )
 
 // bearerTokenParts is the expected number of parts when splitting Authorization header.

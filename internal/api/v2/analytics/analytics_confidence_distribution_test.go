@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/tphakala/birdnet-go/internal/datastore"
+	"github.com/bert386/soundnet-go/internal/datastore"
 )
 
 // confidenceDistributionJSON mirrors the confidence-distribution wire shape (design spec section 6.5).

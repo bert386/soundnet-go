@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/tphakala/go-audio-stream/supervisor"
 
-	"github.com/tphakala/birdnet-go/internal/audiocore"
+	"github.com/bert386/soundnet-go/internal/audiocore"
 )
 
 // reentrantMetrics is a StreamMetrics stub that probes, from inside each emission

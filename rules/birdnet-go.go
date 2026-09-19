@@ -23,7 +23,7 @@ import "github.com/quasilyte/go-ruleguard/dsl"
 //
 // See: internal/errors/errors.go — Newf is a shorthand for New(fmt.Errorf(...))
 func ErrorsNewf(m dsl.Matcher) {
-	m.Import("github.com/tphakala/birdnet-go/internal/errors")
+	m.Import("github.com/bert386/soundnet-go/internal/errors")
 
 	// Without format args: errors.New(fmt.Errorf("literal string"))
 	// Must be listed before the variadic pattern to avoid trailing comma in Suggest.

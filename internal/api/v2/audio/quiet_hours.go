@@ -7,9 +7,9 @@ import (
 	"net/http"
 	"slices"
 
+	"github.com/bert386/soundnet-go/internal/audiocore/schedule"
+	"github.com/bert386/soundnet-go/internal/privacy"
 	"github.com/labstack/echo/v4"
-	"github.com/tphakala/birdnet-go/internal/audiocore/schedule"
-	"github.com/tphakala/birdnet-go/internal/privacy"
 )
 
 // QuietHoursStatusResponse represents the current quiet hours suppression state.

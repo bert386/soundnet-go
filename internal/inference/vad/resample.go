@@ -3,8 +3,8 @@ package vad
 import (
 	"encoding/binary"
 
-	"github.com/tphakala/birdnet-go/internal/audiocore/resample"
-	"github.com/tphakala/birdnet-go/internal/errors"
+	"github.com/bert386/soundnet-go/internal/audiocore/resample"
+	"github.com/bert386/soundnet-go/internal/errors"
 )
 
 const (

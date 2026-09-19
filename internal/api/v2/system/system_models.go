@@ -3,8 +3,8 @@ package system
 import (
 	"net/http"
 
+	"github.com/bert386/soundnet-go/internal/classifier/inferencestats"
 	"github.com/labstack/echo/v4"
-	"github.com/tphakala/birdnet-go/internal/classifier/inferencestats"
 )
 
 // ActiveModelResponse describes a single loaded model for the /system/models endpoint.

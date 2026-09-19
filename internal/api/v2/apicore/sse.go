@@ -7,10 +7,10 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/tphakala/birdnet-go/internal/audiocore/soundlevel"
-	"github.com/tphakala/birdnet-go/internal/datastore"
-	"github.com/tphakala/birdnet-go/internal/imageprovider"
-	"github.com/tphakala/birdnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/audiocore/soundlevel"
+	"github.com/bert386/soundnet-go/internal/datastore"
+	"github.com/bert386/soundnet-go/internal/imageprovider"
+	"github.com/bert386/soundnet-go/internal/logger"
 )
 
 // SSE client health monitoring and stream-type constants used by the hub.

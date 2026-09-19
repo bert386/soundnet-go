@@ -8,16 +8,16 @@ import (
 	"strings"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/audiocore"
+	"github.com/bert386/soundnet-go/internal/classifier"
+	"github.com/bert386/soundnet-go/internal/classifier/inferencestats"
+	"github.com/bert386/soundnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/hwprofile"
+	"github.com/bert386/soundnet-go/internal/inference"
+	"github.com/bert386/soundnet-go/internal/inference/vad"
+	"github.com/bert386/soundnet-go/internal/observability"
+	"github.com/bert386/soundnet-go/internal/sysinfo"
 	"github.com/labstack/echo/v4"
-	"github.com/tphakala/birdnet-go/internal/audiocore"
-	"github.com/tphakala/birdnet-go/internal/classifier"
-	"github.com/tphakala/birdnet-go/internal/classifier/inferencestats"
-	"github.com/tphakala/birdnet-go/internal/conf"
-	"github.com/tphakala/birdnet-go/internal/hwprofile"
-	"github.com/tphakala/birdnet-go/internal/inference"
-	"github.com/tphakala/birdnet-go/internal/inference/vad"
-	"github.com/tphakala/birdnet-go/internal/observability"
-	"github.com/tphakala/birdnet-go/internal/sysinfo"
 )
 
 // sourceTypeSoundCard is the source type label for local ALSA/sound card captures.

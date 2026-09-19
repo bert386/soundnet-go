@@ -3,8 +3,8 @@ package audio
 import (
 	"net/http"
 
+	"github.com/bert386/soundnet-go/internal/audiocore"
 	"github.com/labstack/echo/v4"
-	"github.com/tphakala/birdnet-go/internal/audiocore"
 )
 
 // AudioHealthResponse wraps the per-source health snapshots.

@@ -85,7 +85,7 @@ func TestRewriteLinks(t *testing.T) {
 		{
 			name: "relative link to a non-wiki file sharing a wiki basename is not mapped to the wiki page",
 			in:   "Edit [the template](../../internal/installation.md).",
-			want: "Edit [the template](https://github.com/tphakala/birdnet-go/blob/main/internal/installation.md).",
+			want: "Edit [the template](https://github.com/bert386/soundnet-go/blob/main/internal/installation.md).",
 		},
 		{
 			name: "faq remaps to title-case slug",
@@ -99,23 +99,23 @@ func TestRewriteLinks(t *testing.T) {
 		},
 		{
 			name: "absolute self-wiki URL with percent-encoded hyphen becomes relative slug",
-			in:   "[guide](https://github.com/tphakala/birdnet-go/wiki/BirdNET%E2%80%90Go-Guide#deep-detection)",
+			in:   "[guide](https://github.com/bert386/soundnet-go/wiki/BirdNET%E2%80%90Go-Guide#deep-detection)",
 			want: "[guide](BirdNET-Go-Guide#deep-detection)",
 		},
 		{
 			name: "absolute self-wiki URL with .md suffix is cleaned",
-			in:   "[install](https://github.com/tphakala/birdnet-go/wiki/installation.md)",
+			in:   "[install](https://github.com/bert386/soundnet-go/wiki/installation.md)",
 			want: "[install](installation)",
 		},
 		{
 			name: "repo-root file link becomes absolute blob URL",
 			in:   "See [privacy policy](../../PRIVACY.md).",
-			want: "See [privacy policy](https://github.com/tphakala/birdnet-go/blob/main/PRIVACY.md).",
+			want: "See [privacy policy](https://github.com/bert386/soundnet-go/blob/main/PRIVACY.md).",
 		},
 		{
 			name: "repo file with subpath becomes absolute blob URL",
 			in:   "Use [compose](../../Docker/docker-compose.yml).",
-			want: "Use [compose](https://github.com/tphakala/birdnet-go/blob/main/Docker/docker-compose.yml).",
+			want: "Use [compose](https://github.com/bert386/soundnet-go/blob/main/Docker/docker-compose.yml).",
 		},
 		{
 			name: "external URL is left untouched",
@@ -174,7 +174,7 @@ func TestRewriteLinks(t *testing.T) {
 		},
 		{
 			name: "absolute self-wiki root URL resolves to Home",
-			in:   "[home](https://github.com/tphakala/birdnet-go/wiki/)",
+			in:   "[home](https://github.com/bert386/soundnet-go/wiki/)",
 			want: "[home](Home)",
 		},
 		{

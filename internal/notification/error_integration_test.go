@@ -4,8 +4,8 @@ import (
 	"slices"
 	"testing"
 
+	"github.com/bert386/soundnet-go/internal/errors"
 	"github.com/stretchr/testify/assert"
-	"github.com/tphakala/birdnet-go/internal/errors"
 )
 
 // TestGetNotificationPriority tests the priority mappings for new error categories

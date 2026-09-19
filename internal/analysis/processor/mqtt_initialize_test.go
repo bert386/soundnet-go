@@ -7,11 +7,11 @@ import (
 	"context"
 	"testing"
 
+	"github.com/bert386/soundnet-go/internal/analysis/jobqueue"
+	"github.com/bert386/soundnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/observability"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/analysis/jobqueue"
-	"github.com/tphakala/birdnet-go/internal/conf"
-	"github.com/tphakala/birdnet-go/internal/observability"
 )
 
 // unreachableBroker refuses connections immediately rather than timing out, so

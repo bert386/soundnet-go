@@ -1,7 +1,7 @@
 // Package backup provides backup functionality for BirdNET-Go.
 package backup
 
-import "github.com/tphakala/birdnet-go/internal/logger"
+import "github.com/bert386/soundnet-go/internal/logger"
 
 // GetLogger returns the backup package logger scoped to the backup module.
 // The logger is fetched from the global logger each time to ensure it uses

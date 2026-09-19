@@ -8,10 +8,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/datastore/v2/entities"
+	"github.com/bert386/soundnet-go/internal/logger"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/datastore/v2/entities"
-	"github.com/tphakala/birdnet-go/internal/logger"
 )
 
 func TestWriteAndReadConsolidationState(t *testing.T) {

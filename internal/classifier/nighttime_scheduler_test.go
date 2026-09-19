@@ -4,9 +4,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/suncalc"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/suncalc"
 )
 
 func TestIsNighttime(t *testing.T) {

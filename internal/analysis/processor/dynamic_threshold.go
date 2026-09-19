@@ -4,9 +4,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/tphakala/birdnet-go/internal/datastore"
-	"github.com/tphakala/birdnet-go/internal/errors"
-	"github.com/tphakala/birdnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/datastore"
+	"github.com/bert386/soundnet-go/internal/errors"
+	"github.com/bert386/soundnet-go/internal/logger"
 )
 
 // Threshold level multipliers define how much the base threshold is reduced at each level.

@@ -6,15 +6,15 @@ import (
 	"testing"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/datastore"
+	"github.com/bert386/soundnet-go/internal/datastore/mocks"
+	datastoreV2 "github.com/bert386/soundnet-go/internal/datastore/v2"
+	"github.com/bert386/soundnet-go/internal/datastore/v2/entities"
+	"github.com/bert386/soundnet-go/internal/errors"
+	"github.com/bert386/soundnet-go/internal/logger"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/datastore"
-	"github.com/tphakala/birdnet-go/internal/datastore/mocks"
-	datastoreV2 "github.com/tphakala/birdnet-go/internal/datastore/v2"
-	"github.com/tphakala/birdnet-go/internal/datastore/v2/entities"
-	"github.com/tphakala/birdnet-go/internal/errors"
-	"github.com/tphakala/birdnet-go/internal/logger"
 )
 
 func TestConvertFilters_PreservesAllFields(t *testing.T) {

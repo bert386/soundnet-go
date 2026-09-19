@@ -1,8 +1,8 @@
 package classifier
 
 import (
-	"github.com/tphakala/birdnet-go/internal/conf"
-	"github.com/tphakala/birdnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/logger"
 )
 
 // buildBirdNETV24 constructs (without registering) a BirdNET v2.4 instance from

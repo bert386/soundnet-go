@@ -1,6 +1,6 @@
 package api
 
-import "github.com/tphakala/birdnet-go/internal/api/v2/apicore"
+import "github.com/bert386/soundnet-go/internal/api/v2/apicore"
 
 // Type aliases re-export the shared types that moved to the apicore package so
 // existing handlers and tests in package api keep referring to them by their

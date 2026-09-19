@@ -6,16 +6,16 @@ import (
 	"testing"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/analysis/processor"
+	"github.com/bert386/soundnet-go/internal/api/v2/apicore"
+	"github.com/bert386/soundnet-go/internal/api/v2/apitest"
+	"github.com/bert386/soundnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/datastore"
+	"github.com/bert386/soundnet-go/internal/datastore/mocks"
+	"github.com/bert386/soundnet-go/internal/errors"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/analysis/processor"
-	"github.com/tphakala/birdnet-go/internal/api/v2/apicore"
-	"github.com/tphakala/birdnet-go/internal/api/v2/apitest"
-	"github.com/tphakala/birdnet-go/internal/conf"
-	"github.com/tphakala/birdnet-go/internal/datastore"
-	"github.com/tphakala/birdnet-go/internal/datastore/mocks"
-	"github.com/tphakala/birdnet-go/internal/errors"
 )
 
 func TestGetMergedThresholdData_NoDuplicates(t *testing.T) {

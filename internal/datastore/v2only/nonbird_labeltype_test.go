@@ -3,9 +3,9 @@ package v2only
 import (
 	"testing"
 
+	"github.com/bert386/soundnet-go/internal/labels/nonbird"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/labels/nonbird"
 )
 
 // TestNew_CachesNonBirdLabelTypeIDs verifies that after construction all seven

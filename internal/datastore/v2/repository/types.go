@@ -1,6 +1,6 @@
 package repository
 
-import "github.com/tphakala/birdnet-go/internal/datastore/v2/entities"
+import "github.com/bert386/soundnet-go/internal/datastore/v2/entities"
 
 // VerificationFilter wraps VerificationStatus for search filters.
 type VerificationFilter entities.VerificationStatus

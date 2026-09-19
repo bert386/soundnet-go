@@ -52,7 +52,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/tphakala/birdnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/logger"
 )
 
 // Component names used for the warnings recorded below. They become the prefix of

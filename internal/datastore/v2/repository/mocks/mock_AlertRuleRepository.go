@@ -5,10 +5,10 @@ package mocks
 import (
 	context "context"
 
+	entities "github.com/bert386/soundnet-go/internal/datastore/v2/entities"
 	mock "github.com/stretchr/testify/mock"
-	entities "github.com/tphakala/birdnet-go/internal/datastore/v2/entities"
 
-	repository "github.com/tphakala/birdnet-go/internal/datastore/v2/repository"
+	repository "github.com/bert386/soundnet-go/internal/datastore/v2/repository"
 
 	time "time"
 )

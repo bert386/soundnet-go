@@ -5,7 +5,7 @@ import (
 	"log/slog"
 	"slices"
 
-	"github.com/tphakala/birdnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/logger"
 )
 
 // debugSlog returns an *slog.Logger that bridges go-audio-stream's library

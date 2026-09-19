@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/notification"
 	"github.com/spf13/cobra"
-	"github.com/tphakala/birdnet-go/internal/conf"
-	"github.com/tphakala/birdnet-go/internal/notification"
 )
 
 // Command returns a cobra command that sends a test notification via the notification service

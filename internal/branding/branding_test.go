@@ -44,12 +44,12 @@ func TestDefaults(t *testing.T) {
 	// With no environment overrides and empty (un-baked) ldflags vars, the
 	// getters fall back to the built-in upstream defaults.
 	assert.Equal(t, "BirdNET-Go", Name())
-	assert.Equal(t, "https://github.com/tphakala/birdnet-go", RepoURL())
-	assert.Equal(t, "https://github.com/tphakala/birdnet-go/issues", IssuesURL())
-	assert.Equal(t, "https://github.com/tphakala/birdnet-go/issues/new", NewIssueURL())
-	assert.Equal(t, "https://github.com/tphakala/birdnet-go", SupportURL())
-	assert.Equal(t, "https://github.com/tphakala/birdnet-go/discussions", DiscussionsURL())
-	assert.Equal(t, "https://github.com/tphakala/birdnet-go/releases", ReleasesURL())
+	assert.Equal(t, "https://github.com/bert386/soundnet-go", RepoURL())
+	assert.Equal(t, "https://github.com/bert386/soundnet-go/issues", IssuesURL())
+	assert.Equal(t, "https://github.com/bert386/soundnet-go/issues/new", NewIssueURL())
+	assert.Equal(t, "https://github.com/bert386/soundnet-go", SupportURL())
+	assert.Equal(t, "https://github.com/bert386/soundnet-go/discussions", DiscussionsURL())
+	assert.Equal(t, "https://github.com/bert386/soundnet-go/releases", ReleasesURL())
 	assert.Equal(t, "https://discord.gg/gcSCFGUtsd", CommunityURL())
 }
 
@@ -106,7 +106,7 @@ func TestWhitespaceCountsAsUnset(t *testing.T) {
 	t.Setenv(envRepoURL, "   ")
 	t.Setenv(envName, "\t")
 
-	assert.Equal(t, "https://github.com/tphakala/birdnet-go", RepoURL())
+	assert.Equal(t, "https://github.com/bert386/soundnet-go", RepoURL())
 	assert.Equal(t, "BirdNET-Go", Name())
 }
 

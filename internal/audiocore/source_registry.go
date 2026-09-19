@@ -11,9 +11,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/tphakala/birdnet-go/internal/errors"
-	"github.com/tphakala/birdnet-go/internal/logger"
-	"github.com/tphakala/birdnet-go/internal/privacy"
+	"github.com/bert386/soundnet-go/internal/errors"
+	"github.com/bert386/soundnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/privacy"
 )
 
 // SourceEventType identifies what kind of change occurred to a source.

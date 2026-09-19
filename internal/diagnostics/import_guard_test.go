@@ -12,10 +12,10 @@ import (
 )
 
 // diagnosticsPkg is this package's import path.
-const diagnosticsPkg = "github.com/tphakala/birdnet-go/internal/diagnostics"
+const diagnosticsPkg = "github.com/bert386/soundnet-go/internal/diagnostics"
 
 // internalPrefix is the module's internal package namespace.
-const internalPrefix = "github.com/tphakala/birdnet-go/internal/"
+const internalPrefix = "github.com/bert386/soundnet-go/internal/"
 
 // forbiddenDeps are packages diagnostics must never depend on, directly
 // or transitively. telemetry is listed even though a compile-time cycle

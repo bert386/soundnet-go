@@ -9,11 +9,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/notification"
+	"github.com/bert386/soundnet-go/internal/testutil/containers"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/notification"
-	"github.com/tphakala/birdnet-go/internal/testutil/containers"
 )
 
 // setupNtfyContainer creates a no-auth ntfy container and registers cleanup.

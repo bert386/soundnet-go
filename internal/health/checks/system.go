@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/health"
 	"github.com/shirou/gopsutil/v3/disk"
 	"github.com/shirou/gopsutil/v3/mem"
-	"github.com/tphakala/birdnet-go/internal/health"
 )
 
 // DiskSpaceCheck verifies that monitored filesystem paths have sufficient free space.

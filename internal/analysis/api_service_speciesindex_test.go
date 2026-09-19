@@ -3,8 +3,8 @@ package analysis
 import (
 	"testing"
 
+	"github.com/bert386/soundnet-go/internal/speciesindex"
 	"github.com/stretchr/testify/assert"
-	"github.com/tphakala/birdnet-go/internal/speciesindex"
 )
 
 // fakeIndexSetter records the species-name index installed on it, standing in for

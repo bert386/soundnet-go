@@ -21,7 +21,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/tphakala/birdnet-go/internal/update/manifest"
+	"github.com/bert386/soundnet-go/internal/update/manifest"
 )
 
 // repoRe validates the owner/name form of -repo before it is interpolated into

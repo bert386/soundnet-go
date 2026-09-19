@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/privacy"
+	"github.com/bert386/soundnet-go/internal/telemetry"
 	"github.com/getsentry/sentry-go"
-	"github.com/tphakala/birdnet-go/internal/privacy"
-	"github.com/tphakala/birdnet-go/internal/telemetry"
 )
 
 // MigrationTelemetry reports migration lifecycle events to Sentry.

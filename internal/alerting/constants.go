@@ -1,7 +1,7 @@
 // Package alerting provides the notification alerting rules engine.
 package alerting
 
-import "github.com/tphakala/birdnet-go/internal/events"
+import "github.com/bert386/soundnet-go/internal/events"
 
 // Object types define the categories of things that can be monitored.
 const (

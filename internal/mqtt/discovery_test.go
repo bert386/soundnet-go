@@ -7,10 +7,10 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/bert386/soundnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/datastore"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/conf"
-	"github.com/tphakala/birdnet-go/internal/datastore"
 )
 
 // TestSanitizeID verifies the ID sanitization function for MQTT topics and HA entity IDs.
@@ -117,7 +117,7 @@ func TestDiscoveryPayloadStructure(t *testing.T) {
 		Origin: &DiscoveryOrigin{
 			Name:       "BirdNET-Go",
 			SWVersion:  "1.0.0",
-			SupportURL: "https://github.com/tphakala/birdnet-go",
+			SupportURL: "https://github.com/bert386/soundnet-go",
 		},
 	}
 
@@ -152,7 +152,7 @@ func TestDiscoveryPayloadStructure(t *testing.T) {
 	require.True(t, ok, "Origin should be a map")
 	assert.Equal(t, "BirdNET-Go", origin["name"])
 	assert.Equal(t, "1.0.0", origin["sw_version"])
-	assert.Equal(t, "https://github.com/tphakala/birdnet-go", origin["support_url"])
+	assert.Equal(t, "https://github.com/bert386/soundnet-go", origin["support_url"])
 }
 
 // TestPublishBridgeDiscovery verifies the bridge device discovery message.

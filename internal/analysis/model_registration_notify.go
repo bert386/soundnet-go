@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/tphakala/birdnet-go/internal/logger"
-	"github.com/tphakala/birdnet-go/internal/notification"
+	"github.com/bert386/soundnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/notification"
 )
 
 // modelNotRegisteredRenotifyInterval is how long the same source-and-models

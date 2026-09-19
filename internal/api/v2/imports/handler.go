@@ -35,12 +35,12 @@ import (
 	"os/user"
 	"strconv"
 
-	"github.com/tphakala/birdnet-go/internal/api/v2/apicore"
-	"github.com/tphakala/birdnet-go/internal/imports"
-	"github.com/tphakala/birdnet-go/internal/imports/discovery"
-	"github.com/tphakala/birdnet-go/internal/imports/elevation"
-	"github.com/tphakala/birdnet-go/internal/notification"
-	"github.com/tphakala/birdnet-go/internal/sysinfo"
+	"github.com/bert386/soundnet-go/internal/api/v2/apicore"
+	"github.com/bert386/soundnet-go/internal/imports"
+	"github.com/bert386/soundnet-go/internal/imports/discovery"
+	"github.com/bert386/soundnet-go/internal/imports/elevation"
+	"github.com/bert386/soundnet-go/internal/notification"
+	"github.com/bert386/soundnet-go/internal/sysinfo"
 )
 
 // apiV2Prefix is the v2 API path prefix. It mirrors the facade's apiV2Prefix; the

@@ -23,9 +23,9 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/tphakala/birdnet-go/internal/csvutil"
-	"github.com/tphakala/birdnet-go/internal/errors"
-	"github.com/tphakala/birdnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/csvutil"
+	"github.com/bert386/soundnet-go/internal/errors"
+	"github.com/bert386/soundnet-go/internal/logger"
 )
 
 // loggerModule is the module name used for structured logging from this package.

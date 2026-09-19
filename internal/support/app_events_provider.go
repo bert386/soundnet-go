@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/tphakala/birdnet-go/internal/datastore"
+	"github.com/bert386/soundnet-go/internal/datastore"
 )
 
 // supportDumpEventLimit is the maximum number of events included in a support dump.

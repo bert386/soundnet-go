@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"slices"
 
-	"github.com/tphakala/birdnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/logger"
 )
 
 // Observation represents a recent bird observation from eBird.

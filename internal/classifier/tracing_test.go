@@ -4,10 +4,10 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/bert386/soundnet-go/internal/observability/metrics"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/observability/metrics"
 )
 
 // resetGlobalMetrics resets the package-level metrics state so each test

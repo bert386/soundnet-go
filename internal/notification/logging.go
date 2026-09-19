@@ -1,6 +1,6 @@
 package notification
 
-import "github.com/tphakala/birdnet-go/internal/logger"
+import "github.com/bert386/soundnet-go/internal/logger"
 
 // GetLogger returns the notification logger.
 func GetLogger() logger.Logger {

@@ -17,10 +17,10 @@
 package app
 
 import (
-	"github.com/tphakala/birdnet-go/internal/api/auth"
-	"github.com/tphakala/birdnet-go/internal/api/v2/apicore"
-	"github.com/tphakala/birdnet-go/internal/datastore/v2/repository"
-	"github.com/tphakala/birdnet-go/internal/notification"
+	"github.com/bert386/soundnet-go/internal/api/auth"
+	"github.com/bert386/soundnet-go/internal/api/v2/apicore"
+	"github.com/bert386/soundnet-go/internal/datastore/v2/repository"
+	"github.com/bert386/soundnet-go/internal/notification"
 )
 
 // Handler serves the api/v2 app/debug domain endpoints. It embeds the shared

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/tphakala/birdnet-go/internal/audiocore"
-	"github.com/tphakala/birdnet-go/internal/notification"
+	"github.com/bert386/soundnet-go/internal/audiocore"
+	"github.com/bert386/soundnet-go/internal/notification"
 )
 
 // Liveness notification coalescing parameters. This reuses the same burst-tracker

@@ -5,7 +5,7 @@ import (
 
 	"golang.org/x/text/unicode/norm"
 
-	"github.com/tphakala/birdnet-go/internal/datastore"
+	"github.com/bert386/soundnet-go/internal/datastore"
 )
 
 // This file freezes the two legacy name-map builders as they existed before the

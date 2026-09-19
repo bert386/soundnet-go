@@ -5,9 +5,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/errors"
+	"github.com/bert386/soundnet-go/internal/logger"
 	"github.com/stretchr/testify/assert"
-	"github.com/tphakala/birdnet-go/internal/errors"
-	"github.com/tphakala/birdnet-go/internal/logger"
 )
 
 // capturingLogger returns a logger that writes to a buffer for assertion.

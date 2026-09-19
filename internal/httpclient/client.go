@@ -17,7 +17,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/tphakala/birdnet-go/internal/branding"
+	"github.com/bert386/soundnet-go/internal/branding"
 )
 
 const (

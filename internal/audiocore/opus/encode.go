@@ -18,9 +18,9 @@ import (
 
 	"github.com/tphakala/go-opus/oggopus"
 
-	"github.com/tphakala/birdnet-go/internal/audiocore/audiotemp"
-	"github.com/tphakala/birdnet-go/internal/audiocore/pcmgain"
-	"github.com/tphakala/birdnet-go/internal/errors"
+	"github.com/bert386/soundnet-go/internal/audiocore/audiotemp"
+	"github.com/bert386/soundnet-go/internal/audiocore/pcmgain"
+	"github.com/bert386/soundnet-go/internal/errors"
 )
 
 const (

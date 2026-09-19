@@ -3,7 +3,7 @@ package classifier
 import (
 	"time"
 
-	"github.com/tphakala/birdnet-go/internal/datastore"
+	"github.com/bert386/soundnet-go/internal/datastore"
 )
 
 // Results represents the data structure for storing BirdNET inference results

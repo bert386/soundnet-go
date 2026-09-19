@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/errors"
 	"github.com/stretchr/testify/assert"
-	"github.com/tphakala/birdnet-go/internal/errors"
 )
 
 // TestErrorHandlerNeverBlocks validates that error reporting never blocks the caller

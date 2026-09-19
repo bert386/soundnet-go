@@ -7,7 +7,7 @@ import (
 	"runtime"
 	"sync"
 
-	ort "github.com/tphakala/birdnet-go/internal/inference/onnx"
+	ort "github.com/bert386/soundnet-go/internal/inference/onnx"
 	ortlib "github.com/yalue/onnxruntime_go"
 )
 

@@ -5,8 +5,8 @@ import (
 	"math"
 	"time"
 
-	"github.com/tphakala/birdnet-go/internal/classifier"
-	"github.com/tphakala/birdnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/classifier"
+	"github.com/bert386/soundnet-go/internal/conf"
 )
 
 // birdBaseClipLength is the BirdNET reference analysis-clip length. Models with a

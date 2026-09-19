@@ -11,12 +11,12 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/analysis/processor"
+	"github.com/bert386/soundnet-go/internal/api/v2/apicore"
+	"github.com/bert386/soundnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/observability/metrics"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"github.com/tphakala/birdnet-go/internal/analysis/processor"
-	"github.com/tphakala/birdnet-go/internal/api/v2/apicore"
-	"github.com/tphakala/birdnet-go/internal/logger"
-	"github.com/tphakala/birdnet-go/internal/observability/metrics"
 )
 
 // SSE connection configuration

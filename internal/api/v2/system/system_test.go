@@ -9,15 +9,15 @@ import (
 	"runtime"
 	"testing"
 
+	"github.com/bert386/soundnet-go/internal/analysis/jobqueue"
+	"github.com/bert386/soundnet-go/internal/analysis/processor"
+	"github.com/bert386/soundnet-go/internal/api/v2/apicore"
+	"github.com/bert386/soundnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/restart"
 	"github.com/labstack/echo/v4"
 	"github.com/shirou/gopsutil/v3/process"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/analysis/jobqueue"
-	"github.com/tphakala/birdnet-go/internal/analysis/processor"
-	"github.com/tphakala/birdnet-go/internal/api/v2/apicore"
-	"github.com/tphakala/birdnet-go/internal/conf"
-	"github.com/tphakala/birdnet-go/internal/restart"
 )
 
 // setupSystemTestEnvironment creates a test environment for system API tests

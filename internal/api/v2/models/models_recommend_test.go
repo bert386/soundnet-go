@@ -6,14 +6,14 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/bert386/soundnet-go/internal/api/auth"
+	"github.com/bert386/soundnet-go/internal/api/v2/apitest"
+	"github.com/bert386/soundnet-go/internal/classifier/recommend"
+	"github.com/bert386/soundnet-go/internal/hwprofile"
+	"github.com/bert386/soundnet-go/internal/inference"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/api/auth"
-	"github.com/tphakala/birdnet-go/internal/api/v2/apitest"
-	"github.com/tphakala/birdnet-go/internal/classifier/recommend"
-	"github.com/tphakala/birdnet-go/internal/hwprofile"
-	"github.com/tphakala/birdnet-go/internal/inference"
 )
 
 // stubAuth is a minimal auth.Service double that answers only IsAuthenticated.

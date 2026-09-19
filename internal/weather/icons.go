@@ -4,7 +4,7 @@ import (
 	"html/template"
 	"time"
 
-	"github.com/tphakala/birdnet-go/internal/suncalc"
+	"github.com/bert386/soundnet-go/internal/suncalc"
 )
 
 // TimeOfDay represents different times of the Day

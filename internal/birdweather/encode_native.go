@@ -8,12 +8,12 @@ package birdweather
 import (
 	"context"
 
-	"github.com/tphakala/birdnet-go/internal/audiocore/audionorm"
-	"github.com/tphakala/birdnet-go/internal/audiocore/clipenc"
-	"github.com/tphakala/birdnet-go/internal/audiocore/flac"
-	"github.com/tphakala/birdnet-go/internal/conf"
-	"github.com/tphakala/birdnet-go/internal/errors"
-	"github.com/tphakala/birdnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/audiocore/audionorm"
+	"github.com/bert386/soundnet-go/internal/audiocore/clipenc"
+	"github.com/bert386/soundnet-go/internal/audiocore/flac"
+	"github.com/bert386/soundnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/errors"
+	"github.com/bert386/soundnet-go/internal/logger"
 )
 
 // encodeWithNativeFLAC encodes PCM directly to an in-memory FLAC upload buffer

@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/tphakala/birdnet-go/internal/health"
+	"github.com/bert386/soundnet-go/internal/health"
 )
 
 // TestAcousticModelsCheck covers the aggregate acoustic-model verdict: N = 0 is a

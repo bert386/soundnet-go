@@ -3,7 +3,7 @@ package stream
 import (
 	"encoding/binary"
 
-	"github.com/tphakala/birdnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/conf"
 )
 
 // Channel mode names, sourced from conf so the native path cannot drift from the

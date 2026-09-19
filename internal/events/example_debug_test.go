@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/tphakala/birdnet-go/internal/events"
+	"github.com/bert386/soundnet-go/internal/events"
 )
 
 // ExampleConfig_debug demonstrates how to enable debug logging for the event bus

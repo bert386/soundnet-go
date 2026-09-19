@@ -15,28 +15,28 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/tphakala/birdnet-go/internal/analysis/jobqueue"
-	"github.com/tphakala/birdnet-go/internal/analysis/species"
-	"github.com/tphakala/birdnet-go/internal/audiocore"
-	"github.com/tphakala/birdnet-go/internal/audiocore/buffer"
-	"github.com/tphakala/birdnet-go/internal/audiocore/convert"
-	"github.com/tphakala/birdnet-go/internal/audiocore/ultrasonic"
-	"github.com/tphakala/birdnet-go/internal/birdweather"
-	"github.com/tphakala/birdnet-go/internal/classifier"
-	"github.com/tphakala/birdnet-go/internal/conf"
-	"github.com/tphakala/birdnet-go/internal/datastore"
-	"github.com/tphakala/birdnet-go/internal/detection"
-	"github.com/tphakala/birdnet-go/internal/imageprovider"
-	"github.com/tphakala/birdnet-go/internal/logger"
-	"github.com/tphakala/birdnet-go/internal/mqtt"
-	"github.com/tphakala/birdnet-go/internal/notification"
-	"github.com/tphakala/birdnet-go/internal/observability"
-	"github.com/tphakala/birdnet-go/internal/observability/metrics"
-	"github.com/tphakala/birdnet-go/internal/openfauna"
-	"github.com/tphakala/birdnet-go/internal/privacy"
-	"github.com/tphakala/birdnet-go/internal/securefs"
-	"github.com/tphakala/birdnet-go/internal/spectrogram"
-	"github.com/tphakala/birdnet-go/internal/suncalc"
+	"github.com/bert386/soundnet-go/internal/analysis/jobqueue"
+	"github.com/bert386/soundnet-go/internal/analysis/species"
+	"github.com/bert386/soundnet-go/internal/audiocore"
+	"github.com/bert386/soundnet-go/internal/audiocore/buffer"
+	"github.com/bert386/soundnet-go/internal/audiocore/convert"
+	"github.com/bert386/soundnet-go/internal/audiocore/ultrasonic"
+	"github.com/bert386/soundnet-go/internal/birdweather"
+	"github.com/bert386/soundnet-go/internal/classifier"
+	"github.com/bert386/soundnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/datastore"
+	"github.com/bert386/soundnet-go/internal/detection"
+	"github.com/bert386/soundnet-go/internal/imageprovider"
+	"github.com/bert386/soundnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/mqtt"
+	"github.com/bert386/soundnet-go/internal/notification"
+	"github.com/bert386/soundnet-go/internal/observability"
+	"github.com/bert386/soundnet-go/internal/observability/metrics"
+	"github.com/bert386/soundnet-go/internal/openfauna"
+	"github.com/bert386/soundnet-go/internal/privacy"
+	"github.com/bert386/soundnet-go/internal/securefs"
+	"github.com/bert386/soundnet-go/internal/spectrogram"
+	"github.com/bert386/soundnet-go/internal/suncalc"
 )
 
 // Compile-time assertion to ensure *spectrogram.PreRenderer implements PreRendererSubmit
@@ -2199,8 +2199,8 @@ func (p *Processor) getDefaultActions(det *Detections) []Action {
 	// race where a client requests audio before export completes, using server-side
 	// wait with retries and 503 + Retry-After responses.
 	//
-	// See: https://github.com/tphakala/birdnet-go/issues/1158 (race condition)
-	// See: https://github.com/tphakala/birdnet-go/issues/1748 (detection ID in MQTT)
+	// See: https://github.com/bert386/soundnet-go/issues/1158 (race condition)
+	// See: https://github.com/bert386/soundnet-go/issues/1748 (detection ID in MQTT)
 	var sequentialActions []Action
 	if databaseAction != nil {
 		sequentialActions = append(sequentialActions, databaseAction)

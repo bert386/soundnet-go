@@ -7,12 +7,12 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/tphakala/birdnet-go/internal/conf"
-	v2 "github.com/tphakala/birdnet-go/internal/datastore/v2"
-	"github.com/tphakala/birdnet-go/internal/datastore/v2/entities"
-	"github.com/tphakala/birdnet-go/internal/datastore/v2/repository"
-	"github.com/tphakala/birdnet-go/internal/errors"
-	"github.com/tphakala/birdnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/conf"
+	v2 "github.com/bert386/soundnet-go/internal/datastore/v2"
+	"github.com/bert386/soundnet-go/internal/datastore/v2/entities"
+	"github.com/bert386/soundnet-go/internal/datastore/v2/repository"
+	"github.com/bert386/soundnet-go/internal/errors"
+	"github.com/bert386/soundnet-go/internal/logger"
 )
 
 // InitializeFreshInstall creates a new v2-only datastore for fresh installations.

@@ -8,7 +8,7 @@ import (
 	"io/fs"
 	"path"
 
-	"github.com/tphakala/birdnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/conf"
 )
 
 // LabelLoadResult contains the result of loading a label file

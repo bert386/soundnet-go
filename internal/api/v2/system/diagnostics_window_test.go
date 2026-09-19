@@ -7,13 +7,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/api/v2/apitest"
+	"github.com/bert386/soundnet-go/internal/health"
+	"github.com/bert386/soundnet-go/internal/health/checks"
+	"github.com/bert386/soundnet-go/internal/observability"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/api/v2/apitest"
-	"github.com/tphakala/birdnet-go/internal/health"
-	"github.com/tphakala/birdnet-go/internal/health/checks"
-	"github.com/tphakala/birdnet-go/internal/observability"
 )
 
 // setupDiagnosticsTest creates a test system Handler wired for diagnostics

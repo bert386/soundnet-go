@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/logger/logtest"
 	"github.com/stretchr/testify/assert"
-	"github.com/tphakala/birdnet-go/internal/logger/logtest"
 	gormlogger "gorm.io/gorm/logger"
 )
 

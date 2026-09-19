@@ -13,10 +13,10 @@ import (
 
 	"golang.org/x/sync/semaphore"
 
-	"github.com/tphakala/birdnet-go/internal/audiocore/audiotemp"
-	"github.com/tphakala/birdnet-go/internal/diskmanager"
-	"github.com/tphakala/birdnet-go/internal/errors"
-	"github.com/tphakala/birdnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/audiocore/audiotemp"
+	"github.com/bert386/soundnet-go/internal/diskmanager"
+	"github.com/bert386/soundnet-go/internal/errors"
+	"github.com/bert386/soundnet-go/internal/logger"
 )
 
 // audioWorkerLimit is the maximum number of concurrent clip-copy goroutines per batch.

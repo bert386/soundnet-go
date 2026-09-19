@@ -12,8 +12,8 @@ import (
 	"testing"
 	"unicode/utf8"
 
-	"github.com/tphakala/birdnet-go/internal/api/v2/apicore"
-	authapi "github.com/tphakala/birdnet-go/internal/api/v2/auth"
+	"github.com/bert386/soundnet-go/internal/api/v2/apicore"
+	authapi "github.com/bert386/soundnet-go/internal/api/v2/auth"
 
 	"github.com/stretchr/testify/assert"
 )

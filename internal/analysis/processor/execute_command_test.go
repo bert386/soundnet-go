@@ -5,9 +5,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/conf"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/conf"
 )
 
 // resolveValidExecutable returns an absolute path to an executable that
@@ -50,7 +50,7 @@ func resolveTwoValidExecutables(t *testing.T) (first, second string) {
 
 // TestExecuteCommandAction_WithoutParameters tests that ExecuteCommand actions
 // are executed even when no parameters are specified.
-// Bug: https://github.com/tphakala/birdnet-go/discussions/1757
+// Bug: https://github.com/bert386/soundnet-go/discussions/1757
 // Root cause: processor.go line 1116 had condition `if len(actionConfig.Parameters) > 0`
 // which prevented commands without parameters from being added to the action list.
 func TestExecuteCommandAction_WithoutParameters(t *testing.T) {

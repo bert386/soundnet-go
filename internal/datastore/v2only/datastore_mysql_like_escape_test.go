@@ -8,11 +8,11 @@ import (
 	"testing"
 	"time"
 
+	v2 "github.com/bert386/soundnet-go/internal/datastore/v2"
+	"github.com/bert386/soundnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/testutil/containers"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	v2 "github.com/tphakala/birdnet-go/internal/datastore/v2"
-	"github.com/tphakala/birdnet-go/internal/logger"
-	"github.com/tphakala/birdnet-go/internal/testutil/containers"
 )
 
 // setupMySQLDatastore starts a MySQL testcontainer and builds a fully-wired

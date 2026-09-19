@@ -7,14 +7,14 @@ import (
 	"sync"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/datastore"
+	v2 "github.com/bert386/soundnet-go/internal/datastore/v2"
+	"github.com/bert386/soundnet-go/internal/datastore/v2/entities"
+	"github.com/bert386/soundnet-go/internal/detection"
+	"github.com/bert386/soundnet-go/internal/errors"
+	"github.com/bert386/soundnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/telemetry"
 	"github.com/getsentry/sentry-go"
-	"github.com/tphakala/birdnet-go/internal/datastore"
-	v2 "github.com/tphakala/birdnet-go/internal/datastore/v2"
-	"github.com/tphakala/birdnet-go/internal/datastore/v2/entities"
-	"github.com/tphakala/birdnet-go/internal/detection"
-	"github.com/tphakala/birdnet-go/internal/errors"
-	"github.com/tphakala/birdnet-go/internal/logger"
-	"github.com/tphakala/birdnet-go/internal/telemetry"
 )
 
 // parseDetectionID converts a string ID to uint.

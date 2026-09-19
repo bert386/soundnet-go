@@ -13,11 +13,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/tphakala/birdnet-go/internal/backup"
-	"github.com/tphakala/birdnet-go/internal/diskmanager"
-	"github.com/tphakala/birdnet-go/internal/errors"
-	"github.com/tphakala/birdnet-go/internal/logger"
-	"github.com/tphakala/birdnet-go/internal/securefs"
+	"github.com/bert386/soundnet-go/internal/backup"
+	"github.com/bert386/soundnet-go/internal/diskmanager"
+	"github.com/bert386/soundnet-go/internal/errors"
+	"github.com/bert386/soundnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/securefs"
 )
 
 // Constants for file operations - use shared constants from common.go

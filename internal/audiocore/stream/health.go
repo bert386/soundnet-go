@@ -10,8 +10,8 @@ import (
 	"github.com/tphakala/go-audio-stream/rtsp"
 	"github.com/tphakala/go-audio-stream/supervisor"
 
-	"github.com/tphakala/birdnet-go/internal/audiocore"
-	"github.com/tphakala/birdnet-go/internal/errors"
+	"github.com/bert386/soundnet-go/internal/audiocore"
+	"github.com/bert386/soundnet-go/internal/errors"
 )
 
 // Legacy process_state sub-state names carried in StreamHealth.StateDetail so the

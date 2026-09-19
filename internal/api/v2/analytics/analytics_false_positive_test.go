@@ -9,11 +9,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/datastore"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/datastore"
 )
 
 // TestGetSpeciesSummary_ExcludesFalsePositives verifies species summary excludes false positives.

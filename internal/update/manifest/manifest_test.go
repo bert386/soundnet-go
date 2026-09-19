@@ -274,7 +274,7 @@ func TestJSONRoundTrip(t *testing.T) {
 				Tag:        "v0.6.4",
 				Name:       "BirdNET-Go v0.6.4",
 				ReleasedAt: time.Date(2026, 6, 20, 10, 0, 0, 0, time.UTC),
-				ReleaseURL: "https://github.com/tphakala/birdnet-go/releases/tag/v0.6.4",
+				ReleaseURL: "https://github.com/bert386/soundnet-go/releases/tag/v0.6.4",
 				Docker:     &Docker{ChannelTag: "ghcr.io/tphakala/birdnet-go:latest"},
 				Assets: []Asset{
 					{Platform: "linux", Arch: "amd64", Filename: "birdnet-go-linux-amd64-v0.6.4.tar.gz", URL: "https://example/a", Size: 100, SHA256: "abc"},

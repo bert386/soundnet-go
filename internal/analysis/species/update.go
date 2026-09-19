@@ -5,7 +5,7 @@ package species
 import (
 	"time"
 
-	"github.com/tphakala/birdnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/logger"
 )
 
 // updateLifetimeTrackingLocked updates lifetime tracking data. Returns true if this is a new species.

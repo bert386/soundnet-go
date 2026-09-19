@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/tphakala/birdnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/logger"
 )
 
 // defaultBytePoolSize is the size used when creating the shared BytePool.

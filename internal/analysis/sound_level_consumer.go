@@ -4,11 +4,11 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/tphakala/birdnet-go/internal/audiocore"
-	"github.com/tphakala/birdnet-go/internal/audiocore/convert"
-	"github.com/tphakala/birdnet-go/internal/audiocore/soundlevel"
-	"github.com/tphakala/birdnet-go/internal/errors"
-	"github.com/tphakala/birdnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/audiocore"
+	"github.com/bert386/soundnet-go/internal/audiocore/convert"
+	"github.com/bert386/soundnet-go/internal/audiocore/soundlevel"
+	"github.com/bert386/soundnet-go/internal/errors"
+	"github.com/bert386/soundnet-go/internal/logger"
 )
 
 // soundLevelChanSize is the default capacity for the sound level output channel.

@@ -8,9 +8,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/tphakala/birdnet-go/internal/audiocore/buffer"
-	"github.com/tphakala/birdnet-go/internal/errors"
-	"github.com/tphakala/birdnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/audiocore/buffer"
+	"github.com/bert386/soundnet-go/internal/errors"
+	"github.com/bert386/soundnet-go/internal/logger"
 )
 
 // deviceShutdownTimeout is the maximum time to wait for a capture goroutine

@@ -7,10 +7,10 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/bert386/soundnet-go/internal/errors"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/errors"
 )
 
 // Test constant for test file name.

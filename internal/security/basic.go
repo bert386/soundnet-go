@@ -7,13 +7,13 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/tphakala/birdnet-go/internal/errors"
+	"github.com/bert386/soundnet-go/internal/errors"
 
+	"github.com/bert386/soundnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/logger"
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo/v4"
 	"github.com/markbates/goth/gothic"
-	"github.com/tphakala/birdnet-go/internal/conf"
-	"github.com/tphakala/birdnet-go/internal/logger"
 )
 
 // IsInLocalSubnet checks if the given IP is in the same subnet as any local network interface.

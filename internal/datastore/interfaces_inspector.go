@@ -1,6 +1,6 @@
 package datastore
 
-import "github.com/tphakala/birdnet-go/internal/datastore/dbstats"
+import "github.com/bert386/soundnet-go/internal/datastore/dbstats"
 
 // DatabaseInspector provides engine-specific metadata, per-table breakdowns,
 // and detection rate histograms for the database dashboard. This interface is

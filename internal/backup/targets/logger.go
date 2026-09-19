@@ -1,7 +1,7 @@
 // Package targets provides backup target implementations.
 package targets
 
-import "github.com/tphakala/birdnet-go/internal/logger"
+import "github.com/bert386/soundnet-go/internal/logger"
 
 // GetLogger returns the backup targets package logger scoped to the backup module.
 // The logger is fetched from the global logger each time to ensure it uses

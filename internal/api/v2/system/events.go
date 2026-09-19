@@ -11,9 +11,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/logger/reader"
 	"github.com/labstack/echo/v4"
-	"github.com/tphakala/birdnet-go/internal/logger"
-	"github.com/tphakala/birdnet-go/internal/logger/reader"
 )
 
 // detectionOperations lists the log operations consumed by the detection events endpoint.

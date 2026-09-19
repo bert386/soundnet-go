@@ -5,7 +5,7 @@ package tflite
 import (
 	"runtime"
 
-	"github.com/tphakala/birdnet-go/internal/cpuspec"
+	"github.com/bert386/soundnet-go/internal/cpuspec"
 )
 
 // determineThreadCount calculates the appropriate number of threads based on

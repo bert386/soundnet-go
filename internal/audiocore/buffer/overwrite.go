@@ -4,7 +4,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/tphakala/birdnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/logger"
 )
 
 // OverwriteTrackerOpts holds configuration for NewOverwriteTracker.

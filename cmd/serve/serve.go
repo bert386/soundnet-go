@@ -7,14 +7,14 @@ import (
 	"runtime"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/analysis"
+	"github.com/bert386/soundnet-go/internal/app"
+	"github.com/bert386/soundnet-go/internal/audiocore/engine"
+	"github.com/bert386/soundnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/datastore"
+	"github.com/bert386/soundnet-go/internal/events"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/tphakala/birdnet-go/internal/analysis"
-	"github.com/tphakala/birdnet-go/internal/app"
-	"github.com/tphakala/birdnet-go/internal/audiocore/engine"
-	"github.com/tphakala/birdnet-go/internal/conf"
-	"github.com/tphakala/birdnet-go/internal/datastore"
-	"github.com/tphakala/birdnet-go/internal/events"
 )
 
 // Command creates the serve command which starts the BirdNET-Go server.

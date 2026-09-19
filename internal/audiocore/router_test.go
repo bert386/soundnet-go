@@ -9,10 +9,10 @@ import (
 	"testing/synctest"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/audiocore/buffer"
+	"github.com/bert386/soundnet-go/internal/audiocore/equalizer"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/audiocore/buffer"
-	"github.com/tphakala/birdnet-go/internal/audiocore/equalizer"
 )
 
 // mockConsumer implements AudioConsumer for testing.

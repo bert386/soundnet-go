@@ -6,9 +6,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/tphakala/birdnet-go/internal/conf"
-	"github.com/tphakala/birdnet-go/internal/events"
-	"github.com/tphakala/birdnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/events"
+	"github.com/bert386/soundnet-go/internal/logger"
 )
 
 // componentInitTimeout is the timeout for waiting for a single component to initialize

@@ -5,11 +5,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/errors"
 	"github.com/getsentry/sentry-go"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/conf"
-	"github.com/tphakala/birdnet-go/internal/errors"
 )
 
 //nolint:gocognit // integration test requires multiple scenarios for comprehensive coverage

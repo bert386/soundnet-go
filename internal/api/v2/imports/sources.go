@@ -6,8 +6,8 @@ import (
 
 	"github.com/labstack/echo/v4"
 
-	"github.com/tphakala/birdnet-go/internal/imports/discovery"
-	"github.com/tphakala/birdnet-go/internal/sysinfo"
+	"github.com/bert386/soundnet-go/internal/imports/discovery"
+	"github.com/bert386/soundnet-go/internal/sysinfo"
 )
 
 const (

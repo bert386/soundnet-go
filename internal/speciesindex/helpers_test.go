@@ -9,8 +9,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/bert386/soundnet-go/internal/openfauna"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/openfauna"
 )
 
 // v2.4 corpus embedded by the classifier; read at test time rather than importing

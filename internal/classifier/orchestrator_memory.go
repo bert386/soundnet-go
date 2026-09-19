@@ -5,8 +5,8 @@ import (
 	"maps"
 	"time"
 
-	"github.com/tphakala/birdnet-go/internal/logger"
-	"github.com/tphakala/birdnet-go/internal/sysinfo"
+	"github.com/bert386/soundnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/sysinfo"
 )
 
 // warmupTimeout bounds the best-effort warm-up inference run during model load.

@@ -4,8 +4,8 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/bert386/soundnet-go/internal/logger"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/logger"
 )
 
 // TestFFmpegSoxPipelineFailurePathNoRace exercises the FFmpeg-failure branch of

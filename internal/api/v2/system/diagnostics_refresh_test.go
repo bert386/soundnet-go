@@ -8,8 +8,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/tphakala/birdnet-go/internal/datastore/mocks"
-	"github.com/tphakala/birdnet-go/internal/observability"
+	"github.com/bert386/soundnet-go/internal/datastore/mocks"
+	"github.com/bert386/soundnet-go/internal/observability"
 )
 
 // refreshingDatastore is a datastore.Interface (via the generated mock, which

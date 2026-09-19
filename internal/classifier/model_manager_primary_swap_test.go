@@ -7,10 +7,10 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/bert386/soundnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/conf/conftest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/conf"
-	"github.com/tphakala/birdnet-go/internal/conf/conftest"
 )
 
 // isolateTestConfig points conf.ConfigPath at a throwaway file under t.TempDir()

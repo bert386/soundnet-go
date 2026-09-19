@@ -6,8 +6,8 @@ import (
 
 	"github.com/labstack/echo/v4"
 
-	"github.com/tphakala/birdnet-go/internal/conf"
-	"github.com/tphakala/birdnet-go/internal/conf/conftest"
+	"github.com/bert386/soundnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/conf/conftest"
 )
 
 // testFailFastTimeout is a short timeout injected into deliberate-failure waits

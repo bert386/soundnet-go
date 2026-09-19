@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/tphakala/birdnet-go/internal/errors"
+	"github.com/bert386/soundnet-go/internal/errors"
 )
 
 // networkFSTypes is the set of /proc/mounts fstypes treated as network mounts;

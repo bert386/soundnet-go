@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/tphakala/birdnet-go/internal/datastore"
+	"github.com/bert386/soundnet-go/internal/datastore"
 )
 
 // LegacySeeder provides direct SQL-based seeding for legacy database tables.

@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/tphakala/birdnet-go/internal/imports/birdnetpi"
+	"github.com/bert386/soundnet-go/internal/imports/birdnetpi"
 )
 
 // audioDirNames are sibling directory names that indicate a BirdNET-Pi audio

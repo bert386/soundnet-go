@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"runtime"
 
-	"github.com/tphakala/birdnet-go/internal/inference"
+	"github.com/bert386/soundnet-go/internal/inference"
 	tflitelib "github.com/tphakala/go-tflite"
 	"github.com/tphakala/go-tflite/delegates/xnnpack"
 )

@@ -6,7 +6,7 @@ import (
 	"net"
 	"net/netip"
 
-	"github.com/tphakala/birdnet-go/internal/errors"
+	"github.com/bert386/soundnet-go/internal/errors"
 )
 
 // ErrBlockedTarget is returned by the guarded dialer when a resolved connection

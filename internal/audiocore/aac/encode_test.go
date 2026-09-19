@@ -15,7 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/tphakala/go-m4a/aacm4a"
 
-	"github.com/tphakala/birdnet-go/internal/audiocore/audiotemp"
+	"github.com/bert386/soundnet-go/internal/audiocore/audiotemp"
 )
 
 const (

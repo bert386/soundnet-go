@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"net/http/pprof"
 
+	"github.com/bert386/soundnet-go/internal/logger"
 	"github.com/labstack/echo/v4"
-	"github.com/tphakala/birdnet-go/internal/logger"
 )
 
 const (

@@ -7,11 +7,11 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/bert386/soundnet-go/internal/api/v2/apitest"
+	"github.com/bert386/soundnet-go/internal/classifier"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/api/v2/apitest"
-	"github.com/tphakala/birdnet-go/internal/classifier"
 )
 
 // TestGetModelCatalog_EmitsVariants verifies the catalog response exposes the

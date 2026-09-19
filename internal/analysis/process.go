@@ -11,17 +11,17 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/audiocore/buffer"
+	"github.com/bert386/soundnet-go/internal/audiocore/convert"
+	"github.com/bert386/soundnet-go/internal/classifier"
+	"github.com/bert386/soundnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/datastore"
+	"github.com/bert386/soundnet-go/internal/errors"
+	"github.com/bert386/soundnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/observability"
+	"github.com/bert386/soundnet-go/internal/observability/metrics"
+	"github.com/bert386/soundnet-go/internal/telemetry"
 	"github.com/getsentry/sentry-go"
-	"github.com/tphakala/birdnet-go/internal/audiocore/buffer"
-	"github.com/tphakala/birdnet-go/internal/audiocore/convert"
-	"github.com/tphakala/birdnet-go/internal/classifier"
-	"github.com/tphakala/birdnet-go/internal/conf"
-	"github.com/tphakala/birdnet-go/internal/datastore"
-	"github.com/tphakala/birdnet-go/internal/errors"
-	"github.com/tphakala/birdnet-go/internal/logger"
-	"github.com/tphakala/birdnet-go/internal/observability"
-	"github.com/tphakala/birdnet-go/internal/observability/metrics"
-	"github.com/tphakala/birdnet-go/internal/telemetry"
 )
 
 var processMetrics atomic.Pointer[metrics.MyAudioMetrics]

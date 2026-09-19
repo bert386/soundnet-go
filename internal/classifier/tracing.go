@@ -7,11 +7,11 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/classifier/inferencestats"
+	"github.com/bert386/soundnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/observability/metrics"
 	"github.com/getsentry/sentry-go"
-	"github.com/tphakala/birdnet-go/internal/classifier/inferencestats"
-	"github.com/tphakala/birdnet-go/internal/conf"
-	"github.com/tphakala/birdnet-go/internal/logger"
-	"github.com/tphakala/birdnet-go/internal/observability/metrics"
 )
 
 // tagKeyModel is the tracing tag key used to identify the model in spans.

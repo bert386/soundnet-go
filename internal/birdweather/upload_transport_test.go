@@ -5,10 +5,10 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/bert386/soundnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/httpclient"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/conf"
-	"github.com/tphakala/birdnet-go/internal/httpclient"
 	"golang.org/x/net/http2"
 )
 

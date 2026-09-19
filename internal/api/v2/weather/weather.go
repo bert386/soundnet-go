@@ -12,12 +12,12 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/api/v2/apicore"
+	"github.com/bert386/soundnet-go/internal/datastore"
+	errors_pkg "github.com/bert386/soundnet-go/internal/errors"
+	"github.com/bert386/soundnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/suncalc"
 	"github.com/labstack/echo/v4"
-	"github.com/tphakala/birdnet-go/internal/api/v2/apicore"
-	"github.com/tphakala/birdnet-go/internal/datastore"
-	errors_pkg "github.com/tphakala/birdnet-go/internal/errors"
-	"github.com/tphakala/birdnet-go/internal/logger"
-	"github.com/tphakala/birdnet-go/internal/suncalc"
 	"gorm.io/gorm"
 )
 

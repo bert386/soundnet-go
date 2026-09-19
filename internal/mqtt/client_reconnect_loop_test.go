@@ -7,10 +7,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/observability"
 	paho "github.com/eclipse/paho.mqtt.golang"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/observability"
 )
 
 // stubPahoClient reports a fixed connection state. Only IsConnected is

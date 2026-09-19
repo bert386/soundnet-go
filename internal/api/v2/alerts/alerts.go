@@ -19,15 +19,15 @@ import (
 	"slices"
 	"strconv"
 
+	"github.com/bert386/soundnet-go/internal/alerting"
+	"github.com/bert386/soundnet-go/internal/api/v2/apicore"
+	datastoreV2 "github.com/bert386/soundnet-go/internal/datastore/v2"
+	"github.com/bert386/soundnet-go/internal/datastore/v2/entities"
+	"github.com/bert386/soundnet-go/internal/datastore/v2/repository"
+	"github.com/bert386/soundnet-go/internal/errors"
+	"github.com/bert386/soundnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/notification"
 	"github.com/labstack/echo/v4"
-	"github.com/tphakala/birdnet-go/internal/alerting"
-	"github.com/tphakala/birdnet-go/internal/api/v2/apicore"
-	datastoreV2 "github.com/tphakala/birdnet-go/internal/datastore/v2"
-	"github.com/tphakala/birdnet-go/internal/datastore/v2/entities"
-	"github.com/tphakala/birdnet-go/internal/datastore/v2/repository"
-	"github.com/tphakala/birdnet-go/internal/errors"
-	"github.com/tphakala/birdnet-go/internal/logger"
-	"github.com/tphakala/birdnet-go/internal/notification"
 )
 
 const maxHistoryLimit = 200

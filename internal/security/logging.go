@@ -1,7 +1,7 @@
 package security
 
 import (
-	"github.com/tphakala/birdnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/logger"
 )
 
 // SecurityLogger is a type alias for logger.Logger to maintain backwards compatibility.

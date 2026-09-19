@@ -6,7 +6,7 @@ package species
 import (
 	"time"
 
-	"github.com/tphakala/birdnet-go/internal/openfauna"
+	"github.com/bert386/soundnet-go/internal/openfauna"
 )
 
 // canonicalSpeciesName collapses taxonomic aliases to the canonical scientific name

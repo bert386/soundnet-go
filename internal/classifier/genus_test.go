@@ -3,9 +3,9 @@ package classifier
 import (
 	"testing"
 
+	"github.com/bert386/soundnet-go/internal/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/errors"
 )
 
 // TestLoadTaxonomyDatabase tests the taxonomy database loading

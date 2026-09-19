@@ -1,7 +1,7 @@
 package hwprofile
 
 import (
-	"github.com/tphakala/birdnet-go/internal/inference"
+	"github.com/bert386/soundnet-go/internal/inference"
 )
 
 // TFLiteLinked reports whether this build links the TensorFlow Lite backend.

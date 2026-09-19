@@ -421,7 +421,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/tphakala/birdnet-go/internal/errors"
+	"github.com/bert386/soundnet-go/internal/errors"
 )
 
 // Supported reports whether the OpenVINO backend is compiled into this build.

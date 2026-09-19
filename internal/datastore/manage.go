@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/errors"
+	"github.com/bert386/soundnet-go/internal/logger"
 	gomysql "github.com/go-sql-driver/mysql"
-	"github.com/tphakala/birdnet-go/internal/errors"
-	"github.com/tphakala/birdnet-go/internal/logger"
 	"gorm.io/gorm"
 	gormlogger "gorm.io/gorm/logger"
 )

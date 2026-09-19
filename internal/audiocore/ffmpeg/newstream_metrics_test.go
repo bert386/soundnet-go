@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/tphakala/birdnet-go/internal/audiocore"
+	"github.com/bert386/soundnet-go/internal/audiocore"
 )
 
 // engineRecorder is a StreamMetrics stub that records the SetStreamEngine call so

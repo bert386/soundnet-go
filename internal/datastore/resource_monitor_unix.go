@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/tphakala/birdnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/logger"
 	"golang.org/x/sys/unix"
 )
 

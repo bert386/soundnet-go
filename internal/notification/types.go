@@ -12,8 +12,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/errors"
 	"github.com/google/uuid"
-	"github.com/tphakala/birdnet-go/internal/errors"
 )
 
 // Type represents the category of a notification

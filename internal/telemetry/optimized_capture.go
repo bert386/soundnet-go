@@ -3,8 +3,8 @@ package telemetry
 import (
 	"sync/atomic"
 
+	"github.com/bert386/soundnet-go/internal/conf"
 	"github.com/getsentry/sentry-go"
-	"github.com/tphakala/birdnet-go/internal/conf"
 )
 
 // telemetryEnabled is an atomic flag for fast checking if telemetry is enabled

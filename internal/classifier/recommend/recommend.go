@@ -15,8 +15,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/tphakala/birdnet-go/internal/classifier"
-	"github.com/tphakala/birdnet-go/internal/hwprofile"
+	"github.com/bert386/soundnet-go/internal/classifier"
+	"github.com/bert386/soundnet-go/internal/hwprofile"
 )
 
 // Score terms. Kept as named constants (no magic numbers). The region terms

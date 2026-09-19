@@ -3,10 +3,10 @@ package classifier
 import (
 	"testing"
 
+	"github.com/bert386/soundnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/openfauna"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/conf"
-	"github.com/tphakala/birdnet-go/internal/openfauna"
 )
 
 // newResolverTestOrchestrator builds a minimal Orchestrator by hand (no model

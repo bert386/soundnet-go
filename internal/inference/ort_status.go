@@ -14,7 +14,7 @@ import (
 // will not work unless the installed library version starts with this.
 const RequiredORTAPIMajor = "1.25"
 
-const ORTInstallGuideURL = "https://github.com/tphakala/birdnet-go/wiki/ONNX-Runtime-Installation"
+const ORTInstallGuideURL = "https://github.com/bert386/soundnet-go/wiki/ONNX-Runtime-Installation"
 
 // ORTStatus describes the availability and version compatibility of the
 // ONNX Runtime shared library on the current system.

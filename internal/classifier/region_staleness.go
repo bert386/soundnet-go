@@ -9,8 +9,8 @@ package classifier
 import (
 	"fmt"
 
-	"github.com/tphakala/birdnet-go/internal/classifier/region"
-	"github.com/tphakala/birdnet-go/internal/notification"
+	"github.com/bert386/soundnet-go/internal/classifier/region"
+	"github.com/bert386/soundnet-go/internal/notification"
 )
 
 // RegionStalenessChange records one installed regional model variant whose

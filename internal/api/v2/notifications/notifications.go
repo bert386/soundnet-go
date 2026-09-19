@@ -30,17 +30,17 @@ import (
 	"strings"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/api/auth"
+	"github.com/bert386/soundnet-go/internal/api/v2/apicore"
+	"github.com/bert386/soundnet-go/internal/errors"
+	"github.com/bert386/soundnet-go/internal/httpclient"
+	"github.com/bert386/soundnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/notification"
+	"github.com/bert386/soundnet-go/internal/observability/metrics"
+	"github.com/bert386/soundnet-go/internal/privacy"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"github.com/tphakala/birdnet-go/internal/api/auth"
-	"github.com/tphakala/birdnet-go/internal/api/v2/apicore"
-	"github.com/tphakala/birdnet-go/internal/errors"
-	"github.com/tphakala/birdnet-go/internal/httpclient"
-	"github.com/tphakala/birdnet-go/internal/logger"
-	"github.com/tphakala/birdnet-go/internal/notification"
-	"github.com/tphakala/birdnet-go/internal/observability/metrics"
-	"github.com/tphakala/birdnet-go/internal/privacy"
 	"golang.org/x/time/rate"
 )
 
@@ -1051,7 +1051,7 @@ func (c *Handler) CreateTestNewSpeciesNotification(ctx echo.Context) error {
 
 	// Expose all TemplateData fields with bg_ prefix for use in provider templates
 	// This ensures test notifications have the same metadata as real detections
-	// See: https://github.com/tphakala/birdnet-go/issues/1457
+	// See: https://github.com/bert386/soundnet-go/issues/1457
 	testNotification = notification.EnrichWithTemplateData(testNotification, testTemplateData)
 
 	// Use CreateWithMetadata to persist and broadcast

@@ -9,9 +9,9 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/bert386/soundnet-go/frontend"
+	"github.com/bert386/soundnet-go/internal/logger"
 	"github.com/labstack/echo/v4"
-	"github.com/tphakala/birdnet-go/frontend"
-	"github.com/tphakala/birdnet-go/internal/logger"
 )
 
 // StaticFileServer handles serving static files for the frontend.

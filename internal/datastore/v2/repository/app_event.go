@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/tphakala/birdnet-go/internal/datastore/v2/entities"
+	"github.com/bert386/soundnet-go/internal/datastore/v2/entities"
 )
 
 // AppEventRepository provides access to the app_events table.

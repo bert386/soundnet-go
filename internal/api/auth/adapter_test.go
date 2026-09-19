@@ -11,11 +11,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/conf/conftest"
+	"github.com/bert386/soundnet-go/internal/security/securitytest"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/conf"
-	"github.com/tphakala/birdnet-go/internal/conf/conftest"
-	"github.com/tphakala/birdnet-go/internal/security/securitytest"
 )
 
 // TestAuthenticateBasicHotReloadAfterEnable reproduces issue #3370: a user starts

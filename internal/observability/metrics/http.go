@@ -4,9 +4,9 @@ package metrics
 import (
 	"fmt"
 
+	"github.com/bert386/soundnet-go/internal/logger"
 	"github.com/prometheus/client_golang/prometheus"
 	dto "github.com/prometheus/client_model/go"
-	"github.com/tphakala/birdnet-go/internal/logger"
 )
 
 // HTTPMetrics contains Prometheus metrics for HTTP handler operations

@@ -5,7 +5,7 @@
 // The manifest is generated in CI by tools/release-manifest and published as an
 // asset on a dedicated, never-deleted "manifest" GitHub release. The stable URL
 //
-//	https://github.com/tphakala/birdnet-go/releases/download/manifest/manifest.json
+//	https://github.com/bert386/soundnet-go/releases/download/manifest/manifest.json
 //
 // always resolves to the latest manifest. The in-app update checker (a future
 // feature) consumes this file to decide whether a newer build is available.

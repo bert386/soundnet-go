@@ -6,10 +6,10 @@ import (
 	"runtime"
 	"testing"
 
+	"github.com/bert386/soundnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/cpuspec"
+	"github.com/bert386/soundnet-go/internal/inference"
 	"github.com/stretchr/testify/assert"
-	"github.com/tphakala/birdnet-go/internal/conf"
-	"github.com/tphakala/birdnet-go/internal/cpuspec"
-	"github.com/tphakala/birdnet-go/internal/inference"
 )
 
 // archAMD64 is the GOARCH value for 64-bit x86, used by the explicit-CPU gate

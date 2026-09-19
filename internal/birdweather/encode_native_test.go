@@ -7,10 +7,10 @@ import (
 	"math"
 	"testing"
 
+	"github.com/bert386/soundnet-go/internal/audiocore/audionorm"
+	"github.com/bert386/soundnet-go/internal/conf"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/audiocore/audionorm"
-	"github.com/tphakala/birdnet-go/internal/conf"
 	goflac "github.com/tphakala/go-flac/pcm"
 )
 

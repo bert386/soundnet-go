@@ -5,9 +5,9 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/bert386/soundnet-go/internal/datastore/v2/entities"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/datastore/v2/entities"
 )
 
 func TestDeriveV2Path(t *testing.T) {

@@ -15,7 +15,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/tphakala/birdnet-go/internal/errors"
+	"github.com/bert386/soundnet-go/internal/errors"
 )
 
 const (

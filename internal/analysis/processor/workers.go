@@ -5,10 +5,10 @@ import (
 	"context"
 	"time"
 
-	"github.com/tphakala/birdnet-go/internal/analysis/jobqueue"
-	"github.com/tphakala/birdnet-go/internal/errors"
-	"github.com/tphakala/birdnet-go/internal/logger"
-	"github.com/tphakala/birdnet-go/internal/privacy"
+	"github.com/bert386/soundnet-go/internal/analysis/jobqueue"
+	"github.com/bert386/soundnet-go/internal/errors"
+	"github.com/bert386/soundnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/privacy"
 )
 
 // TaskType defines types of tasks that can be handled by the worker.

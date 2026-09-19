@@ -10,11 +10,11 @@ import (
 	"sync"
 	"time"
 
+	datastoreV2 "github.com/bert386/soundnet-go/internal/datastore/v2"
+	"github.com/bert386/soundnet-go/internal/formatutil"
+	"github.com/bert386/soundnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/notification"
 	"github.com/labstack/echo/v4"
-	datastoreV2 "github.com/tphakala/birdnet-go/internal/datastore/v2"
-	"github.com/tphakala/birdnet-go/internal/formatutil"
-	"github.com/tphakala/birdnet-go/internal/logger"
-	"github.com/tphakala/birdnet-go/internal/notification"
 	"gorm.io/gorm"
 )
 

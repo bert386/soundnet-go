@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/tphakala/birdnet-go/internal/datastore/v2/entities"
+	"github.com/bert386/soundnet-go/internal/datastore/v2/entities"
 )
 
 // TestV2OnlyDatastore_SplitByZoneOffset verifies the hourly range is divided at DST transitions.

@@ -6,9 +6,9 @@ import (
 	"os"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/support"
 	"github.com/spf13/cobra"
-	"github.com/tphakala/birdnet-go/internal/conf"
-	"github.com/tphakala/birdnet-go/internal/support"
 )
 
 // CollectCommand creates the support data collection subcommand

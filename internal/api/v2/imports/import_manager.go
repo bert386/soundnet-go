@@ -5,7 +5,7 @@ import (
 	"context"
 	"sync"
 
-	"github.com/tphakala/birdnet-go/internal/imports"
+	"github.com/bert386/soundnet-go/internal/imports"
 )
 
 // importManager ensures only one import runs at a time and retains the most

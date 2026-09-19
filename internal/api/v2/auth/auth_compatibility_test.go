@@ -9,9 +9,9 @@ import (
 	"crypto/subtle"
 	"testing"
 
+	"github.com/bert386/soundnet-go/internal/conf"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/conf"
 )
 
 // Test constant for frontend hardcoded username - must match backend default

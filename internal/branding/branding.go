@@ -24,7 +24,7 @@ import (
 // defaults below, while official and fork builds can override them at link
 // time, e.g.:
 //
-//	-ldflags "-X 'github.com/tphakala/birdnet-go/internal/branding.projectRepoURL=https://github.com/acme/birdnet-fork'"
+//	-ldflags "-X 'github.com/bert386/soundnet-go/internal/branding.projectRepoURL=https://github.com/acme/birdnet-fork'"
 //
 // The linker can set unexported package vars, so this mirrors the unexported
 // internal/telemetry.sentryDSN injection target exactly.
@@ -56,7 +56,7 @@ var (
 // value is present. These are the upstream project's public identity.
 const (
 	defaultName         = "BirdNET-Go"
-	defaultRepoURL      = "https://github.com/tphakala/birdnet-go"
+	defaultRepoURL      = "https://github.com/bert386/soundnet-go"
 	defaultCommunityURL = "https://discord.gg/gcSCFGUtsd"
 
 	issuesPath      = "issues"

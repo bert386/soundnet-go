@@ -3,10 +3,10 @@ package analytics
 import (
 	"net/http"
 
+	"github.com/bert386/soundnet-go/internal/api/v2/apicore"
+	"github.com/bert386/soundnet-go/internal/datastore"
+	"github.com/bert386/soundnet-go/internal/logger"
 	"github.com/labstack/echo/v4"
-	"github.com/tphakala/birdnet-go/internal/api/v2/apicore"
-	"github.com/tphakala/birdnet-go/internal/datastore"
-	"github.com/tphakala/birdnet-go/internal/logger"
 )
 
 // DatabaseOverviewResponse is the response for GET /api/v2/system/database/overview.

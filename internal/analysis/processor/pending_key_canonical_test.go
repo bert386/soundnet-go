@@ -3,8 +3,8 @@ package processor
 import (
 	"testing"
 
+	"github.com/bert386/soundnet-go/internal/detection"
 	"github.com/stretchr/testify/assert"
-	"github.com/tphakala/birdnet-go/internal/detection"
 )
 
 func detectionFor(scientific, common string) *Detections {

@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/tphakala/birdnet-go/internal/audiocore"
+	"github.com/bert386/soundnet-go/internal/audiocore"
 )
 
 // AudioStreamMetrics must satisfy audiocore.StreamMetrics so it can be assigned

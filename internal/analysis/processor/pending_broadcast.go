@@ -4,8 +4,8 @@ import (
 	"slices"
 	"time"
 
-	"github.com/tphakala/birdnet-go/internal/imageprovider"
-	"github.com/tphakala/birdnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/imageprovider"
+	"github.com/bert386/soundnet-go/internal/logger"
 )
 
 // Pending broadcast constants.

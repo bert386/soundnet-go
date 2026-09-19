@@ -3,8 +3,8 @@ package checks
 import (
 	"testing"
 
+	"github.com/bert386/soundnet-go/internal/health"
 	"github.com/stretchr/testify/assert"
-	"github.com/tphakala/birdnet-go/internal/health"
 )
 
 // TestRangeFilterCheck covers the range-filter health states from the #852 fix plan:

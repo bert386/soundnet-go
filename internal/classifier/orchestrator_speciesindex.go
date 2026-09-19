@@ -5,7 +5,7 @@
 // Phase 2a.
 package classifier
 
-import "github.com/tphakala/birdnet-go/internal/speciesindex"
+import "github.com/bert386/soundnet-go/internal/speciesindex"
 
 // SpeciesIndex returns the orchestrator-owned species-name index. Consumers read
 // Snapshot() lock-free; only the orchestrator rebuilds it. It is never nil on an

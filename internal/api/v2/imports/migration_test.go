@@ -10,19 +10,19 @@ import (
 	"testing"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/api/v2/apicore"
+	"github.com/bert386/soundnet-go/internal/api/v2/apitest"
+	"github.com/bert386/soundnet-go/internal/datastore"
+	"github.com/bert386/soundnet-go/internal/datastore/mocks"
+	"github.com/bert386/soundnet-go/internal/datastore/v2/entities"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/api/v2/apicore"
-	"github.com/tphakala/birdnet-go/internal/api/v2/apitest"
-	"github.com/tphakala/birdnet-go/internal/datastore"
-	"github.com/tphakala/birdnet-go/internal/datastore/mocks"
-	"github.com/tphakala/birdnet-go/internal/datastore/v2/entities"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
-	datastoreV2 "github.com/tphakala/birdnet-go/internal/datastore/v2"
+	datastoreV2 "github.com/bert386/soundnet-go/internal/datastore/v2"
 )
 
 // migrationTestMu protects the global stateManager and migrationWorker during tests.

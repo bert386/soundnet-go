@@ -4,11 +4,11 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/bert386/soundnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/datastore/mocks"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/conf"
-	"github.com/tphakala/birdnet-go/internal/datastore/mocks"
 )
 
 // TestNewCoreWiresDefaults verifies NewCore returns a fully wired core with the

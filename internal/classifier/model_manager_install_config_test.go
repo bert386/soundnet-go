@@ -4,8 +4,8 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/bert386/soundnet-go/internal/conf/conftest"
 	"github.com/stretchr/testify/assert"
-	"github.com/tphakala/birdnet-go/internal/conf/conftest"
 )
 
 // TestApplyRangeFilterConfigForInstall_ClearsStaleOppositePath verifies that installing a

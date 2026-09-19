@@ -6,12 +6,12 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	mw "github.com/bert386/soundnet-go/internal/api/middleware"
+	"github.com/bert386/soundnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/conf/conftest"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	mw "github.com/tphakala/birdnet-go/internal/api/middleware"
-	"github.com/tphakala/birdnet-go/internal/conf"
-	"github.com/tphakala/birdnet-go/internal/conf/conftest"
 )
 
 const (

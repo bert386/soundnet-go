@@ -5,10 +5,10 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/bert386/soundnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/privacy"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"github.com/tphakala/birdnet-go/internal/logger"
-	"github.com/tphakala/birdnet-go/internal/privacy"
 )
 
 // hlsTokenPathPrefix is the path segment that precedes an HLS stream token, e.g.

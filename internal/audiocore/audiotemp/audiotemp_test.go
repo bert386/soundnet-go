@@ -9,10 +9,10 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/bert386/soundnet-go/internal/audiocore/audiotemp"
+	"github.com/bert386/soundnet-go/internal/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/audiocore/audiotemp"
-	"github.com/tphakala/birdnet-go/internal/errors"
 )
 
 func TestUniquePath_PrefixedByOutputAndEndsInExt(t *testing.T) {

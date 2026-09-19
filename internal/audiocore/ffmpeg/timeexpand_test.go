@@ -4,9 +4,9 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/bert386/soundnet-go/internal/audiocore/ffmpeg"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/audiocore/ffmpeg"
 )
 
 // TestIsValidBatExpansionFactor verifies that only the offered time-expansion

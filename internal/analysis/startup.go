@@ -3,12 +3,12 @@ package analysis
 import (
 	"strings"
 
+	"github.com/bert386/soundnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/errors"
+	"github.com/bert386/soundnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/mempolicy"
+	"github.com/bert386/soundnet-go/internal/observability"
 	"github.com/shirou/gopsutil/v3/host"
-	"github.com/tphakala/birdnet-go/internal/conf"
-	"github.com/tphakala/birdnet-go/internal/errors"
-	"github.com/tphakala/birdnet-go/internal/logger"
-	"github.com/tphakala/birdnet-go/internal/mempolicy"
-	"github.com/tphakala/birdnet-go/internal/observability"
 )
 
 // bytesPerMiB converts byte counts to MiB for human-readable startup logging.

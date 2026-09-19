@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 
-	"github.com/tphakala/birdnet-go/internal/datastore/v2/entities"
+	"github.com/bert386/soundnet-go/internal/datastore/v2/entities"
 )
 
 // DetectionRepository provides access to the normalized v2 detections schema.

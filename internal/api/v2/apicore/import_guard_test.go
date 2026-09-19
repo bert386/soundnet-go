@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/tphakala/birdnet-go/internal/errors"
+	"github.com/bert386/soundnet-go/internal/errors"
 )
 
 // goListTimeout bounds the nested `go list` invocation so the guard fails fast
@@ -42,7 +42,7 @@ const goListTimeout = 60 * time.Second
 
 const (
 	// apiV2Prefix is the import path of the api/v2 facade package (package api).
-	apiV2Prefix = "github.com/tphakala/birdnet-go/internal/api/v2"
+	apiV2Prefix = "github.com/bert386/soundnet-go/internal/api/v2"
 	// apicorePkg, apitestPkg and dtoPkg are the api/v2 leaf/substrate packages a
 	// substrate package is allowed to import.
 	apicorePkg = apiV2Prefix + "/apicore"

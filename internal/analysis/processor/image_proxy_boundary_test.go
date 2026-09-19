@@ -5,11 +5,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/analysis/species"
+	"github.com/bert386/soundnet-go/internal/events"
+	"github.com/bert386/soundnet-go/internal/imageprovider"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/analysis/species"
-	"github.com/tphakala/birdnet-go/internal/events"
-	"github.com/tphakala/birdnet-go/internal/imageprovider"
 )
 
 // stallingImageProvider parks every Fetch until released, so a caller that still

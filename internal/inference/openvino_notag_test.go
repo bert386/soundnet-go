@@ -5,9 +5,9 @@ package inference
 import (
 	"testing"
 
+	ov "github.com/bert386/soundnet-go/internal/inference/openvino"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	ov "github.com/tphakala/birdnet-go/internal/inference/openvino"
 )
 
 // These tests assert the no-tag stub behaviour and are scoped to the !openvino

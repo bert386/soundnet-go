@@ -13,10 +13,10 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/tphakala/birdnet-go/internal/audiocore/audionorm"
-	"github.com/tphakala/birdnet-go/internal/audiocore/convert"
-	"github.com/tphakala/birdnet-go/internal/audiocore/ffmpeg"
-	"github.com/tphakala/birdnet-go/internal/audiocore/pcmgain"
+	"github.com/bert386/soundnet-go/internal/audiocore/audionorm"
+	"github.com/bert386/soundnet-go/internal/audiocore/convert"
+	"github.com/bert386/soundnet-go/internal/audiocore/ffmpeg"
+	"github.com/bert386/soundnet-go/internal/audiocore/pcmgain"
 )
 
 // The BirdNET-Go export defaults (conf.AudioSettings.Export.Normalization).

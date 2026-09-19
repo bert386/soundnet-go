@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/tphakala/birdnet-go/internal/api/v2/apitest"
-	"github.com/tphakala/birdnet-go/internal/notification"
+	"github.com/bert386/soundnet-go/internal/api/v2/apitest"
+	"github.com/bert386/soundnet-go/internal/notification"
 	"go.uber.org/goleak"
 )
 

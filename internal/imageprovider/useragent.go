@@ -11,9 +11,9 @@ import (
 	"runtime"
 	"sync/atomic"
 
-	"github.com/tphakala/birdnet-go/internal/branding"
-	"github.com/tphakala/birdnet-go/internal/conf"
-	"github.com/tphakala/birdnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/branding"
+	"github.com/bert386/soundnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/logger"
 )
 
 const (
@@ -57,7 +57,7 @@ func buildUserAgent(appVersion string) string {
 
 	goVersion := runtime.Version()
 
-	// Format: BirdNETGo/1.0.0 (https://github.com/tphakala/birdnet-go) Go-HTTP-Client/go1.21.0
+	// Format: BirdNETGo/1.0.0 (https://github.com/bert386/soundnet-go) Go-HTTP-Client/go1.21.0
 	return fmt.Sprintf("%s/%s (%s) %s/%s",
 		userAgentName, appVersion, branding.RepoURL(), userAgentLibrary, goVersion)
 }

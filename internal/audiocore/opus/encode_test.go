@@ -15,7 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/tphakala/go-opus/oggopus"
 
-	"github.com/tphakala/birdnet-go/internal/audiocore/audiotemp"
+	"github.com/bert386/soundnet-go/internal/audiocore/audiotemp"
 )
 
 const (

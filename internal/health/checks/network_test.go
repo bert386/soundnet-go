@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/bert386/soundnet-go/internal/health"
 	"github.com/stretchr/testify/assert"
-	"github.com/tphakala/birdnet-go/internal/health"
 )
 
 func TestBirdWeatherCheck_NilGetStatus(t *testing.T) {

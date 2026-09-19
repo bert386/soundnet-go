@@ -18,14 +18,14 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/api/v2/apicore"
+	"github.com/bert386/soundnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/datastore"
+	"github.com/bert386/soundnet-go/internal/logger"
+	supportpkg "github.com/bert386/soundnet-go/internal/support"
+	"github.com/bert386/soundnet-go/internal/telemetry"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	"github.com/tphakala/birdnet-go/internal/api/v2/apicore"
-	"github.com/tphakala/birdnet-go/internal/conf"
-	"github.com/tphakala/birdnet-go/internal/datastore"
-	"github.com/tphakala/birdnet-go/internal/logger"
-	supportpkg "github.com/tphakala/birdnet-go/internal/support"
-	"github.com/tphakala/birdnet-go/internal/telemetry"
 )
 
 // Handler serves the support domain endpoints. It embeds *apicore.Core BY

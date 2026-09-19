@@ -3,9 +3,9 @@ package apicore
 import (
 	"testing"
 
+	"github.com/bert386/soundnet-go/internal/datastore"
+	"github.com/bert386/soundnet-go/internal/imageprovider"
 	"github.com/stretchr/testify/assert"
-	"github.com/tphakala/birdnet-go/internal/datastore"
-	"github.com/tphakala/birdnet-go/internal/imageprovider"
 )
 
 // TestNewSSEDetectionData_AlwaysEmitsProxyURL pins the proxy boundary on the SSE feed.

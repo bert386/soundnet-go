@@ -4,7 +4,7 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"github.com/tphakala/birdnet-go/internal/sysinfo"
+	"github.com/bert386/soundnet-go/internal/sysinfo"
 )
 
 // osLinux is the runtime.GOOS value for Linux; native discovery and guidance are

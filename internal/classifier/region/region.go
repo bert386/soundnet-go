@@ -16,7 +16,7 @@ package region
 import (
 	"encoding/json"
 
-	"github.com/tphakala/birdnet-go/internal/errors"
+	"github.com/bert386/soundnet-go/internal/errors"
 )
 
 // snapshotSchema is the regions.json schema version this package understands. A

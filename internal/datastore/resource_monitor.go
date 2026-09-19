@@ -10,9 +10,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/tphakala/birdnet-go/internal/diskmanager"
-	"github.com/tphakala/birdnet-go/internal/errors"
-	"github.com/tphakala/birdnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/diskmanager"
+	"github.com/bert386/soundnet-go/internal/errors"
+	"github.com/bert386/soundnet-go/internal/logger"
 )
 
 // Disk space requirements for different operations (in MB)

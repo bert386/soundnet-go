@@ -13,13 +13,13 @@ import (
 	"sync"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/alerting"
+	"github.com/bert386/soundnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/errors"
+	"github.com/bert386/soundnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/observability"
+	"github.com/bert386/soundnet-go/internal/observability/metrics"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
-	"github.com/tphakala/birdnet-go/internal/alerting"
-	"github.com/tphakala/birdnet-go/internal/conf"
-	"github.com/tphakala/birdnet-go/internal/errors"
-	"github.com/tphakala/birdnet-go/internal/logger"
-	"github.com/tphakala/birdnet-go/internal/observability"
-	"github.com/tphakala/birdnet-go/internal/observability/metrics"
 )
 
 const (

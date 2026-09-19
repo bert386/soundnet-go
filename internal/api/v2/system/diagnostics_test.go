@@ -4,11 +4,11 @@ package system
 import (
 	"testing"
 
+	"github.com/bert386/soundnet-go/internal/classifier"
+	"github.com/bert386/soundnet-go/internal/classifier/inferencestats"
+	"github.com/bert386/soundnet-go/internal/health/checks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/classifier"
-	"github.com/tphakala/birdnet-go/internal/classifier/inferencestats"
-	"github.com/tphakala/birdnet-go/internal/health/checks"
 )
 
 // TestMapInferenceSnapshotsKeepsUnmappedModel verifies that a counter whose

@@ -4,7 +4,7 @@
 // the single source of truth shared with the classifier's top-K truncation.
 package processor
 
-import "github.com/tphakala/birdnet-go/internal/labels/vocalization"
+import "github.com/bert386/soundnet-go/internal/labels/vocalization"
 
 // isHumanVocalization reports whether a raw classifier label represents a human
 // sound that should engage the privacy filter. See vocalization.IsHuman.

@@ -12,11 +12,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/tphakala/birdnet-go/internal/conf"
-	"github.com/tphakala/birdnet-go/internal/errors"
-	"github.com/tphakala/birdnet-go/internal/events"
-	"github.com/tphakala/birdnet-go/internal/logger"
-	"github.com/tphakala/birdnet-go/internal/observability/metrics"
+	"github.com/bert386/soundnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/errors"
+	"github.com/bert386/soundnet-go/internal/events"
+	"github.com/bert386/soundnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/observability/metrics"
 	"golang.org/x/sync/semaphore"
 )
 
@@ -197,7 +197,7 @@ func registerProvidersWithHealthChecker(pd *pushDispatcher) {
 }
 
 // warnIfLocalhostWithExternalWebhooks logs a warning if localhost URLs are used with external webhooks.
-// See: https://github.com/tphakala/birdnet-go/issues/1457
+// See: https://github.com/bert386/soundnet-go/issues/1457
 func warnIfLocalhostWithExternalWebhooks(pd *pushDispatcher, settings *conf.Settings) {
 	baseURL := settings.Security.GetBaseURL(settings.WebServer.Port)
 	if containsLocalhost(baseURL) && hasExternalWebhooks(pd.providers) {

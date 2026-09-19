@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v3"
 
-	"github.com/tphakala/birdnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/conf"
 )
 
 // TestSanitizeConfigStripsEverySecret asserts that sanitizeConfig removes every

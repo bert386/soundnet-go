@@ -10,9 +10,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/errors"
+	"github.com/bert386/soundnet-go/internal/observability/metrics"
 	"github.com/sj14/astral/pkg/astral"
-	"github.com/tphakala/birdnet-go/internal/errors"
-	"github.com/tphakala/birdnet-go/internal/observability/metrics"
 )
 
 // SunEventTimes holds the calculated sun event times in local time

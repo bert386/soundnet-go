@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/analysis"
+	"github.com/bert386/soundnet-go/internal/classifier"
+	"github.com/bert386/soundnet-go/internal/conf"
 	"github.com/spf13/cobra"
-	"github.com/tphakala/birdnet-go/internal/analysis"
-	"github.com/tphakala/birdnet-go/internal/classifier"
-	"github.com/tphakala/birdnet-go/internal/conf"
 )
 
 func Command(settings *conf.Settings) *cobra.Command {

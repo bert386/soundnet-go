@@ -6,10 +6,10 @@ import (
 	"os"
 	"testing"
 
+	"github.com/bert386/soundnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/inference"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/conf"
-	"github.com/tphakala/birdnet-go/internal/inference"
 )
 
 // perchInputSampleCount is the Perch v2 input length (32 kHz * 5 s).

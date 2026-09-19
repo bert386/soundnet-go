@@ -6,10 +6,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/api/v2/apicore"
+	"github.com/bert386/soundnet-go/internal/notification"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
-	"github.com/tphakala/birdnet-go/internal/api/v2/apicore"
-	"github.com/tphakala/birdnet-go/internal/notification"
 )
 
 // assertMapContainsExpected checks that result map contains all expected key-value pairs.

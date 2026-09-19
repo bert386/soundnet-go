@@ -1,7 +1,7 @@
 package alerting
 
 import (
-	"github.com/tphakala/birdnet-go/internal/datastore/v2/entities"
+	"github.com/bert386/soundnet-go/internal/datastore/v2/entities"
 )
 
 // DefaultRules returns the built-in alert rules that ship with BirdNET-Go.

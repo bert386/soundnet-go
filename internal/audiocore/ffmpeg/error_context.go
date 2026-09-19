@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/tphakala/birdnet-go/internal/audiocore"
-	"github.com/tphakala/birdnet-go/internal/privacy"
+	"github.com/bert386/soundnet-go/internal/audiocore"
+	"github.com/bert386/soundnet-go/internal/privacy"
 )
 
 // Pre-compiled regular expressions for FFmpeg error parsing.

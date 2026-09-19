@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/tphakala/birdnet-go/internal/api/v2/apicore"
+	"github.com/bert386/soundnet-go/internal/api/v2/apicore"
 )
 
 // TestSendAudioSourceReconfigure_RecoversFromClosedControlChan pins the recover in

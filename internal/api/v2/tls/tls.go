@@ -22,12 +22,12 @@ import (
 	"sync"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/api/v2/apicore"
+	"github.com/bert386/soundnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/restart"
+	tlspkg "github.com/bert386/soundnet-go/internal/tls"
 	"github.com/labstack/echo/v4"
-	"github.com/tphakala/birdnet-go/internal/api/v2/apicore"
-	"github.com/tphakala/birdnet-go/internal/conf"
-	"github.com/tphakala/birdnet-go/internal/logger"
-	"github.com/tphakala/birdnet-go/internal/restart"
-	tlspkg "github.com/tphakala/birdnet-go/internal/tls"
 )
 
 // TLS validity constraints

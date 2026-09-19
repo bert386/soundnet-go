@@ -11,7 +11,7 @@ package tflite
 import (
 	"fmt"
 
-	"github.com/tphakala/birdnet-go/internal/inference"
+	"github.com/bert386/soundnet-go/internal/inference"
 )
 
 // LogFunc is a callback for logging messages from the inference backend.

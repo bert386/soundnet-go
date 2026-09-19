@@ -5,8 +5,8 @@ package api
 import (
 	"testing"
 
+	"github.com/bert386/soundnet-go/internal/api/v2/apicore"
 	"github.com/stretchr/testify/assert"
-	"github.com/tphakala/birdnet-go/internal/api/v2/apicore"
 )
 
 // TestNormalizeClipPathStrict tests the NormalizeClipPathStrict function

@@ -6,10 +6,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/tphakala/birdnet-go/internal/conf"
-	"github.com/tphakala/birdnet-go/internal/datastore"
-	"github.com/tphakala/birdnet-go/internal/diskmanager"
-	"github.com/tphakala/birdnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/datastore"
+	"github.com/bert386/soundnet-go/internal/diskmanager"
+	"github.com/bert386/soundnet-go/internal/logger"
 )
 
 // clipReconcileStartupDelay defers the first reconcile pass so it does not contend

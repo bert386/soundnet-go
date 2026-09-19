@@ -7,7 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/tphakala/birdnet-go/internal/audiocore/ffmpeg"
+	"github.com/bert386/soundnet-go/internal/audiocore/ffmpeg"
 )
 
 // TestLoudnormFilter pins the reference loudnorm chain this harness builds.

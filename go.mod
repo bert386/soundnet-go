@@ -1,4 +1,4 @@
-module github.com/tphakala/birdnet-go
+module github.com/bert386/soundnet-go
 
 go 1.27.0
 

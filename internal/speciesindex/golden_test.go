@@ -3,10 +3,10 @@ package speciesindex
 import (
 	"testing"
 
+	"github.com/bert386/soundnet-go/internal/datastore"
+	"github.com/bert386/soundnet-go/internal/openfauna"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/datastore"
-	"github.com/tphakala/birdnet-go/internal/openfauna"
 )
 
 // assertMatchesLegacy asserts Build's three name maps equal both frozen legacy

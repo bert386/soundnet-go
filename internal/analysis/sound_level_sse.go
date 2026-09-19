@@ -5,10 +5,10 @@ import (
 	"sync"
 	"time"
 
-	apiv2 "github.com/tphakala/birdnet-go/internal/api/v2"
-	"github.com/tphakala/birdnet-go/internal/audiocore/soundlevel"
-	"github.com/tphakala/birdnet-go/internal/logger"
-	"github.com/tphakala/birdnet-go/internal/observability/metrics"
+	apiv2 "github.com/bert386/soundnet-go/internal/api/v2"
+	"github.com/bert386/soundnet-go/internal/audiocore/soundlevel"
+	"github.com/bert386/soundnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/observability/metrics"
 )
 
 // getSoundLevelMetrics is a helper function to safely retrieve the SoundLevel metrics object

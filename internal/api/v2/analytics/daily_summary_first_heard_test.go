@@ -3,8 +3,8 @@ package analytics
 import (
 	"testing"
 
+	"github.com/bert386/soundnet-go/internal/datastore"
 	"github.com/stretchr/testify/assert"
-	"github.com/tphakala/birdnet-go/internal/datastore"
 )
 
 // TestUpdateAggregatedData_FirstHeard pins the daily summary's first_heard to the note's

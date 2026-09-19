@@ -15,8 +15,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/bert386/soundnet-go/internal/errors"
 	_ "github.com/mattn/go-sqlite3" // SQLite driver for integrity check
-	"github.com/tphakala/birdnet-go/internal/errors"
 )
 
 const (

@@ -7,9 +7,9 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/bert386/soundnet-go/internal/conf/conftest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/conf/conftest"
 )
 
 // v24EnUKLabelsPath is the embedded v2.4 en_uk label corpus, read from disk so the

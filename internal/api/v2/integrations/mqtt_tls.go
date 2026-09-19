@@ -5,11 +5,11 @@ import (
 	"os"
 	"strings"
 
+	"github.com/bert386/soundnet-go/internal/api/v2/apicore"
+	tlsapi "github.com/bert386/soundnet-go/internal/api/v2/tls"
+	"github.com/bert386/soundnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/logger"
 	"github.com/labstack/echo/v4"
-	"github.com/tphakala/birdnet-go/internal/api/v2/apicore"
-	tlsapi "github.com/tphakala/birdnet-go/internal/api/v2/tls"
-	"github.com/tphakala/birdnet-go/internal/conf"
-	"github.com/tphakala/birdnet-go/internal/logger"
 )
 
 const mqttTLSServiceName = "mqtt"

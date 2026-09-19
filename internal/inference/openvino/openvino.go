@@ -4,7 +4,7 @@
 // get stubs that report ErrOpenVINOUnavailable so callers degrade to ORT.
 package openvino
 
-import "github.com/tphakala/birdnet-go/internal/errors"
+import "github.com/bert386/soundnet-go/internal/errors"
 
 // DefaultPrecisionHint is the OpenVINO INFERENCE_PRECISION_HINT used for the
 // f16 acceleration path on ARMv8.2 CPUs and the Intel iGPU.

@@ -11,9 +11,9 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/bert386/soundnet-go/internal/audiocore/ffmpeg"
+	"github.com/bert386/soundnet-go/internal/conf"
 	"github.com/labstack/echo/v4"
-	"github.com/tphakala/birdnet-go/internal/audiocore/ffmpeg"
-	"github.com/tphakala/birdnet-go/internal/conf"
 )
 
 type testStreamRequest struct {

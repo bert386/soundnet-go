@@ -2,7 +2,7 @@
 package datastore
 
 import (
-	"github.com/tphakala/birdnet-go/internal/observability/metrics"
+	"github.com/bert386/soundnet-go/internal/observability/metrics"
 )
 
 // Metrics is a type alias for the metrics.DatastoreMetrics

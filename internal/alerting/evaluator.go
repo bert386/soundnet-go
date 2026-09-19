@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/tphakala/birdnet-go/internal/datastore/v2/entities"
-	"github.com/tphakala/birdnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/datastore/v2/entities"
+	"github.com/bert386/soundnet-go/internal/logger"
 )
 
 // EvaluateConditions checks if all conditions match against event properties.

@@ -5,17 +5,17 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/bert386/soundnet-go/cmd/authors"
+	"github.com/bert386/soundnet-go/cmd/benchmark"
+	"github.com/bert386/soundnet-go/cmd/importstage"
+	"github.com/bert386/soundnet-go/cmd/license"
+	"github.com/bert386/soundnet-go/cmd/notify"
+	"github.com/bert386/soundnet-go/cmd/rangefilter"
+	"github.com/bert386/soundnet-go/cmd/serve"
+	"github.com/bert386/soundnet-go/cmd/support"
+	"github.com/bert386/soundnet-go/internal/conf"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/tphakala/birdnet-go/cmd/authors"
-	"github.com/tphakala/birdnet-go/cmd/benchmark"
-	"github.com/tphakala/birdnet-go/cmd/importstage"
-	"github.com/tphakala/birdnet-go/cmd/license"
-	"github.com/tphakala/birdnet-go/cmd/notify"
-	"github.com/tphakala/birdnet-go/cmd/rangefilter"
-	"github.com/tphakala/birdnet-go/cmd/serve"
-	"github.com/tphakala/birdnet-go/cmd/support"
-	"github.com/tphakala/birdnet-go/internal/conf"
 )
 
 // RootCommand creates and returns the root command

@@ -13,7 +13,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/tphakala/birdnet-go/internal/testutil/containers"
+	"github.com/bert386/soundnet-go/internal/testutil/containers"
 )
 
 // Fixture tuning for the MediaMTX-backed implementation.

@@ -3,9 +3,9 @@ package classifier
 import (
 	"strings"
 
-	"github.com/tphakala/birdnet-go/internal/detection"
-	"github.com/tphakala/birdnet-go/internal/inference"
-	"github.com/tphakala/birdnet-go/internal/openfauna"
+	"github.com/bert386/soundnet-go/internal/detection"
+	"github.com/bert386/soundnet-go/internal/inference"
+	"github.com/bert386/soundnet-go/internal/openfauna"
 )
 
 // mappedRangeFilter wraps an inference.RangeFilter whose output indices correspond

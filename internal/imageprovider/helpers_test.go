@@ -13,10 +13,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/branding"
+	"github.com/bert386/soundnet-go/internal/datastore"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/branding"
-	"github.com/tphakala/birdnet-go/internal/datastore"
 )
 
 // TestIsCacheEntryStale tests the TTL logic for cache entries.

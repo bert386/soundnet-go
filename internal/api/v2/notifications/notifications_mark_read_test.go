@@ -6,10 +6,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/bert386/soundnet-go/internal/notification"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/notification"
 )
 
 // runMarkNotificationNotFoundTest exercises a mark-state handler against a

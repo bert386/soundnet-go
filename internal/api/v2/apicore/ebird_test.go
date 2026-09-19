@@ -3,9 +3,9 @@ package apicore
 import (
 	"testing"
 
+	"github.com/bert386/soundnet-go/internal/conf"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/conf"
 )
 
 // ebirdTestSettings builds a minimal settings snapshot with the eBird section

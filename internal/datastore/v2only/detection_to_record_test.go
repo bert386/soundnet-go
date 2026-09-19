@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/datastore/v2/entities"
 	"github.com/stretchr/testify/assert"
-	"github.com/tphakala/birdnet-go/internal/datastore/v2/entities"
 )
 
 // TestDetectionToRecord_Verified is a regression test for GitHub issue #2769:

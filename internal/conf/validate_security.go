@@ -8,8 +8,8 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/tphakala/birdnet-go/internal/errors"
-	"github.com/tphakala/birdnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/errors"
+	"github.com/bert386/soundnet-go/internal/logger"
 )
 
 // Provider IDs used in security.oauthProviders, and by the deprecated

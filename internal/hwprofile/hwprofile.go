@@ -18,9 +18,9 @@ import (
 	"slices"
 	"sync"
 
-	"github.com/tphakala/birdnet-go/internal/cpuspec"
-	"github.com/tphakala/birdnet-go/internal/mempolicy"
-	"github.com/tphakala/birdnet-go/internal/sysinfo"
+	"github.com/bert386/soundnet-go/internal/cpuspec"
+	"github.com/bert386/soundnet-go/internal/mempolicy"
+	"github.com/bert386/soundnet-go/internal/sysinfo"
 )
 
 // rootFS is the filesystem root the probes read from in production. Every

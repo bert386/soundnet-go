@@ -4,7 +4,7 @@ package datastore
 import (
 	"time"
 
-	"github.com/tphakala/birdnet-go/internal/detection"
+	"github.com/bert386/soundnet-go/internal/detection"
 )
 
 // AudioSource represents a structured audio source with ID, safe string, and display name

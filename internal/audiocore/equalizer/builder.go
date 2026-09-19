@@ -2,8 +2,8 @@
 package equalizer
 
 import (
-	"github.com/tphakala/birdnet-go/internal/conf"
-	"github.com/tphakala/birdnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/logger"
 )
 
 var eqLog = logger.Global().Module("audio").Module("equalizer")

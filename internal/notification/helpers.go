@@ -3,8 +3,8 @@ package notification
 import (
 	"fmt"
 
-	"github.com/tphakala/birdnet-go/internal/logger"
-	"github.com/tphakala/birdnet-go/internal/privacy"
+	"github.com/bert386/soundnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/privacy"
 )
 
 // NotifyError creates an error notification with appropriate priority
@@ -263,7 +263,7 @@ func scrubIPAddress(ip string) string {
 // Returns the original notification unchanged if either parameter is nil.
 // Otherwise returns the notification with added metadata fields.
 //
-// See: https://github.com/tphakala/birdnet-go/issues/1457
+// See: https://github.com/bert386/soundnet-go/issues/1457
 func EnrichWithTemplateData(notification *Notification, data *TemplateData) *Notification {
 	if notification == nil || data == nil {
 		return notification // Maintain fluent API - nil-in, nil-out

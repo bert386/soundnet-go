@@ -3,11 +3,11 @@ package v2only
 import (
 	"testing"
 
+	"github.com/bert386/soundnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/openfauna"
+	"github.com/bert386/soundnet-go/internal/speciesindex"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/logger"
-	"github.com/tphakala/birdnet-go/internal/openfauna"
-	"github.com/tphakala/birdnet-go/internal/speciesindex"
 )
 
 // fakeResolver is a minimal datastore.SpeciesNameResolver for tests.

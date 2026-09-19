@@ -7,9 +7,9 @@ import (
 
 	audiostream "github.com/tphakala/go-audio-stream"
 
-	"github.com/tphakala/birdnet-go/internal/audiocore"
-	"github.com/tphakala/birdnet-go/internal/audiocore/resample"
-	"github.com/tphakala/birdnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/audiocore"
+	"github.com/bert386/soundnet-go/internal/audiocore/resample"
+	"github.com/bert386/soundnet-go/internal/logger"
 )
 
 // bytePool is the pooled-slice source the pipeline draws dispatched chunks from.

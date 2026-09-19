@@ -12,10 +12,10 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/bert386/soundnet-go/internal/audiocore/ffmpeg"
+	"github.com/bert386/soundnet-go/internal/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/audiocore/ffmpeg"
-	"github.com/tphakala/birdnet-go/internal/errors"
 )
 
 // makePCMSilence returns a slice of silence PCM bytes (16-bit LE, mono, 48 kHz).

@@ -3,11 +3,11 @@ package cmd
 import (
 	"testing"
 
+	"github.com/bert386/soundnet-go/internal/conf"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/conf"
 )
 
 // TestSetupFlags_KeepsNormalizedLocale guards the ordering bug that made every

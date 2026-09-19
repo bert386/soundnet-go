@@ -4,8 +4,8 @@ package processor
 import (
 	"strings"
 
-	"github.com/tphakala/birdnet-go/internal/conf"
-	"github.com/tphakala/birdnet-go/internal/openfauna"
+	"github.com/bert386/soundnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/openfauna"
 )
 
 // lookupSpeciesConfig looks up a species configuration by either common name or scientific name.

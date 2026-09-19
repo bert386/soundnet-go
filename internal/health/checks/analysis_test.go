@@ -4,10 +4,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/health"
+	"github.com/bert386/soundnet-go/internal/observability"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/health"
-	"github.com/tphakala/birdnet-go/internal/observability"
 )
 
 // --- ModelsLoadedCheck tests ---

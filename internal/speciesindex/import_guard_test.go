@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/tphakala/birdnet-go/internal/errors"
+	"github.com/bert386/soundnet-go/internal/errors"
 )
 
 // goListTimeout bounds the nested `go list` so the guard fails fast rather than
@@ -19,7 +19,7 @@ import (
 const goListTimeout = 60 * time.Second
 
 // speciesindexPkg is the import path of the package under test.
-const speciesindexPkg = "github.com/tphakala/birdnet-go/internal/speciesindex"
+const speciesindexPkg = "github.com/bert386/soundnet-go/internal/speciesindex"
 
 // forbiddenImports are the import groups speciesindex must never pull in, so it
 // stays a leaf importable from classifier, api/v2 and analysis without a cycle.
@@ -30,16 +30,16 @@ var forbiddenImports = []struct {
 	match func(dep string) bool
 }{
 	{"internal/classifier", func(d string) bool {
-		return d == "github.com/tphakala/birdnet-go/internal/classifier" ||
-			strings.HasPrefix(d, "github.com/tphakala/birdnet-go/internal/classifier/")
+		return d == "github.com/bert386/soundnet-go/internal/classifier" ||
+			strings.HasPrefix(d, "github.com/bert386/soundnet-go/internal/classifier/")
 	}},
 	{"internal/api", func(d string) bool {
-		return d == "github.com/tphakala/birdnet-go/internal/api" ||
-			strings.HasPrefix(d, "github.com/tphakala/birdnet-go/internal/api/")
+		return d == "github.com/bert386/soundnet-go/internal/api" ||
+			strings.HasPrefix(d, "github.com/bert386/soundnet-go/internal/api/")
 	}},
 	{"internal/analysis", func(d string) bool {
-		return d == "github.com/tphakala/birdnet-go/internal/analysis" ||
-			strings.HasPrefix(d, "github.com/tphakala/birdnet-go/internal/analysis/")
+		return d == "github.com/bert386/soundnet-go/internal/analysis" ||
+			strings.HasPrefix(d, "github.com/bert386/soundnet-go/internal/analysis/")
 	}},
 }
 

@@ -7,8 +7,8 @@ import (
 	"github.com/stretchr/testify/require"
 	audiostream "github.com/tphakala/go-audio-stream"
 
-	"github.com/tphakala/birdnet-go/internal/audiocore"
-	"github.com/tphakala/birdnet-go/internal/audiocore/buffer"
+	"github.com/bert386/soundnet-go/internal/audiocore"
+	"github.com/bert386/soundnet-go/internal/audiocore/buffer"
 )
 
 // fakeBytePool is a deterministic bytePool for asserting FrameRef accounting.

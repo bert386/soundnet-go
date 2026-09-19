@@ -4,7 +4,7 @@ import (
 	"testing"
 	"unsafe"
 
-	"github.com/tphakala/birdnet-go/internal/datastore"
+	"github.com/bert386/soundnet-go/internal/datastore"
 )
 
 // BenchmarkPairLabelsAndConfidenceAlloc tests different allocation strategies

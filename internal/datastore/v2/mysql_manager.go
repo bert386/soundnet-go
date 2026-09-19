@@ -3,9 +3,9 @@ package v2
 import (
 	"fmt"
 
-	"github.com/tphakala/birdnet-go/internal/datastore"
-	"github.com/tphakala/birdnet-go/internal/datastore/v2/entities"
-	"github.com/tphakala/birdnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/datastore"
+	"github.com/bert386/soundnet-go/internal/datastore/v2/entities"
+	"github.com/bert386/soundnet-go/internal/logger"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	gorm_logger "gorm.io/gorm/logger"

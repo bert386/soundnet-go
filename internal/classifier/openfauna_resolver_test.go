@@ -1,6 +1,6 @@
 package classifier
 
-import "github.com/tphakala/birdnet-go/internal/openfauna"
+import "github.com/bert386/soundnet-go/internal/openfauna"
 
 // Compile-time check that openfauna.Resolver implements NameResolver. The adapter
 // lives in internal/openfauna (alongside the data it wraps); this assertion keeps

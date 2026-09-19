@@ -3,10 +3,10 @@ package support
 import (
 	"testing"
 
+	"github.com/bert386/soundnet-go/internal/api/v2/apitest"
+	"github.com/bert386/soundnet-go/internal/datastore/mocks"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/mock"
-	"github.com/tphakala/birdnet-go/internal/api/v2/apitest"
-	"github.com/tphakala/birdnet-go/internal/datastore/mocks"
 )
 
 // TestSupportRouteRegistration verifies the support handler registers exactly the

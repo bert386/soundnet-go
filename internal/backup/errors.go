@@ -2,13 +2,13 @@
 package backup
 
 // Deprecated: This custom error system is being phased out in favor of the
-// enhanced error system in github.com/tphakala/birdnet-go/internal/errors.
+// enhanced error system in github.com/bert386/soundnet-go/internal/errors.
 // Once all files (ftp.go, gdrive.go, rsync.go) are migrated, this file should be removed.
 
 import (
 	"fmt"
 
-	"github.com/tphakala/birdnet-go/internal/errors"
+	"github.com/bert386/soundnet-go/internal/errors"
 )
 
 // ErrorCode represents specific backup error types

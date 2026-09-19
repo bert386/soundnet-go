@@ -3,9 +3,9 @@ package processor
 import (
 	"testing"
 
+	"github.com/bert386/soundnet-go/internal/logger/logtest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/logger/logtest"
 )
 
 func TestPipelineStats_RecordAndReset(t *testing.T) {

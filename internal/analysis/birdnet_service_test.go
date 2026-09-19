@@ -3,9 +3,9 @@ package analysis
 import (
 	"testing"
 
+	"github.com/bert386/soundnet-go/internal/app"
+	"github.com/bert386/soundnet-go/internal/conf"
 	"github.com/stretchr/testify/assert"
-	"github.com/tphakala/birdnet-go/internal/app"
-	"github.com/tphakala/birdnet-go/internal/conf"
 )
 
 // Compile-time interface compliance check.

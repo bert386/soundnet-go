@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/tphakala/birdnet-go/internal/datastore"
+	"github.com/bert386/soundnet-go/internal/datastore"
 )
 
 // PercentageMultiplier converts a fraction to a percentage (and divides a

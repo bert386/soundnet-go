@@ -6,9 +6,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/tphakala/birdnet-go/internal/diagnostics"
-	"github.com/tphakala/birdnet-go/internal/logger"
-	"github.com/tphakala/birdnet-go/internal/privacy"
+	"github.com/bert386/soundnet-go/internal/diagnostics"
+	"github.com/bert386/soundnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/privacy"
 )
 
 const (

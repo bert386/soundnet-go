@@ -12,10 +12,10 @@ import (
 	"testing"
 	"time"
 
+	diagpkg "github.com/bert386/soundnet-go/internal/diagnostics"
+	"github.com/bert386/soundnet-go/internal/privacy"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	diagpkg "github.com/tphakala/birdnet-go/internal/diagnostics"
-	"github.com/tphakala/birdnet-go/internal/privacy"
 	"gopkg.in/yaml.v3"
 )
 

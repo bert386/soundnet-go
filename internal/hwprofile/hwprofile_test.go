@@ -6,9 +6,9 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/bert386/soundnet-go/internal/mempolicy"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/mempolicy"
 )
 
 // TestProbeAgainstFixtureTrees exercises the filesystem-backed probes against

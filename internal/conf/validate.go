@@ -8,8 +8,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/tphakala/birdnet-go/internal/errors"
-	"github.com/tphakala/birdnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/errors"
+	"github.com/bert386/soundnet-go/internal/logger"
 )
 
 // MinSoundLevelInterval is the minimum sound level interval in seconds to prevent excessive CPU usage

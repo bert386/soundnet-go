@@ -8,7 +8,7 @@
 package processor
 
 import (
-	"github.com/tphakala/birdnet-go/internal/openfauna"
+	"github.com/bert386/soundnet-go/internal/openfauna"
 )
 
 // taxonomyResolver resolves a species label to its scientific name, common name,

@@ -13,7 +13,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-const projectModulePath = "github.com/tphakala/birdnet-go"
+const projectModulePath = "github.com/bert386/soundnet-go"
 
 // TestAllSettingsStructsHaveYAMLTags verifies that every exported field in the
 // Settings struct tree that has a json: tag also has an explicit yaml: tag.

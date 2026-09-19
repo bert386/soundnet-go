@@ -6,8 +6,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/tphakala/birdnet-go/internal/datastore"
-	"github.com/tphakala/birdnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/datastore"
+	"github.com/bert386/soundnet-go/internal/logger"
 )
 
 // SyncIfNeeded checks if a database sync is needed and performs it

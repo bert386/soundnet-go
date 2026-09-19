@@ -3,8 +3,8 @@ package processor
 import (
 	"testing"
 
+	"github.com/bert386/soundnet-go/internal/conf"
 	"github.com/stretchr/testify/assert"
-	"github.com/tphakala/birdnet-go/internal/conf"
 )
 
 // TestIsSpeciesExcluded_CanonicalAliasMatch verifies that an exclude entry keyed on

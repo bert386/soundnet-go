@@ -6,10 +6,10 @@ import (
 	"os"
 	"testing"
 
+	"github.com/bert386/soundnet-go/internal/conf"
+	onnx "github.com/bert386/soundnet-go/internal/inference/onnx"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/conf"
-	onnx "github.com/tphakala/birdnet-go/internal/inference/onnx"
 )
 
 // geomodelPathsFromEnv returns the geomodel model + labels paths from the standard QA

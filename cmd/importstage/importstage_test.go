@@ -9,10 +9,10 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/bert386/soundnet-go/internal/conf"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/conf"
 )
 
 // itoa converts an int to a string, for building --flag=value args.

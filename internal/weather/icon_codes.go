@@ -1,6 +1,6 @@
 package weather
 
-import "github.com/tphakala/birdnet-go/internal/logger"
+import "github.com/bert386/soundnet-go/internal/logger"
 
 // IconCode represents a standardized weather icon code
 type IconCode string

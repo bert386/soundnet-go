@@ -3,10 +3,10 @@ package api
 import (
 	"testing"
 
+	"github.com/bert386/soundnet-go/internal/audiocore/engine"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/audiocore/engine"
 )
 
 func TestEngineAtomicLoadStore(t *testing.T) {

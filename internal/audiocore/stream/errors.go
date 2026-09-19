@@ -1,6 +1,6 @@
 package stream
 
-import "github.com/tphakala/birdnet-go/internal/errors"
+import "github.com/bert386/soundnet-go/internal/errors"
 
 // Sentinel errors for the native ingest path. They are terminal (non-retryable)
 // causes: the Retryable policy in stream.go marks them so the supervisor stops

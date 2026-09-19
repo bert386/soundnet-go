@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/tphakala/birdnet-go/internal/datastore"
+	"github.com/bert386/soundnet-go/internal/datastore"
 )
 
 // BenchmarkPairLabelsAndConfidence measures the memory allocation and performance

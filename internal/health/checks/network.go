@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/tphakala/birdnet-go/internal/health"
+	"github.com/bert386/soundnet-go/internal/health"
 )
 
 // MQTTCheck verifies connectivity to the MQTT broker when MQTT is enabled.

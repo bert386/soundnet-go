@@ -26,7 +26,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/tphakala/birdnet-go/internal/errors"
+	"github.com/bert386/soundnet-go/internal/errors"
 )
 
 // Ext is the suffix of an in-progress export's temp file. A clip is finalized by

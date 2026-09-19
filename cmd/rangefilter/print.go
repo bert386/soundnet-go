@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/classifier"
+	"github.com/bert386/soundnet-go/internal/conf"
 	"github.com/spf13/cobra"
-	"github.com/tphakala/birdnet-go/internal/classifier"
-	"github.com/tphakala/birdnet-go/internal/conf"
 )
 
 // PrintCommand creates the print subcommand

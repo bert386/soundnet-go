@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/conf"
 	"github.com/stretchr/testify/assert"
-	"github.com/tphakala/birdnet-go/internal/conf"
 )
 
 // newProcessorWithExportType returns a minimal Processor suitable for

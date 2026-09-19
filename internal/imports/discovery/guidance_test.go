@@ -5,9 +5,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/bert386/soundnet-go/internal/sysinfo"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/sysinfo"
 )
 
 func TestBuildGuidance_NativeLinuxHasMountSteps(t *testing.T) {

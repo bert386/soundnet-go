@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/goleak"
 
-	ov "github.com/tphakala/birdnet-go/internal/inference/openvino"
+	ov "github.com/bert386/soundnet-go/internal/inference/openvino"
 )
 
 // ovProbeHelperEnv marks a test-binary re-invocation as the probe child

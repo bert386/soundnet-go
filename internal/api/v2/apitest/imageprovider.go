@@ -3,8 +3,8 @@ package apitest
 import (
 	"testing"
 
+	"github.com/bert386/soundnet-go/internal/imageprovider"
 	"github.com/stretchr/testify/mock"
-	"github.com/tphakala/birdnet-go/internal/imageprovider"
 )
 
 // MockImageProvider is a testify/mock implementation of the imageprovider

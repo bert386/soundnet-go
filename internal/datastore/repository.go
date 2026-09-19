@@ -5,7 +5,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/tphakala/birdnet-go/internal/detection"
+	"github.com/bert386/soundnet-go/internal/detection"
 )
 
 // defaultDetectionLimit is the default number of detections returned by queries.

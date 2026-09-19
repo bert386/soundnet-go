@@ -9,12 +9,12 @@ import (
 	"sync"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/alerting"
+	"github.com/bert386/soundnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/logger"
 	"github.com/shirou/gopsutil/v3/cpu"
 	"github.com/shirou/gopsutil/v3/disk"
 	"github.com/shirou/gopsutil/v3/mem"
-	"github.com/tphakala/birdnet-go/internal/alerting"
-	"github.com/tphakala/birdnet-go/internal/conf"
-	"github.com/tphakala/birdnet-go/internal/logger"
 )
 
 // GetLogger returns the module logger for system monitor

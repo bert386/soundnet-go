@@ -9,8 +9,8 @@ package apicore
 import (
 	"github.com/labstack/echo/v4"
 
-	"github.com/tphakala/birdnet-go/internal/conf"
-	"github.com/tphakala/birdnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/logger"
 )
 
 // GetLogger returns a logger instance for the API v2 package.

@@ -3,8 +3,8 @@ package classifier
 import (
 	"testing"
 
+	"github.com/bert386/soundnet-go/internal/conf"
 	"github.com/stretchr/testify/assert"
-	"github.com/tphakala/birdnet-go/internal/conf"
 )
 
 // TestIsPerchNoDFT pins the filename-based detection of the OpenVINO-compatible

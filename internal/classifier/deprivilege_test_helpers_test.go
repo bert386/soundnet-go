@@ -3,7 +3,7 @@ package classifier
 import (
 	"testing"
 
-	"github.com/tphakala/birdnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/conf"
 )
 
 // registerTestV24 registers inst as the loaded BirdNET v2.4 entry (the range-filter

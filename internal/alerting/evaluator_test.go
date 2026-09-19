@@ -3,8 +3,8 @@ package alerting
 import (
 	"testing"
 
+	"github.com/bert386/soundnet-go/internal/datastore/v2/entities"
 	"github.com/stretchr/testify/assert"
-	"github.com/tphakala/birdnet-go/internal/datastore/v2/entities"
 )
 
 func TestEvaluateConditions_EmptyConditions(t *testing.T) {

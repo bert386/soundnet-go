@@ -3,9 +3,9 @@ package classifier
 import (
 	"testing"
 
+	"github.com/bert386/soundnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/conf/conftest"
 	"github.com/stretchr/testify/assert"
-	"github.com/tphakala/birdnet-go/internal/conf"
-	"github.com/tphakala/birdnet-go/internal/conf/conftest"
 )
 
 // TestBirdNET_UpdateSettings_SyncsBothFields verifies updateSettings keeps the

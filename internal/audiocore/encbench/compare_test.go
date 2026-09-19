@@ -15,10 +15,10 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/tphakala/birdnet-go/internal/audiocore/aac"
-	"github.com/tphakala/birdnet-go/internal/audiocore/ffmpeg"
-	"github.com/tphakala/birdnet-go/internal/audiocore/flac"
-	"github.com/tphakala/birdnet-go/internal/audiocore/opus"
+	"github.com/bert386/soundnet-go/internal/audiocore/aac"
+	"github.com/bert386/soundnet-go/internal/audiocore/ffmpeg"
+	"github.com/bert386/soundnet-go/internal/audiocore/flac"
+	"github.com/bert386/soundnet-go/internal/audiocore/opus"
 )
 
 const (

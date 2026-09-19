@@ -13,7 +13,7 @@ import (
 	"log/slog"
 	"testing"
 
-	"github.com/tphakala/birdnet-go/internal/logger"
+	"github.com/bert386/soundnet-go/internal/logger"
 )
 
 // levelName maps a slog.Level to the CentralLogger DefaultLevel string, so the

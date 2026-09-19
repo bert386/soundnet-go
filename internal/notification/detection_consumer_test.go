@@ -5,10 +5,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/conf/conftest"
+	"github.com/bert386/soundnet-go/internal/events"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/conf/conftest"
-	"github.com/tphakala/birdnet-go/internal/events"
 	"go.uber.org/goleak"
 )
 
@@ -18,7 +18,7 @@ func TestMain(m *testing.M) {
 		goleak.IgnoreTopFunction("testing.(*T).Run"),
 		goleak.IgnoreTopFunction("runtime.gopark"),
 		goleak.IgnoreTopFunction("gopkg.in/natefinch/lumberjack%2ev2.(*Logger).millRun"),
-		goleak.IgnoreTopFunction("github.com/tphakala/birdnet-go/internal/notification.(*Service).cleanupLoop"),
+		goleak.IgnoreTopFunction("github.com/bert386/soundnet-go/internal/notification.(*Service).cleanupLoop"),
 	)
 	os.Exit(m.Run())
 }
@@ -241,7 +241,7 @@ func TestDetectionNotificationConsumer_PreSanitizedLocations(t *testing.T) {
 
 // TestDetectionNotificationConsumer_MetadataFieldsExposure verifies that all TemplateData fields
 // are exposed in notification metadata with the bg_ prefix for use in provider templates.
-// See: https://github.com/tphakala/birdnet-go/issues/1457
+// See: https://github.com/bert386/soundnet-go/issues/1457
 func TestDetectionNotificationConsumer_MetadataFieldsExposure(t *testing.T) {
 	t.Parallel()
 

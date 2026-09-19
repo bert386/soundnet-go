@@ -4,9 +4,9 @@ import (
 	"math"
 	"testing"
 
+	"github.com/bert386/soundnet-go/internal/audiocore/convert"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/audiocore/convert"
 )
 
 // TestBytesToFloat64PCM16 verifies conversion of known PCM16 byte sequences to float64 values.

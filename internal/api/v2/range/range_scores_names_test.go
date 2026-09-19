@@ -7,9 +7,9 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/bert386/soundnet-go/internal/classifier"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tphakala/birdnet-go/internal/classifier"
 )
 
 // convertSpeciesScoresNoNames backs GET /api/v2/range/species/scores?names=false.

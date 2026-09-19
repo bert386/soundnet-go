@@ -9,8 +9,8 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/conf"
 	"github.com/invopop/jsonschema"
-	"github.com/tphakala/birdnet-go/internal/conf"
 )
 
 func main() {
@@ -43,7 +43,7 @@ func run() error {
 	// AddGoComments parses Go source to extract struct field comments and
 	// injects them as schema descriptions. Must be called before Reflect.
 	for _, dir := range []string{"internal/conf", "internal/logger"} {
-		if err := r.AddGoComments("github.com/tphakala/birdnet-go", filepath.Join(".", dir)); err != nil {
+		if err := r.AddGoComments("github.com/bert386/soundnet-go", filepath.Join(".", dir)); err != nil {
 			return fmt.Errorf("adding comments from %s: %w", dir, err)
 		}
 	}
