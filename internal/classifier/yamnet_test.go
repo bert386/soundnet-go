@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/bert386/soundnet-go/internal/conf"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -240,4 +242,62 @@ func TestYAMNetPredictRejectsUnusableAudio(t *testing.T) {
 	_, err = y.Predict(t.Context(), [][]float32{make([]float32, yamnetFrameSamples)})
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "not initialized")
+}
+
+// TestYAMNetResolvesAGalleryInstall proves the last link in the chain: that the
+// catalog entry's roles and filenames are what resolveFamilyPaths actually looks
+// for on disk.
+//
+// Everything else can be right - registry entry, loader, adapter - and the model
+// still never loads if the catalog declares a role the resolver does not read or
+// a filename the installer does not write. Rather than reason about that, this
+// lays out a gallery install and resolves against it.
+func TestYAMNetResolvesAGalleryInstall(t *testing.T) {
+	t.Parallel()
+
+	entry, ok := GetCatalogEntry("yamnet-v1")
+	require.True(t, ok)
+	require.Equal(t, RegistryIDYAMNet, entry.RegistryID,
+		"resolveInstalledPaths matches catalog entries on RegistryID")
+
+	modelsDir := t.TempDir()
+	subdir := filepath.Join(modelsDir, entry.ID)
+	require.NoError(t, os.MkdirAll(subdir, 0o755))
+
+	var wantModel, wantLabels string
+	for _, f := range entry.Files {
+		require.NotEmptyf(t, f.LocalName, "file %q must declare a local name", f.RemotePath)
+		p := filepath.Join(subdir, f.LocalName)
+		require.NoError(t, os.WriteFile(p, []byte("placeholder"), 0o600))
+		switch f.Role {
+		case RoleModel:
+			wantModel = p
+		case RoleLabels:
+			wantLabels = p
+		}
+	}
+	require.NotEmpty(t, wantModel, "the entry must declare a model-role file")
+	require.NotEmpty(t, wantLabels, "the entry must declare a labels-role file, or the classes cannot be named")
+
+	o := &Orchestrator{modelsDir: modelsDir}
+	res := o.resolveFamilyPaths(RegistryIDYAMNet, modelFileSet{}, false)
+	assert.Equal(t, wantModel, res.resolved.model)
+	assert.Equal(t, wantLabels, res.resolved.labels)
+
+	// And the loader gets far enough to try loading them: the placeholder bytes
+	// are not a TFLite model, so this must fail on the model, not on resolution.
+	_, _, err := o.buildYAMNet(&conf.Settings{}, 1)
+	require.Error(t, err)
+	assert.NotContains(t, err.Error(), "not installed",
+		"paths resolved, so the failure must come from the model file rather than from resolution")
+}
+
+// TestYAMNetBuildSaysSoWhenNotInstalled keeps the empty-models-dir case honest:
+// the operator needs to be told to install it, not handed a parse error.
+func TestYAMNetBuildSaysSoWhenNotInstalled(t *testing.T) {
+	t.Parallel()
+	o := &Orchestrator{modelsDir: t.TempDir()}
+	_, _, err := o.buildYAMNet(&conf.Settings{}, 1)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "not installed")
 }
