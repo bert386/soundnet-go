@@ -43,9 +43,9 @@ vars:
   # BIRDNET_GO_PROJECT_* environment variables without rebuilding, so most forks
   # never need to set these at build time.
   PROJECT_NAME:
-    sh: echo "${PROJECT_NAME:-}"
+    sh: echo "${PROJECT_NAME:-SoundNet}"
   PROJECT_REPO_URL:
-    sh: echo "${PROJECT_REPO_URL:-}"
+    sh: echo "${PROJECT_REPO_URL:-https://github.com/bert386/soundnet-go}"
   PROJECT_COMMUNITY_URL:
     sh: echo "${PROJECT_COMMUNITY_URL:-}"
   # Common build flags
@@ -110,7 +110,7 @@ vars:
       if [ -n "${TAGS}" ]; then
         echo "-tags ${TAGS}"
       fi
-  LDFLAGS: -ldflags "-s -w -X 'main.buildDate={{.BUILD_DATE}}' -X 'main.version={{.VERSION}}' -X 'github.com/tphakala/birdnet-go/internal/telemetry.sentryDSN={{.SENTRY_DSN}}' -X 'github.com/tphakala/birdnet-go/internal/branding.projectName={{.PROJECT_NAME}}' -X 'github.com/tphakala/birdnet-go/internal/branding.projectRepoURL={{.PROJECT_REPO_URL}}' -X 'github.com/tphakala/birdnet-go/internal/branding.projectCommunityURL={{.PROJECT_COMMUNITY_URL}}'"
+  LDFLAGS: -ldflags "-s -w -X 'main.buildDate={{.BUILD_DATE}}' -X 'main.version={{.VERSION}}' -X 'github.com/bert386/soundnet-go/internal/telemetry.sentryDSN={{.SENTRY_DSN}}' -X 'github.com/bert386/soundnet-go/internal/branding.projectName={{.PROJECT_NAME}}' -X 'github.com/bert386/soundnet-go/internal/branding.projectRepoURL={{.PROJECT_REPO_URL}}' -X 'github.com/bert386/soundnet-go/internal/branding.projectCommunityURL={{.PROJECT_COMMUNITY_URL}}'"
   BUILD_FLAGS: '{{.BUILD_TAGS_FLAG}} {{.LDFLAGS}}'
   # System paths for native library installation (used by download/verify tasks)
   SYSTEM_LIB_DIR: /usr/lib
