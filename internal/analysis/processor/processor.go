@@ -2269,6 +2269,15 @@ func (p *Processor) getDefaultActions(det *Detections) []Action {
 		})
 	}
 
+	// SOUNDNET: attach diagnostics and external identity once the detection has
+	// been saved. Returns nil unless SoundNet is configured, and the action never
+	// fails a detection. All logic lives in internal/eventpipeline; this file's
+	// only job is to hand it a clip. Single integration point - keep it to one
+	// call so upstream merges stay cheap.
+	if a := p.buildSoundNetAction(det, detectionCtx); a != nil {
+		actions = append(actions, a)
+	}
+
 	return actions
 }
 

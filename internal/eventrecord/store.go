@@ -180,3 +180,39 @@ func (s *Store) ReviewStateOf(detectionID uint, verified string) (ReviewState, e
 		return ReviewUnreviewed, nil
 	}
 }
+
+// NewEnrichmentRecord converts a resolved identity into a storable row.
+//
+// It lives here rather than in the enrichment package so that package stays free
+// of storage concerns: a provider resolves identity and knows nothing about how
+// it is persisted.
+func NewEnrichmentRecord(detectionID uint, id *Identity) (*Enrichment, error) {
+	if id == nil {
+		return nil, errors.New("eventrecord: nil identity")
+	}
+	payload, err := json.Marshal(id.Attributes)
+	if err != nil {
+		return nil, fmt.Errorf("eventrecord: marshal identity attributes: %w", err)
+	}
+	return &Enrichment{
+		DetectionID:     detectionID,
+		Provider:        id.Provider,
+		Source:          id.Source,
+		Payload:         json.RawMessage(payload),
+		Confidence:      id.Confidence,
+		LagCorrectionMs: id.LagCorrectionMs,
+	}, nil
+}
+
+// Identity is the minimal shape NewEnrichmentRecord needs.
+//
+// Declared here rather than importing the enrichment package to keep the
+// dependency pointing one way: storage should not depend on the layer that
+// produces what it stores, or the two become impossible to test apart.
+type Identity struct {
+	Provider        string
+	Source          string
+	Confidence      float64
+	LagCorrectionMs int64
+	Attributes      map[string]any
+}
