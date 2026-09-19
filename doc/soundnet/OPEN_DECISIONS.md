@@ -7,10 +7,29 @@ Resolved decisions live in DECISIONS.md. This file is for what is still open.
 
 ---
 
-## 1. Model hosting — upload YAMNet to a mirror
+## 1. Model hosting — RESOLVED as to hosting, one step outstanding
 
-**Blocks:** installing YAMNet from the gallery. Until the files exist, the
-catalog entry points at nothing and an install attempt fails.
+**Done.** The artefacts are mirrored at
+https://github.com/bert386/soundnet-models and verified fetchable: the file
+returns HTTP 200 at 4,126,810 bytes and its SHA-256 matches the pinned value.
+
+**Outstanding:** upstream's gallery resolves a catalog entry's repo field against
+HuggingFace, and the mirror is on GitHub. The artefacts and checksums are
+correct; only the retrieval route differs.
+
+Two ways to close it, roughly equal in effort:
+
+1. **Add a GitHub source to the fetch path.** The URL shapes are close -
+   HuggingFace uses `/{repo}/resolve/main/{file}`, GitHub raw uses
+   `/{owner}/{repo}/main/{file}` - so this is a small addition, but it edits an
+   upstream file.
+2. **Mirror the same two files to a HuggingFace repo as well.** No code change at
+   all; costs a second upload and a second place to keep in step.
+
+Recommended: (1). One upstream file gains a branch in a download helper, against
+(2)'s permanent duplication of artefacts across two hosts.
+
+**Original blocker, now historical:**
 
 The catalog entry is written and pinned to this exact artefact:
 

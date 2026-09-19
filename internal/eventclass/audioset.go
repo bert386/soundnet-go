@@ -54,7 +54,9 @@ var audioSetClasses = []Class{
 	{"Bus", DomainVehicle, false, 315},
 	{"Motorcycle", DomainVehicle, true, 320},
 	{"Traffic noise, roadway noise", DomainVehicle, false, 321},
-	{"Engine", DomainVehicle, false, 337},
+	// Engine is enabled because BirdNET emits it directly: it is the class
+	// that makes vehicle and aircraft pass-bys detectable before YAMNet exists.
+	{"Engine", DomainVehicle, true, 337},
 	{"Light engine (high frequency)", DomainVehicle, false, 338},
 	{"Medium engine (mid frequency)", DomainVehicle, false, 342},
 	{"Heavy engine (low frequency)", DomainVehicle, false, 343},
@@ -111,6 +113,14 @@ var audioSetClasses = []Class{
 	{"Smoke detector, smoke alarm", DomainAlarm, false, 393},
 	{"Fire alarm", DomainAlarm, false, 394},
 
+	// --- Also emitted directly by BirdNET -----------------------------------
+	// Upstream already treats dog barks specially (there is a dog-bark filter),
+	// so a dog is a real event rather than something to discard.
+	{"Dog", DomainBiological, true, 69},
+	// Noise is the model declining to commit. Mapped so it resolves to a known
+	// domain, disabled so it does not bury real events.
+	{"Noise", DomainOther, false, 507},
+
 	// --- Rail and water -----------------------------------------------------
 	{"Rail transport", DomainRail, false, 322},
 	{"Train", DomainRail, false, 323},
@@ -123,8 +133,15 @@ var audioSetClasses = []Class{
 
 // byLabel indexes the table for lookup. Built once at init; the table is static.
 var byLabel = func() map[string]Class {
-	m := make(map[string]Class, len(audioSetClasses))
+	m := make(map[string]Class, len(audioSetClasses)+len(birdNETClasses))
 	for _, c := range audioSetClasses {
+		m[strings.ToLower(c.Label)] = c
+	}
+	// BirdNET's non-species labels are added after AudioSet's so that a name
+	// appearing in both resolves to BirdNET's mapping. That is the right
+	// precedence: BirdNET is the model actually running today, and its "Siren"
+	// means what its label file says it means.
+	for _, c := range birdNETClasses {
 		m[strings.ToLower(c.Label)] = c
 	}
 	return m
@@ -147,8 +164,8 @@ func Lookup(label string) (class Class, found bool) {
 
 // DefaultEnabled returns the classes recorded out of the box.
 func DefaultEnabled() []Class {
-	out := make([]Class, 0, len(audioSetClasses))
-	for _, c := range audioSetClasses {
+	out := make([]Class, 0, len(audioSetClasses)+len(birdNETClasses))
+	for _, c := range allClasses() {
 		if c.DefaultEnabled {
 			out = append(out, c)
 		}
@@ -159,11 +176,19 @@ func DefaultEnabled() []Class {
 // InDomain returns every mapped class in a domain.
 func InDomain(d Domain) []Class {
 	var out []Class
-	for _, c := range audioSetClasses {
+	for _, c := range allClasses() {
 		if c.Domain == d {
 			out = append(out, c)
 		}
 	}
+	return out
+}
+
+// allClasses returns every mapped class, from both sources.
+func allClasses() []Class {
+	out := make([]Class, 0, len(audioSetClasses)+len(birdNETClasses))
+	out = append(out, audioSetClasses...)
+	out = append(out, birdNETClasses...)
 	return out
 }
 

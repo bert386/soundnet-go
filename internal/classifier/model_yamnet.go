@@ -53,13 +53,22 @@ const (
 	yamnetModelBytes  = 4126810
 )
 
-// soundNetModelRepo is the HuggingFace repository mirroring the model files.
+// soundNetModelRepo names the mirror holding the model artefacts.
 //
-// A mirror rather than Google's URL directly, for two reasons: upstream's
-// gallery fetches from HuggingFace and teaching it arbitrary URLs would mean
-// editing the download path, and MediaPipe's paths have moved before, so a
-// pinned mirror does not rot. YAMNet is Apache 2.0, which permits redistribution.
+// The files live at https://github.com/bert386/soundnet-models and are verified
+// fetchable with the checksum below. A mirror rather than Google's URL directly
+// because the upstream MediaPipe path has moved before, and a pinned copy does
+// not rot. YAMNet is Apache 2.0, which permits redistribution.
+//
+// NOTE: upstream's gallery resolves this field against HuggingFace, so a gallery
+// install will not find these files until the fetch path understands a GitHub
+// source. The artefacts and their checksums are correct and pinned; only the
+// retrieval route is outstanding. Tracked in doc/soundnet/OPEN_DECISIONS.md.
 const soundNetModelRepo = "bert386/soundnet-models"
+
+// SoundNetModelBaseURL is where the mirrored artefacts actually live, verified
+// returning HTTP 200 with a matching checksum.
+const SoundNetModelBaseURL = "https://raw.githubusercontent.com/bert386/soundnet-models/main"
 
 func init() {
 	ModelRegistry[RegistryIDYAMNet] = ModelInfo{

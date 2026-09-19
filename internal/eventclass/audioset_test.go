@@ -51,6 +51,12 @@ func TestMappedClassesMatchYAMNet(t *testing.T) {
 
 	for _, d := range eventclass.AllDomains() {
 		for _, c := range eventclass.InDomain(d) {
+			if c.AudioSetIndex < 0 {
+				// A classifier's own label rather than an AudioSet class - BirdNET
+				// emits "Gun", which AudioSet calls "Gunshot, gunfire". Checking it
+				// against the AudioSet map would be checking the wrong thing.
+				continue
+			}
 			gotIdx, nameExists := byName[c.Label]
 			assert.True(t, nameExists,
 				"label %q is not an AudioSet display_name; it would never match a real detection", c.Label)
