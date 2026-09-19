@@ -1,6 +1,8 @@
 package classifier
 
 import (
+	"crypto/sha256"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -64,6 +66,37 @@ func TestOnlySoundNetEntriesSetBaseURL(t *testing.T) {
 		assert.Equal(t, "yamnet-v1", e.ID,
 			"entry %q sets BaseURL; only SoundNet's own entries should", e.ID)
 	}
+}
+
+// TestClassMapFixtureIsTheShippedArtefact ties internal/eventclass's test
+// fixture to the file the installer actually fetches.
+//
+// The taxonomy validates its 66 AudioSet indices against that fixture, which is
+// only worth anything if the fixture is the same bytes YAMNet will be run with.
+// They had already drifted once - the fixture was committed with CRLF line
+// endings, so it carried the right content under a different checksum - and
+// nothing anywhere would have noticed if the content had drifted too.
+//
+// Reaching across package directories in a test is deliberate: the two files
+// have to be identical, and the assertion belongs where the pin lives.
+func TestClassMapFixtureIsTheShippedArtefact(t *testing.T) {
+	t.Parallel()
+	entry := yamnetEntry(t)
+
+	var pinned string
+	for _, f := range entry.Files {
+		if f.LocalName == "yamnet_class_map.csv" {
+			pinned = f.SHA256
+		}
+	}
+	require.NotEmpty(t, pinned, "the catalog must pin the class map")
+
+	fixture, err := os.ReadFile(filepath.Join("..", "eventclass", "testdata", "yamnet_class_map.csv"))
+	require.NoError(t, err, "the eventclass fixture must exist")
+
+	assert.Equal(t, pinned, fmt.Sprintf("%x", sha256.Sum256(fixture)),
+		"the class map the taxonomy is tested against must be byte-identical to the one that ships; "+
+			"if this fails, one of the two was regenerated and the indices may no longer mean what the taxonomy says")
 }
 
 // baseURLServerEntry builds a flat entry whose files live at an httptest server
