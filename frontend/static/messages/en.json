@@ -197,7 +197,8 @@
     "image": "Image",
     "actionsColumn": "Actions",
     "closeModal": "Close dialog",
-    "hoursShort": "h"
+    "hoursShort": "h",
+    "dismiss": "Dismiss"
   },
   "pageTitle": {
     "settings": "Settings - BirdNET-Go",
@@ -5779,6 +5780,26 @@
       "altitude": "Altitude",
       "provenance": "Matched by rewinding {{lag}} s of sound travel · {{confidence}}% confidence · source {{source}}",
       "noMatch": "No aircraft was close enough to account for this sound."
+    },
+    "review": {
+      "title": "Review queue",
+      "progress": "{{remaining}} left · {{reviewed}} reviewed this session",
+      "shortcuts": "C confirm · F false positive · E correct · S skip",
+      "loading": "Loading unreviewed detections…",
+      "failed": "Could not save that review: {{error}}. Nothing was recorded, so try again.",
+      "empty": "Nothing left to review",
+      "emptyHint": "Every detection has been confirmed, corrected or rejected.",
+      "reload": "Check again",
+      "confidence": "{{percent}}% confidence",
+      "confirm": "Confirm",
+      "falsePositive": "Not this",
+      "correct": "Correct it",
+      "skip": "Skip",
+      "correctVsReject": "Rejecting records that the model was wrong. Correcting records what was right, which is what makes the example useful for retraining.",
+      "correctionLabel": "What was it actually?",
+      "correctionPlaceholder": "Label ID",
+      "saveCorrection": "Save correction",
+      "correctionHint": "The original label is kept alongside your correction, so the pair can be used to retrain."
     }
   }
 }

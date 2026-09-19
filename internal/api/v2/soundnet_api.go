@@ -33,6 +33,8 @@ func (c *Controller) initSoundNetRoutes() {
 	g.GET("/detections/:id", c.GetSoundNetDetection)
 	g.GET("/detections", c.ListSoundNetDetections)
 	g.GET("/taxonomy", c.GetSoundNetTaxonomy)
+	// Corrections change data, so they sit behind the same auth as other writes.
+	g.POST("/detections/:id/correction", c.PostSoundNetCorrection, c.AuthMiddleware)
 }
 
 // soundNetDetectionResponse is what a detection looks like through this lens.
@@ -295,3 +297,75 @@ func decodeJSON(raw []byte, out any) error {
 	}
 	return json.Unmarshal(raw, out)
 }
+
+// correctionRequest is the body of a reclassification.
+type correctionRequest struct {
+	// CorrectedLabelID is the label the operator says is right. Required: a
+	// correction without an answer is just a false positive, which upstream's
+	// review endpoint already records.
+	CorrectedLabelID uint `json:"correctedLabelId"`
+
+	// Note is optional free text explaining the correction. Worth capturing:
+	// "distant, mostly masked by traffic" tells a future reader why a confusing
+	// example was labelled the way it was.
+	Note string `json:"note"`
+}
+
+// PostSoundNetCorrection records an operator reclassifying a detection.
+//
+// Separate from upstream's review endpoint because it records something that
+// endpoint cannot: not merely that the model was wrong, but what the right
+// answer was. That difference is what makes a correction useful for retraining -
+// a confusion pair teaches far more than a rejection.
+func (c *Controller) PostSoundNetCorrection(ctx echo.Context) error {
+	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
+	if err != nil {
+		return ctx.JSON(http.StatusBadRequest, map[string]string{soundNetErrKey: "detection id must be numeric"})
+	}
+	detectionID := uint(id)
+
+	var req correctionRequest
+	if bindErr := ctx.Bind(&req); bindErr != nil {
+		return ctx.JSON(http.StatusBadRequest, map[string]string{soundNetErrKey: "invalid request body"})
+	}
+	if req.CorrectedLabelID == 0 {
+		return ctx.JSON(http.StatusBadRequest, map[string]string{
+			soundNetErrKey: "correctedLabelId is required; to record that a detection is simply wrong, use the review endpoint instead",
+		})
+	}
+	if c.DS == nil {
+		return ctx.JSON(http.StatusServiceUnavailable, map[string]string{soundNetErrKey: "datastore unavailable"})
+	}
+
+	var originalLabelID uint
+	err = c.DS.Transaction(func(tx *gorm.DB) error {
+		// The original label is captured at correction time so the confusion
+		// pair survives even if the detection is later re-pointed. A bare
+		// corrected answer discards half of what makes this useful.
+		if e := tx.Raw("select label_id from detections where id = ?", detectionID).
+			Scan(&originalLabelID).Error; e != nil {
+			return e
+		}
+		if originalLabelID == 0 {
+			return errDetectionNotFound
+		}
+		return eventrecord.NewStore(tx).PutCorrection(detectionID, originalLabelID, req.CorrectedLabelID, req.Note)
+	})
+	switch {
+	case errors.Is(err, errDetectionNotFound):
+		return ctx.JSON(http.StatusNotFound, map[string]string{soundNetErrKey: "detection not found"})
+	case err != nil:
+		return ctx.JSON(http.StatusBadRequest, map[string]string{soundNetErrKey: err.Error()})
+	}
+
+	return ctx.JSON(http.StatusOK, map[string]any{
+		"detectionId":      detectionID,
+		"originalLabelId":  originalLabelID,
+		"correctedLabelId": req.CorrectedLabelID,
+		"reviewState":      string(eventrecord.ReviewCorrected),
+	})
+}
+
+// errDetectionNotFound distinguishes a missing detection from a storage failure,
+// so the caller gets 404 rather than a misleading 400.
+var errDetectionNotFound = errors.New("detection not found")
