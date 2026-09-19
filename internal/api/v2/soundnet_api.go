@@ -15,6 +15,8 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"slices"
+	"sort"
 	"strconv"
 
 	"github.com/labstack/echo/v4"
@@ -38,6 +40,7 @@ func (c *Controller) initSoundNetRoutes() {
 	g.POST("/detections/:id/correction", c.PostSoundNetCorrection, c.AuthMiddleware)
 	g.GET("/confusions", c.GetSoundNetConfusions)
 	g.GET("/training-export", c.GetSoundNetTrainingExport)
+	g.GET("/threshold-preview", c.GetSoundNetThresholdPreview)
 }
 
 // soundNetDetectionResponse is what a detection looks like through this lens.
@@ -512,5 +515,106 @@ func (c *Controller) GetSoundNetTrainingExport(ctx echo.Context) error {
 		"thinClasses": thin,
 		"minUsable":   minUsable,
 		"clipsNote":   "clip files are referenced, not copied; they remain in the configured clip directory",
+	})
+}
+
+// GetSoundNetThresholdPreview reports what a confidence threshold would have
+// done to detections already recorded.
+//
+// Previewing against real history is the point. A threshold is otherwise tuned
+// by changing a number, waiting a day and guessing at the difference - and by
+// then the conditions have changed too. Replaying stored confidences answers
+// "what would I have lost" immediately and exactly.
+//
+// It reports only what it can know. Detections filtered out before being stored
+// are invisible here, so raising a threshold can be evaluated precisely while
+// lowering one cannot: the recordings that would newly appear were never kept.
+// The response says so rather than implying a symmetry that does not exist.
+func (c *Controller) GetSoundNetThresholdPreview(ctx echo.Context) error {
+	if c.DS == nil {
+		return ctx.JSON(http.StatusServiceUnavailable, map[string]string{soundNetErrKey: "datastore unavailable"})
+	}
+	threshold := 0.7
+	if v := ctx.QueryParam("threshold"); v != "" {
+		parsed, err := strconv.ParseFloat(v, 64)
+		if err != nil || parsed < 0 || parsed > 1 {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{
+				soundNetErrKey: "threshold must be a number between 0 and 1",
+			})
+		}
+		threshold = parsed
+	}
+	label := ctx.QueryParam("label")
+
+	type bucket struct {
+		Label  string  `json:"label"`
+		Total  int     `json:"total"`
+		Kept   int     `json:"kept"`
+		Lost   int     `json:"lost"`
+		Median float64 `json:"medianConfidence"`
+	}
+	buckets := map[string]*bucket{}
+	var total, kept int
+
+	err := c.DS.Transaction(func(tx *gorm.DB) error {
+		type row struct {
+			Label      string
+			Confidence float64
+		}
+		var rows []row
+		q := `select l.scientific_name as label, d.confidence as confidence
+		      from detections d join labels l on l.id = d.label_id`
+		args := []any{}
+		if label != "" {
+			q += " where l.scientific_name = ?"
+			args = append(args, label)
+		}
+		q += " order by d.id desc limit 5000"
+		if e := tx.Raw(q, args...).Scan(&rows).Error; e != nil {
+			return e
+		}
+		confidences := map[string][]float64{}
+		for i := range rows {
+			b, ok := buckets[rows[i].Label]
+			if !ok {
+				b = &bucket{Label: rows[i].Label}
+				buckets[rows[i].Label] = b
+			}
+			b.Total++
+			total++
+			if rows[i].Confidence >= threshold {
+				b.Kept++
+				kept++
+			} else {
+				b.Lost++
+			}
+			confidences[rows[i].Label] = append(confidences[rows[i].Label], rows[i].Confidence)
+		}
+		for lbl, vals := range confidences {
+			if len(vals) == 0 {
+				continue
+			}
+			slices.Sort(vals)
+			buckets[lbl].Median = vals[len(vals)/2]
+		}
+		return nil
+	})
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{soundNetErrKey: err.Error()})
+	}
+
+	out := make([]bucket, 0, len(buckets))
+	for _, b := range buckets {
+		out = append(out, *b)
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].Total > out[j].Total })
+
+	return ctx.JSON(http.StatusOK, map[string]any{
+		"threshold": threshold,
+		"total":     total,
+		"kept":      kept,
+		"lost":      total - kept,
+		"perLabel":  out,
+		"caveat":    "counts cover detections already stored. Raising a threshold can be judged exactly; lowering one cannot, because detections below the current threshold were never recorded.",
 	})
 }
