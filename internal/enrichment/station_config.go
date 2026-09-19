@@ -32,7 +32,7 @@ type StationConfig struct {
 // tolerating the various separators people actually type: 34°06'41.7"S,
 // 34 06 41.7 S, 34:06:41.7S.
 var dmsPattern = regexp.MustCompile(
-	`^\s*(-?\d+(?:\.\d+)?)\s*[^\d\w.-]*\s*(\d+(?:\.\d+)?)?\s*[^\d\w.-]*\s*(\d+(?:\.\d+)?)?\s*["']?\s*([NSEWnsew])?\s*$`)
+	`^\s*(-?\d+(?:\.\d+)?)\s*[^\w.-]*\s*(\d+(?:\.\d+)?)?\s*[^\w.-]*\s*(\d+(?:\.\d+)?)?\s*["']?\s*([NSEWnsew])?\s*$`)
 
 // ParseCoordinate converts a decimal or DMS coordinate string to decimal degrees.
 //

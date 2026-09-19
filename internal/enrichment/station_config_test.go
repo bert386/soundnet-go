@@ -112,10 +112,10 @@ func TestResolveRejectsOutOfRange(t *testing.T) {
 	t.Parallel()
 
 	_, err := enrichment.StationConfig{Latitude: "91", Longitude: "150"}.Resolve()
-	assert.ErrorContains(t, err, "latitude")
+	require.ErrorContains(t, err, "latitude")
 
 	_, err = enrichment.StationConfig{Latitude: "-34", Longitude: "181"}.Resolve()
-	assert.ErrorContains(t, err, "longitude")
+	require.ErrorContains(t, err, "longitude")
 }
 
 func TestResolveRejectsImplausibleElevation(t *testing.T) {
@@ -127,7 +127,7 @@ func TestResolveRejectsImplausibleElevation(t *testing.T) {
 	_, err := enrichment.StationConfig{
 		Latitude: "-34.11", Longitude: "150.79", ElevationM: 46000,
 	}.Resolve()
-	assert.ErrorContains(t, err, "implausible")
+	require.ErrorContains(t, err, "implausible")
 }
 
 func TestConfiguredGatesEnrichment(t *testing.T) {
