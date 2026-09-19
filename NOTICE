@@ -1,0 +1,52 @@
+SoundNet
+========
+
+SoundNet is a private, non-commercial derivative work of BirdNET-Go.
+
+Upstream work
+-------------
+
+BirdNET-Go
+  Copyright (c) Tomi P. Hakala and the BirdNET-Go contributors
+  https://github.com/tphakala/birdnet-go
+  Licensed under Creative Commons Attribution-NonCommercial-ShareAlike 4.0
+  International (CC BY-NC-SA 4.0).
+
+  The full list of upstream contributors is retained in the AUTHORS file.
+
+SoundNet retains BirdNET-Go's LICENSE unchanged and is distributed under the
+same CC BY-NC-SA 4.0 terms. In particular:
+
+  Attribution    - this NOTICE and the upstream AUTHORS file are retained, and
+                   BirdNET-Go is credited as the origin of this work.
+  ShareAlike     - if SoundNet is ever published, it remains under
+                   CC BY-NC-SA 4.0.
+  NonCommercial  - SoundNet is a personal, non-commercial project. It is not
+                   sold, not offered as a hosted service, and not bundled into
+                   any paid product.
+
+Third-party models and data inherited from upstream
+---------------------------------------------------
+
+BirdNET model
+  K. Lisa Yang Center for Conservation Bioacoustics, Cornell Lab of
+  Ornithology, in collaboration with Chemnitz University of Technology.
+  Stefan Kahl, Connor Wood, Maximilian Eibl, Holger Klinck.
+  https://github.com/kahst/BirdNET-Analyzer
+
+BirdNET label translations
+  Patrick Levin, for the BirdNET-Pi project by Patrick McGuire.
+  https://github.com/patlevin
+  https://github.com/mcguirepr89/BirdNET-Pi
+
+Models and data added by SoundNet are listed with their own licences in
+LICENSES.md as they are introduced.
+
+Nature of the changes
+---------------------
+
+SoundNet extends BirdNET-Go from a bird-focused soundscape analyser into a
+general acoustic event detector. The substantive additions are new packages
+under internal/ providing a DSP diagnostics layer, an external enrichment
+layer, and associated user interface; upstream files are modified only at
+thin, clearly marked integration points.
