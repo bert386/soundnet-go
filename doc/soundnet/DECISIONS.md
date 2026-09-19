@@ -53,6 +53,34 @@ Station position is **operator input in the web config UI**, never hard-coded. R
 **Precision target:** 1 arc-second is about 31 m of latitude, well inside the tolerance for ADS-B
 track matching. 5 decimal places (about 1 m) is more than enough. Store as float64.
 
+### Station coordinates (provided 2026-09-19)
+
+    latitude   -34.11159024409095
+    longitude  150.7922555571461
+    elevation  UNKNOWN - placeholder 250m in use
+
+New South Wales, south-west of Sydney. Used as the test and placeholder station.
+
+**Elevation is still outstanding.** It feeds slant range directly, so an error
+there biases every acoustic-lag correction: at a typical overflight altitude a
+250m error shifts the lag by roughly 0.7s.
+
+### Live ADS-B coverage check, 2026-09-19
+
+Queried OpenSky for a ~39km box around the station. Four aircraft present, three
+with positions: Jetstar and Qantas traffic on the Sydney approach. **Coverage is
+good enough for M6's auto-labelling flywheel to work at this site**, which was
+the open risk with choosing OpenSky over a local receiver.
+
+The check also produced a correctness finding. The nearest airliner was at 14.7km
+slant range, which is a **42.9 second** acoustic delay - during which a jet at
+250 m/s travels nearly 11km. Back-projecting a straight-line track that far
+assumes no turn and no speed change for three quarters of a minute, which is not
+safe on approach. `MaxCredibleLag` bounds the correction at 20s (about 6.9km),
+beyond which a match is refused outright rather than accepted with lower
+confidence: past that range the projected position can be kilometres out, so the
+failure mode is a confident wrong identification, not a weak one.
+
 ### Obtained
 - OpenSky client credentials (2026-09-19). Stored in `secrets/opensky-credentials.json`,
   deliberately **outside** the git repo so they cannot be committed. Verified working:
