@@ -158,6 +158,12 @@ func (s *APIServerService) Start(ctx context.Context) error {
 	s.proc = processor.New(s.settings, dataStore, bn, s.metrics, s.birdImageCache, GetLogger())
 	s.proc.SetSunCalc(s.sunCalc)
 
+	// SOUNDNET: install the diagnostics and identity analyser. Inert unless
+	// enabled in configuration, and every failure inside is non-fatal - SoundNet
+	// is an addition to bird detection, not a precondition for it. See
+	// soundnet_startup.go.
+	initSoundNet(s.settings, dataStore, GetLogger())
+
 	// Initialize backup system (optional; failure is non-fatal).
 	backupLog := logger.Global().Module("backup")
 	backupManager, backupScheduler, err := initializeBackupSystem(s.settings, backupLog)
