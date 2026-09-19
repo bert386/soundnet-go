@@ -79,6 +79,9 @@ func TestParticipatesInRangeFilter_ExpectedPerModel(t *testing.T) {
 		RegistryIDPerchV2:   true, // mapped geomodel v3, scientific-name labels
 		RegistryIDBat:       false,
 		RegistryIDBSG:       false,
+		// SOUNDNET: an aircraft is not more or less likely here than anywhere
+		// else in the way a species is, so there is nothing for the filter to say.
+		RegistryIDYAMNet: false,
 	}
 	for id, expected := range want {
 		t.Run(id, func(t *testing.T) {

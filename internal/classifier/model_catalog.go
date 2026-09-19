@@ -91,6 +91,12 @@ type CatalogEntry struct {
 	// on-disk JSON of existing single-variant entries byte-identical, so adding
 	// this field does not shift catalogChecksum or force a schema-version bump.
 	Variants []CatalogVariant `json:"variants,omitempty"`
+	// SOUNDNET: BaseURL hosts this entry's files somewhere other than HuggingFace.
+	// When set, each file is fetched from BaseURL + "/" + RemotePath and the
+	// HuggingFace repo, endpoint override and mirror failover are all bypassed.
+	// Empty (the normal case) keeps the HuggingFace path exactly as it was, and
+	// omitempty keeps every existing entry's JSON byte-identical.
+	BaseURL string `json:"base_url,omitempty"`
 }
 
 // CatalogVariant describes one hardware or regional variant of a model: a

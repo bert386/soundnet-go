@@ -1918,6 +1918,13 @@ func (mm *ModelManager) downloadVariantFiles(ctx context.Context, entry *Catalog
 		return nil, "", "", "", pfErr
 	}
 
+	// SOUNDNET: an entry may host its files outside HuggingFace. Folding that
+	// into baseURL reuses the direct-URL path below rather than adding a second
+	// one. A caller-supplied baseURL still wins, so test injection is unaffected.
+	if baseURL == "" && entry.BaseURL != "" {
+		baseURL = entry.BaseURL
+	}
+
 	// Resolve the endpoint override once per install, for logging and for the
 	// per-file failover chain. Skipped when baseURL is set, because that path
 	// bypasses repo construction entirely.
@@ -1979,7 +1986,8 @@ func (mm *ModelManager) downloadVariantFiles(ctx context.Context, entry *Catalog
 
 		var dlErr error
 		if baseURL != "" {
-			// Explicit base URL (test injection): no repo construction, no failover.
+			// Explicit base URL (entry.BaseURL or test injection): no repo
+			// construction, no failover.
 			dlErr = mm.downloadFile(ctx, entry.ID, baseURL+"/"+f.RemotePath, destPath, f.SHA256, completedBytes)
 		} else {
 			dlErr = mm.downloadModelFile(ctx, entry.ID, repo, f.RemotePath, destPath, f.SHA256, completedBytes, configured)

@@ -303,10 +303,12 @@ func TestEmbeddedCatalog_AllEntriesDeclareFiles(t *testing.T) {
 func TestEmbeddedCatalog_ValidCategories(t *testing.T) {
 	t.Parallel()
 
-	validCategories := map[string]bool{CategoryWildlife: true, CategoryBird: true, CategoryBat: true, CategoryGeomodel: true}
+	// SOUNDNET: acoustic-event is a fork-added category. Upstream's four are all
+	// taxonomic, and YAMNet belongs to none of them.
+	validCategories := map[string]bool{CategoryWildlife: true, CategoryBird: true, CategoryBat: true, CategoryGeomodel: true, CategoryAcousticEvent: true}
 	for _, entry := range EmbeddedCatalog {
 		assert.True(t, validCategories[entry.Category],
-			"catalog entry %q has invalid category %q (must be \"wildlife\", \"bird\", \"bat\", or \"geomodel\")", entry.ID, entry.Category)
+			"catalog entry %q has invalid category %q (must be \"wildlife\", \"bird\", \"bat\", \"geomodel\" or \"acoustic-event\")", entry.ID, entry.Category)
 	}
 }
 
@@ -401,9 +403,10 @@ func TestEmbeddedCatalog_BatEntriesHaveEmbeddingsFile(t *testing.T) {
 func TestEmbeddedCatalog_EntryCount(t *testing.T) {
 	t.Parallel()
 
-	// 2 wildlife + 2 bird + 1 geomodel + 11 bat = 16 total
+	// 2 wildlife + 2 bird + 1 geomodel + 11 bat = 16 upstream
 	// (bird: bsg-finland + the collapsed hidden BirdNET v2.4 foundation entry)
-	assert.Len(t, EmbeddedCatalog, 16, "expected 16 total catalog entries")
+	// SOUNDNET: + 1 acoustic-event (YAMNet, registered from model_yamnet.go).
+	assert.Len(t, EmbeddedCatalog, 17, "expected 16 upstream catalog entries plus YAMNet")
 }
 
 func TestVisibleCatalog_ExcludesHiddenEntries(t *testing.T) {

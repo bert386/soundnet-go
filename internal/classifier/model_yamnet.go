@@ -51,6 +51,13 @@ const (
 const (
 	yamnetModelSHA256 = "4d8b4a53282dc83ef04e3e7dbc4fbc98082e34e44ed798e16c3a0cdd4c584faf"
 	yamnetModelBytes  = 4126810
+
+	// The class map is pinned for the same reason, and arguably a stronger one:
+	// it is the join between YAMNet's output indices and the event taxonomy. A
+	// row inserted anywhere in it shifts every index below, and nothing would
+	// fail - detections would simply come back as the wrong class.
+	yamnetClassMapSHA256 = "b03d48f9ebe23f69ea825193de7e736934086a12410f0af47babe897b78bc0d3"
+	yamnetClassMapBytes  = 13574
 )
 
 // soundNetModelRepo names the mirror holding the model artefacts.
@@ -60,10 +67,9 @@ const (
 // because the upstream MediaPipe path has moved before, and a pinned copy does
 // not rot. YAMNet is Apache 2.0, which permits redistribution.
 //
-// NOTE: upstream's gallery resolves this field against HuggingFace, so a gallery
-// install will not find these files until the fetch path understands a GitHub
-// source. The artefacts and their checksums are correct and pinned; only the
-// retrieval route is outstanding. Tracked in doc/soundnet/OPEN_DECISIONS.md.
+// Kept for display and provenance only. The files are fetched from
+// SoundNetModelBaseURL via CatalogEntry.BaseURL, which bypasses HuggingFace
+// repo construction entirely.
 const soundNetModelRepo = "bert386/soundnet-models"
 
 // SoundNetModelBaseURL is where the mirrored artefacts actually live, verified
@@ -105,6 +111,7 @@ func init() {
 		RegistryID:      RegistryIDYAMNet,
 		UpstreamURL:     "https://github.com/tensorflow/models/tree/master/research/audioset/yamnet",
 		HuggingFaceRepo: soundNetModelRepo,
+		BaseURL:         SoundNetModelBaseURL,
 		Files: []CatalogFile{
 			{
 				RemotePath: "yamnet/yamnet.tflite",
@@ -120,6 +127,8 @@ func init() {
 				RemotePath: "yamnet/yamnet_class_map.csv",
 				LocalName:  "yamnet_class_map.csv",
 				Role:       RoleLabels,
+				SHA256:     yamnetClassMapSHA256,
+				SizeBytes:  yamnetClassMapBytes,
 			},
 		},
 	})
