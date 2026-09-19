@@ -13,6 +13,13 @@ import (
 type Provider struct {
 	Source StateSource
 	Config Config
+
+	// Metadata optionally turns the broadcast identifiers into a description of
+	// the aircraft and its flight. Optional by design: it is a third-party
+	// lookup, so it is opt-in, and a failure here must never cost us the
+	// identification itself. The hex code and callsign come from the aircraft;
+	// everything Metadata adds is a lookup against someone else's database.
+	Metadata MetadataResolver
 }
 
 // Config tunes matching.
@@ -156,27 +163,73 @@ func (p *Provider) Resolve(ctx context.Context, req *enrichment.Request) (*enric
 		confidence *= 0.5 + 0.5*math.Min(1, (best.quality-runnerUp.quality)/0.3)
 	}
 
+	attrs := map[string]any{
+		"hex":               best.state.ICAO24,
+		"callsign":          best.state.Callsign,
+		"altitude_m":        round1(best.state.AltitudeM()),
+		"altitude_source":   best.state.AltitudeSource,
+		"slant_range_km":    round2(best.slantM / 1000),
+		"ground_speed_ms":   round1(best.state.VelocityMS),
+		"track_deg":         round1(best.state.TrackDeg),
+		"lag_correction_s":  round2(best.lag.Seconds()),
+		"candidates_in_box": len(candidates),
+	}
+
+	// Identifiers the aircraft broadcast are authoritative; everything the
+	// metadata lookup adds is a third-party claim. Marking the distinction keeps
+	// a looked-up registration from being read as strongly as the hex code.
+	attrs["identity_source"] = "broadcast"
+	p.attachMetadata(ctx, &best.state, attrs)
+
 	return &enrichment.Identity{
 		Provider:        "adsb",
 		Source:          "opensky",
 		Confidence:      round2(confidence),
 		LagCorrectionMs: best.lag.Milliseconds(),
-		Attributes: map[string]any{
-			"hex":               best.state.ICAO24,
-			"callsign":          best.state.Callsign,
-			"altitude_m":        round1(best.state.AltitudeM()),
-			"altitude_source":   best.state.AltitudeSource,
-			"slant_range_km":    round2(best.slantM / 1000),
-			"ground_speed_ms":   round1(best.state.VelocityMS),
-			"track_deg":         round1(best.state.TrackDeg),
-			"lag_correction_s":  round2(best.lag.Seconds()),
-			"candidates_in_box": len(candidates),
-			// Type and registration require an aircraft database keyed by hex
-			// (basestation.sqb or similar), which is not wired up yet. The keys
-			// are deliberately absent rather than present and empty, so a consumer
-			// cannot mistake "unknown" for "no type".
-		},
+		Attributes:      attrs,
 	}, nil
+}
+
+// attachMetadata enriches the attributes with aircraft and route detail.
+//
+// Every failure is swallowed deliberately. The identification is already made
+// and is the valuable part; losing it because a free community API was briefly
+// unreachable would be a poor trade. Absent keys mean "not looked up or not
+// found", which is why nothing is written as an empty string.
+func (p *Provider) attachMetadata(ctx context.Context, s *State, attrs map[string]any) {
+	if p.Metadata == nil {
+		return
+	}
+	if info, err := p.Metadata.Aircraft(ctx, s.ICAO24); err == nil && info != nil {
+		putIfSet(attrs, "registration", info.Registration)
+		putIfSet(attrs, "type_code", info.TypeCode)
+		putIfSet(attrs, "type_name", info.TypeName)
+		putIfSet(attrs, "manufacturer", info.Manufacturer)
+		putIfSet(attrs, "operator", info.Operator)
+		putIfSet(attrs, "operator_country", info.OperatorCountry)
+		attrs["metadata_source"] = "adsbdb"
+	}
+	if s.Callsign == "" {
+		return
+	}
+	if route, err := p.Metadata.Route(ctx, s.Callsign); err == nil && route != nil {
+		putIfSet(attrs, "flight_iata", route.FlightIATA)
+		putIfSet(attrs, "flight_icao", route.FlightICAO)
+		putIfSet(attrs, "airline", route.Airline)
+		putIfSet(attrs, "origin_iata", route.OriginIATA)
+		putIfSet(attrs, "origin_name", route.OriginName)
+		putIfSet(attrs, "destination_iata", route.DestinationIATA)
+		putIfSet(attrs, "destination_name", route.DestinationName)
+		attrs["metadata_source"] = "adsbdb"
+	}
+}
+
+// putIfSet writes a value only when it has one, so a missing field is absent
+// rather than an empty string a consumer could mistake for a known blank.
+func putIfSet(m map[string]any, key, value string) {
+	if value != "" {
+		m[key] = value
+	}
 }
 
 // topTwo returns the best candidate and the runner-up, if any.
