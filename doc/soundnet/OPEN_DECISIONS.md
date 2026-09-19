@@ -7,58 +7,47 @@ Resolved decisions live in DECISIONS.md. This file is for what is still open.
 
 ---
 
-## 1. Model hosting — RESOLVED as to hosting, one step outstanding
+## 1. Model hosting — RESOLVED, closed
 
-**Done.** The artefacts are mirrored at
-https://github.com/bert386/soundnet-models and verified fetchable: the file
-returns HTTP 200 at 4,126,810 bytes and its SHA-256 matches the pinned value.
+**Hosting.** The artefacts are mirrored at
+https://github.com/bert386/soundnet-models and verified fetchable. Both files
+return HTTP 200 and match their pinned checksums:
 
-**Outstanding:** upstream's gallery resolves a catalog entry's repo field against
-HuggingFace, and the mirror is on GitHub. The artefacts and checksums are
-correct; only the retrieval route differs.
+| File | Bytes | SHA-256 |
+|---|---|---|
+| `yamnet/yamnet.tflite` | 4,126,810 | `4d8b4a53282dc83ef04e3e7dbc4fbc98082e34e44ed798e16c3a0cdd4c584faf` |
+| `yamnet/yamnet_class_map.csv` | 13,574 | `b03d48f9ebe23f69ea825193de7e736934086a12410f0af47babe897b78bc0d3` |
 
-Two ways to close it, roughly equal in effort:
+**Retrieval.** Closed by option (1), as recommended: `CatalogEntry` gained a
+`BaseURL` field. When set, files are fetched from `BaseURL + "/" + RemotePath`
+and the HuggingFace repo construction, endpoint override and mirror failover are
+bypassed entirely. `Install` already carried a `baseURL` parameter for test
+injection, so the entry-level value folds into it rather than adding a second
+download path — six added lines in `model_manager.go` and a field in
+`model_catalog.go`, no deletions.
 
-1. **Add a GitHub source to the fetch path.** The URL shapes are close -
-   HuggingFace uses `/{repo}/resolve/main/{file}`, GitHub raw uses
-   `/{owner}/{repo}/main/{file}` - so this is a small addition, but it edits an
-   upstream file.
-2. **Mirror the same two files to a HuggingFace repo as well.** No code change at
-   all; costs a second upload and a second place to keep in step.
+Option (2) — mirroring to HuggingFace as well — was not taken. It would have
+cost nothing in code but left the artefacts duplicated across two hosts
+permanently, with no mechanism to keep them in step.
 
-Recommended: (1). One upstream file gains a branch in a download helper, against
-(2)'s permanent duplication of artefacts across two hosts.
+The class map is now pinned too. It had no checksum, and it matters as much as
+the model: it is the join between YAMNet's output indices and the event
+taxonomy, so a row inserted anywhere in it relabels every class below without
+anything failing.
 
-**Original blocker, now historical:**
+**Not a decision, but worth recording:** registering YAMNet had been failing
+five upstream tests since it landed, unnoticed because the full `internal/classifier`
+package was never run. Four are exhaustive tables that oblige a new model to
+declare itself — range-filter compatibility, range-filter participation, catalog
+category, catalog entry count. The fifth is the drift guard between
+`classifier.KnownConfigIDs()` and `conf.ValidAudioModels`, closed by extending
+that map from an `init()` in a new file rather than editing
+`internal/conf/validate.go`. All six pass now (a sixth, the unpinned class map,
+was fixed by the pinning above).
 
-The catalog entry is written and pinned to this exact artefact:
-
-| | |
-|---|---|
-| Source | `https://storage.googleapis.com/mediapipe-models/audio_classifier/yamnet/float32/1/yamnet.tflite` |
-| Size | 4,126,810 bytes |
-| SHA-256 | `4d8b4a53282dc83ef04e3e7dbc4fbc98082e34e44ed798e16c3a0cdd4c584faf` |
-| Licence | Apache-2.0 — redistribution permitted |
-
-**Recommended:** create a public HuggingFace repo `bert386/soundnet-models` and
-upload two files:
-
-    yamnet/yamnet.tflite            the artefact above, unmodified
-    yamnet/yamnet_class_map.csv     already in internal/eventclass/testdata/
-
-Why HuggingFace rather than anything else: upstream's gallery fetches from
-HuggingFace and verifies SHA-256 and size. Using it means **no upstream download
-code is modified**, which is the whole mergeability argument. Pointing at
-Google's URL directly would require editing the fetch path, and MediaPipe paths
-have moved before, so a pinned mirror also protects against link rot.
-
-**Why this is not already done:** uploading needs a write token. Tokens are
-credentials, so they are the operator's to handle, not the assistant's.
-
-**Alternatives considered:** teaching the catalog to fetch arbitrary URLs
-(modifies upstream, and the checksum verification would need rebuilding);
-committing the 4 MB binary into the repository (bloats history, and git is a
-poor artefact store).
+**Licence note:** YAMNet is Apache-2.0, which permits redistribution. Pointing
+at Google's MediaPipe URL directly was rejected because those paths have moved
+before; a pinned mirror does not rot.
 
 ---
 
@@ -76,8 +65,9 @@ YAMNet's output differs from every model upstream ships:
   48 kHz
 
 **No decision needed — this is just work remaining.** Recorded here so it is not
-mistaken for done. It cannot be meaningfully tested until item 1 is resolved,
-since there is no model file to run.
+mistaken for done. Item 1 is now closed, so the model file can be installed from
+the gallery and there is something real to test the adapter against; this is the
+next thing standing between the fork and its first non-bird detection.
 
 **One risk worth flagging now:** a 0.975 s frame is shorter than the 3 s clip the
 diagnostics engine expects. Doppler analysis in particular needs several seconds
