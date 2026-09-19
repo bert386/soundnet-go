@@ -44,19 +44,27 @@ ENVIRONMENT.md (machines, toolchain, operational gotchas).
 
 ## Upstream footprint
 
-The fork's entire contact with upstream **production** files is **42 added lines
-across 9 files, zero deletions**. Keeping it small was a deliberate goal and
-should stay one:
+Measured with `git diff --numstat main`, not from memory. The **code** footprint
+is **58 added lines and 1 deleted across 9 upstream files**. Keeping it small was
+a deliberate goal and should stay one:
 
-    internal/analysis/processor/processor.go   9   pipeline hook
-    internal/analysis/api_service.go           6   startup call
-    internal/conf/config.go                    5   settings field
-    internal/api/v2/settings.go                4   settings section
-    internal/conf/defaults.go                  3   defaults call
-    internal/api/v2/api.go                     3   route registration
-    internal/classifier/model_catalog.go       6   CatalogEntry.BaseURL
-    internal/classifier/model_manager.go       6   fold BaseURL into the fetch
-    frontend/.../DetectionDetail.svelte       13   panel render
+    internal/analysis/processor/processor.go   9      pipeline hook
+    internal/analysis/api_service.go           6      startup call
+    internal/conf/config.go                    5      settings field
+    internal/api/v2/settings.go                4      settings section
+    internal/conf/defaults.go                  3      defaults call
+    internal/api/v2/api.go                     3      route registration
+    internal/classifier/model_catalog.go       6      CatalogEntry.BaseURL
+    internal/classifier/model_manager.go       9 -1   fold BaseURL into the fetch
+    frontend/.../views/DetectionDetail.svelte 13      panel render
+
+Plus one data file, which earlier versions of this table wrongly left out:
+
+    frontend/static/messages/en.json          95 -2   i18n strings for the panels
+
+That is by far the largest single edit, and it is worth being honest about even
+though appended JSON keys conflict less painfully than code. The 2 deletions are
+reformatting, not removed strings.
 
 Three upstream **test** files also carry a row each (9 lines), because their
 tables are exhaustive over the registry and catalog and a fork-added model has
