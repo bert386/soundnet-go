@@ -1,5 +1,5 @@
-bin/birdnet-go
-bin/birdnet-go.exe
+bin/soundnet-go
+bin/soundnet-go.exe
 assets/tailwind.css
 log/
 clips/
