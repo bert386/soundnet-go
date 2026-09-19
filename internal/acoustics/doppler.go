@@ -33,7 +33,7 @@ func fftRadix2(re, im []float64) {
 		for i := 0; i < n; i += length {
 			curRe, curIm := 1.0, 0.0
 			half := length / 2
-			for j := 0; j < half; j++ {
+			for j := range half {
 				uRe, uIm := re[i+j], im[i+j]
 				vRe := re[i+j+half]*curRe - im[i+j+half]*curIm
 				vIm := re[i+j+half]*curIm + im[i+j+half]*curRe
@@ -136,7 +136,7 @@ func DefaultDopplerConfig() DopplerConfig {
 // curve, because it is far cheaper on a Pi, it has no convergence failure mode,
 // and its assumptions are visible. It returns nil rather than a number whenever
 // the clip does not actually contain a pass-by.
-func AnalyseDoppler(samples []float64, sampleRate int, cfg DopplerConfig) (*DopplerResult, string) {
+func AnalyseDoppler(samples []float64, sampleRate int, cfg DopplerConfig) (result *DopplerResult, declinedBecause string) {
 	if sampleRate <= 0 || len(samples) == 0 {
 		return nil, "no audio"
 	}
@@ -219,7 +219,7 @@ func AnalyseDoppler(samples []float64, sampleRate int, cfg DopplerConfig) (*Dopp
 // bin spacing is around 16 Hz, while the whole Doppler shift for a car at 70 km/h
 // is only about 11% of the emitted frequency. Without sub-bin refinement the
 // speed estimate would quantise into useless steps.
-func dominantFrequency(frame []float64, sampleRate int, minHz, maxHz float64) float64 {
+func dominantFrequency(frame []float64, sampleRate int, minHz, maxHz float64) (freqHz float64) {
 	mag := magnitudeSpectrum(frame)
 	if len(mag) < 3 {
 		return 0

@@ -16,7 +16,7 @@ const sr = 16000
 // impulseTrain synthesises n sharp decaying impulses at a fixed spacing.
 func impulseTrain(n int, spacingSec, durationSec float64) []float64 {
 	out := make([]float64, int(durationSec*sr))
-	for k := 0; k < n; k++ {
+	for k := range n {
 		start := int(float64(k) * spacingSec * sr)
 		for i := 0; i < int(0.02*sr) && start+i < len(out); i++ {
 			t := float64(i) / sr
@@ -45,7 +45,7 @@ func passByTone(f0, speed, cpa, durationSec float64) []float64 {
 	out := make([]float64, n)
 	t0 := durationSec / 2 // moment of closest approach
 	phase := 0.0
-	for i := 0; i < n; i++ {
+	for i := range n {
 		t := float64(i) / sr
 		dt := t - t0
 		// Radial velocity: positive while receding, negative while approaching.
@@ -233,12 +233,12 @@ func TestDopplerCloserPassGivesSmallerCPA(t *testing.T) {
 
 	// A close pass sweeps abruptly; a distant one sweeps gently. That slope
 	// difference is the only thing carrying distance information here.
-	close, _ := acoustics.AnalyseDoppler(passByTone(600, 20, 5, 4.0), sr, cfg)
+	nearPass, _ := acoustics.AnalyseDoppler(passByTone(600, 20, 5, 4.0), sr, cfg)
 	farther, _ := acoustics.AnalyseDoppler(passByTone(600, 20, 40, 4.0), sr, cfg)
-	require.NotNil(t, close)
+	require.NotNil(t, nearPass)
 	require.NotNil(t, farther)
 
-	assert.Less(t, close.CPAMetres, farther.CPAMetres,
+	assert.Less(t, nearPass.CPAMetres, farther.CPAMetres,
 		"a closer pass must yield a smaller closest-approach estimate")
 }
 
@@ -311,7 +311,7 @@ func BenchmarkFullClip(b *testing.B) {
 	bands := []acoustics.Band{{500, -40}, {1000, -46}, {2000, -53}, {4000, -61}, {8000, -70}}
 
 	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		_ = acoustics.AnalyseLevel(sig, bands, acoustics.DefaultLevelConfig())
 		_ = acoustics.AnalyseOnsets(sig, sr, acoustics.DefaultOnsetConfig())
 		_ = acoustics.AnalyseEnvelope(sig, sr, 0.01, 20)

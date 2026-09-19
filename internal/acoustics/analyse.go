@@ -173,14 +173,11 @@ func AnalyseOnsets(samples []float64, sampleRate int, cfg OnsetConfig) *OnsetRes
 	}
 	threshold := med + cfg.ThresholdMAD*mad
 
-	refractoryFrames := int(cfg.RefractorySec / hop)
-	if refractoryFrames < 1 {
-		refractoryFrames = 1
-	}
+	refractoryFrames := max(int(cfg.RefractorySec/hop), 1)
 
 	res := &OnsetResult{}
 	lastOnset := -refractoryFrames - 1
-	for i := 0; i < len(env); i++ {
+	for i := range env {
 		// A peak needs to dominate its neighbours, but the first and last frames
 		// have only one neighbour each. Treating the missing side as -inf rather
 		// than skipping those frames matters: clips are routinely cut to begin at
@@ -213,10 +210,7 @@ func AnalyseOnsets(samples []float64, sampleRate int, cfg OnsetConfig) *OnsetRes
 
 // envelopeFrames returns a frame-wise RMS envelope and the hop size in seconds.
 func envelopeFrames(samples []float64, sampleRate int, frameSec float64) (env []float64, hopSec float64) {
-	frameLen := int(frameSec * float64(sampleRate))
-	if frameLen < 1 {
-		frameLen = 1
-	}
+	frameLen := max(int(frameSec*float64(sampleRate)), 1)
 	n := len(samples) / frameLen
 	env = make([]float64, 0, n)
 	for i := 0; i+frameLen <= len(samples); i += frameLen {
