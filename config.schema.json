@@ -3,6 +3,36 @@
   "$id": "https://raw.githubusercontent.com/tphakala/birdnet-go/main/config.schema.json",
   "$ref": "#/$defs/Settings",
   "$defs": {
+    "ADSBSettings": {
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "credentialspath": {
+          "type": "string",
+          "description": "CredentialsPath points at a file holding the OpenSky client credentials.\n\nA path, never the secret itself. Credentials in a versioned config file\nend up in backups, in support dumps and in screenshots; a path keeps them\nin exactly one place the operator controls.\n\nAuthentication is mandatory rather than preferred: anonymous OpenSky\naccess ignores the time parameter and only ever returns the current sky,\nwhich makes the acoustic-lag correction - the entire point - impossible."
+        },
+        "searchradiusm": {
+          "type": "number",
+          "description": "SearchRadiusM bounds the query box around the station. Kept small on\npurpose: OpenSky charges by bounding-box area, and anything up to 25\nsquare degrees costs a single credit."
+        },
+        "maxrangem": {
+          "type": "number",
+          "description": "MaxRangeM is the slant range beyond which a match is not credible. Site\ndependent: a quiet rural station hears aircraft much further off than an\nurban one."
+        },
+        "creditfloor": {
+          "type": "integer",
+          "description": "CreditFloor is the API credit reserve held back for runtime enrichment.\nThe daily allowance is shared with the auto-labelling collector, and\nwithout a floor a busy collector would exhaust it and leave real\ndetections unidentifiable for the rest of the day."
+        },
+        "resolveaircraftdetail": {
+          "type": "boolean",
+          "description": "ResolveAircraftDetail turns hex codes and callsigns into registration,\ntype, operator and flight route via a third-party lookup. Separate from\nADSB.Enabled because it is a different service with a different privacy\nimplication, and identification works without it."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "ADSBSettings configures aircraft identification."
+    },
     "AlertSettings": {
       "properties": {
         "history_retention_days": {
@@ -763,6 +793,29 @@
       "type": "object",
       "description": "DiagnosticsConfig groups the developer-facing diagnostics features."
     },
+    "DiagnosticsSettings": {
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enabled gates the whole layer. Measured at 24.8 ms per clip on a\nRaspberry Pi 4 against a 100 ms budget, so the cost is modest - but it is\nstill cost, and the scope requires it default off."
+        },
+        "maxclipms": {
+          "type": "integer",
+          "description": "MaxClipMs caps how much audio a single analysis will process, so a long\nretained clip cannot blow the per-detection budget."
+        },
+        "calibratedmic": {
+          "type": "boolean",
+          "description": "CalibratedMic declares a microphone with known sensitivity. Only then is\nan absolute distance in metres meaningful; without it the near/far\nindicator stays relative, which is the honest reading."
+        },
+        "referencesplat1m": {
+          "type": "number",
+          "description": "ReferenceSPLAt1m is the expected source level one metre away, in dB.\nUsed only when CalibratedMic is set."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "DiagnosticsSettings controls the DSP properties layer."
+    },
     "DiskMonitorConfig": {
       "properties": {
         "enabled": {
@@ -869,6 +922,20 @@
       "additionalProperties": false,
       "type": "object",
       "description": "EBirdSettings contains settings for eBird API integration."
+    },
+    "EnrichmentSettings": {
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enabled gates all outbound identification. Off by default: this is the\nonly part of SoundNet that contacts anything outside the machine, and\nupstream's privacy stance is local-only unless explicitly opted in."
+        },
+        "adsb": {
+          "$ref": "#/$defs/ADSBSettings"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "EnrichmentSettings controls external identity resolution."
     },
     "EqualizerFilter": {
       "properties": {
@@ -2197,6 +2264,10 @@
           "$ref": "#/$defs/LoggingConfig",
           "description": "Logging configuration"
         },
+        "soundnet": {
+          "$ref": "#/$defs/SoundNetSettings",
+          "description": "SOUNDNET: acoustic event detection, diagnostics and external identity.\nDefined in config_soundnet.go so the fork's settings stay in one added\nfile rather than spread through this one."
+        },
         "main": {
           "properties": {
             "name": {
@@ -2390,6 +2461,26 @@
       "type": "object",
       "description": "AudioSettings contains settings for audio processing and export."
     },
+    "SoundNetSettings": {
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enabled is the master switch. Off by default: everything below either\ncosts Raspberry Pi cycles or makes outbound calls."
+        },
+        "station": {
+          "$ref": "#/$defs/StationSettings"
+        },
+        "diagnostics": {
+          "$ref": "#/$defs/DiagnosticsSettings"
+        },
+        "enrichment": {
+          "$ref": "#/$defs/EnrichmentSettings"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "SoundNetSettings configures the SoundNet layers."
+    },
     "SpeciesAction": {
       "properties": {
         "type": {
@@ -2538,6 +2629,17 @@
       "additionalProperties": false,
       "type": "object",
       "description": "SpectrogramPreRender contains settings for spectrogram generation modes."
+    },
+    "StationSettings": {
+      "properties": {
+        "elevationm": {
+          "type": "number",
+          "description": "ElevationM is metres above sea level.\n\nThis is not decoration. Acoustic-lag correction works from slant range -\nthe straight-line distance sound actually travelled - which combines\nhorizontal distance with the height difference between aircraft and\nmicrophone. An error here biases every correction: roughly 0.7 s per 250 m\nat typical overflight altitudes, which is enough to match the wrong\naircraft in busy airspace.\n\nManual entry, because browser geolocation altitude is unreliable."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "StationSettings holds what upstream's location settings do not."
     },
     "StreamConfig": {
       "properties": {

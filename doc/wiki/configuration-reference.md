@@ -43,6 +43,26 @@ LoggingConfig represents logging configuration
 | `logging.modules` | any |  |
 | `logging.module_levels` | any |  |
 
+## soundnet
+
+SoundNetSettings configures the SoundNet layers.
+
+| Setting | Type | Description |
+|---------|------|-------------|
+| `soundnet.enabled` | boolean | Enabled is the master switch. Off by default: everything below either costs Raspberry Pi cycles or makes outbound calls. |
+| `soundnet.station.elevationm` | number | ElevationM is metres above sea level.  This is not decoration. Acoustic-lag correction works from slant range - the straight-line distance sound actually travelled - which combines horizontal distance with the height difference between aircraft and microphone. An error here biases every correction: roughly 0.7 s per 250 m at typical overflight altitudes, which is enough to match the wrong aircraft in busy airspace.  Manual entry, because browser geolocation altitude is unreliable. |
+| `soundnet.diagnostics.enabled` | boolean | Enabled gates the whole layer. Measured at 24.8 ms per clip on a Raspberry Pi 4 against a 100 ms budget, so the cost is modest - but it is still cost, and the scope requires it default off. |
+| `soundnet.diagnostics.maxclipms` | integer | MaxClipMs caps how much audio a single analysis will process, so a long retained clip cannot blow the per-detection budget. |
+| `soundnet.diagnostics.calibratedmic` | boolean | CalibratedMic declares a microphone with known sensitivity. Only then is an absolute distance in metres meaningful; without it the near/far indicator stays relative, which is the honest reading. |
+| `soundnet.diagnostics.referencesplat1m` | number | ReferenceSPLAt1m is the expected source level one metre away, in dB. Used only when CalibratedMic is set. |
+| `soundnet.enrichment.enabled` | boolean | Enabled gates all outbound identification. Off by default: this is the only part of SoundNet that contacts anything outside the machine, and upstream's privacy stance is local-only unless explicitly opted in. |
+| `soundnet.enrichment.adsb.enabled` | boolean |  |
+| `soundnet.enrichment.adsb.credentialspath` | string | CredentialsPath points at a file holding the OpenSky client credentials.  A path, never the secret itself. Credentials in a versioned config file end up in backups, in support dumps and in screenshots; a path keeps them in exactly one place the operator controls.  Authentication is mandatory rather than preferred: anonymous OpenSky access ignores the time parameter and only ever returns the current sky, which makes the acoustic-lag correction - the entire point - impossible. |
+| `soundnet.enrichment.adsb.searchradiusm` | number | SearchRadiusM bounds the query box around the station. Kept small on purpose: OpenSky charges by bounding-box area, and anything up to 25 square degrees costs a single credit. |
+| `soundnet.enrichment.adsb.maxrangem` | number | MaxRangeM is the slant range beyond which a match is not credible. Site dependent: a quiet rural station hears aircraft much further off than an urban one. |
+| `soundnet.enrichment.adsb.creditfloor` | integer | CreditFloor is the API credit reserve held back for runtime enrichment. The daily allowance is shared with the auto-labelling collector, and without a floor a busy collector would exhaust it and leave real detections unidentifiable for the rest of the day. |
+| `soundnet.enrichment.adsb.resolveaircraftdetail` | boolean | ResolveAircraftDetail turns hex codes and callsigns into registration, type, operator and flight route via a third-party lookup. Separate from ADSB.Enabled because it is a different service with a different privacy implication, and identification works without it. |
+
 ## main
 
 | Setting | Type | Description |
