@@ -159,9 +159,18 @@
 
   const aircraft = $derived(data?.enrichment?.find(e => e.provider === 'adsb'));
 
-  function attr(source: Enrichment | undefined, key: string): string | null {
-    const value = source?.attributes?.[key];
-    return value === undefined || value === null || value === '' ? null : String(value);
+  // Attributes arrive from a provider, so they are untrusted keys on an untrusted
+  // object. Reading them through a Map avoids indexing a plain object with a
+  // dynamic key, which would let a crafted payload reach Object.prototype.
+  const aircraftAttributes = $derived(
+    new Map<string, string>(
+      Object.entries(aircraft?.attributes ?? {}).map(([key, value]) => [key, String(value)])
+    )
+  );
+
+  function attr(key: string): string | null {
+    const value = aircraftAttributes.get(key);
+    return value === undefined || value === '' ? null : value;
   }
 
   function round(value: number, places = 1): string {
@@ -336,39 +345,39 @@
             {t('soundnet.aircraft.heading')}
           </h4>
           <p class="text-lg font-semibold mt-1">
-            {attr(aircraft, 'flight_iata') ?? attr(aircraft, 'callsign') ?? attr(aircraft, 'hex')}
+            {attr('flight_iata') ?? attr('callsign') ?? attr('hex')}
           </p>
           <dl class="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-2 text-sm">
-            {#if attr(aircraft, 'registration')}
+            {#if attr('registration')}
               <div>
                 <dt class="opacity-60 text-xs">{t('soundnet.aircraft.registration')}</dt>
-                <dd class="font-mono">{attr(aircraft, 'registration')}</dd>
+                <dd class="font-mono">{attr('registration')}</dd>
               </div>
             {/if}
-            {#if attr(aircraft, 'type_code')}
+            {#if attr('type_code')}
               <div>
                 <dt class="opacity-60 text-xs">{t('soundnet.aircraft.type')}</dt>
-                <dd>{attr(aircraft, 'type_name') ?? attr(aircraft, 'type_code')}</dd>
+                <dd>{attr('type_name') ?? attr('type_code')}</dd>
               </div>
             {/if}
-            {#if attr(aircraft, 'operator')}
+            {#if attr('operator')}
               <div>
                 <dt class="opacity-60 text-xs">{t('soundnet.aircraft.operator')}</dt>
-                <dd>{attr(aircraft, 'operator')}</dd>
+                <dd>{attr('operator')}</dd>
               </div>
             {/if}
-            {#if attr(aircraft, 'origin_iata') && attr(aircraft, 'destination_iata')}
+            {#if attr('origin_iata') && attr('destination_iata')}
               <div class="col-span-2">
                 <dt class="opacity-60 text-xs">{t('soundnet.aircraft.route')}</dt>
                 <dd>
-                  {attr(aircraft, 'origin_iata')} → {attr(aircraft, 'destination_iata')}
+                  {attr('origin_iata')} → {attr('destination_iata')}
                 </dd>
               </div>
             {/if}
-            {#if attr(aircraft, 'altitude_m')}
+            {#if attr('altitude_m')}
               <div>
                 <dt class="opacity-60 text-xs">{t('soundnet.aircraft.altitude')}</dt>
-                <dd class="font-mono">{attr(aircraft, 'altitude_m')} m</dd>
+                <dd class="font-mono">{attr('altitude_m')} m</dd>
               </div>
             {/if}
           </dl>
