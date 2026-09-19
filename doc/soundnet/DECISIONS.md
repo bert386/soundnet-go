@@ -57,13 +57,14 @@ track matching. 5 decimal places (about 1 m) is more than enough. Store as float
 
     latitude   -34.11159024409095
     longitude  150.7922555571461
-    elevation  UNKNOWN - placeholder 250m in use
+    elevation  140 m
 
 New South Wales, south-west of Sydney. Used as the test and placeholder station.
 
-**Elevation is still outstanding.** It feeds slant range directly, so an error
-there biases every acoustic-lag correction: at a typical overflight altitude a
-250m error shifts the lag by roughly 0.7s.
+Elevation supplied 2026-09-19. It feeds slant range directly, so an error there
+biases every acoustic-lag correction - roughly 0.7s per 250m. All three values are
+operator input via the web config (see "Station geo" above), never hard-coded;
+these are recorded here as the development and test fixture.
 
 ### Live ADS-B coverage check, 2026-09-19
 

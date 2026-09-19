@@ -12,10 +12,10 @@ import (
 	"github.com/bert386/soundnet-go/internal/enrichment"
 )
 
-// The real deployment station: the microphone's position in New South Wales.
-// Elevation is a placeholder pending a surveyed figure - it feeds slant range
-// directly, so a wrong value biases every lag correction.
-var station = enrichment.Station{Latitude: -34.11159024409095, Longitude: 150.7922555571461, ElevationM: 250}
+// The real deployment station: the microphone's position and elevation in New
+// South Wales. Elevation is not decoration - it feeds slant range directly, so
+// every acoustic-lag correction is biased by an error here.
+var station = enrichment.Station{Latitude: -34.11159024409095, Longitude: 150.7922555571461, ElevationM: 140}
 
 func TestStationValidity(t *testing.T) {
 	t.Parallel()
@@ -45,11 +45,11 @@ func TestSlantRangeUsesAltitude(t *testing.T) {
 
 	// Directly overhead at 3000m: the slant range is the height difference, and
 	// the horizontal distance contributes nothing.
-	overhead := enrichment.Position{Latitude: -34.11159024409095, Longitude: 150.7922555571461, AltitudeM: 3250}
+	overhead := enrichment.Position{Latitude: -34.11159024409095, Longitude: 150.7922555571461, AltitudeM: 3140}
 	assert.InDelta(t, 3000, enrichment.SlantRangeM(station, overhead), 1)
 
 	// The same altitude 4km away horizontally: 3-4-5 triangle, so 5km.
-	offset := enrichment.Position{Latitude: -34.11159024409095, Longitude: 150.7922555571461 + 4000/(111195*0.8280), AltitudeM: 3250}
+	offset := enrichment.Position{Latitude: -34.11159024409095, Longitude: 150.7922555571461 + 4000/(111195*0.8280), AltitudeM: 3140}
 	assert.InDelta(t, 5000, enrichment.SlantRangeM(station, offset), 150)
 }
 
@@ -59,12 +59,12 @@ func TestAcousticLagMatchesKnownGeometry(t *testing.T) {
 	// An aircraft overhead at 10,000 ft (3048 m) is about 8.9 seconds of sound
 	// travel away. This is the number that makes lag correction necessary: an
 	// uncorrected match would look 9 seconds into the wrong part of the sky.
-	overhead := enrichment.Position{Latitude: -34.11159024409095, Longitude: 150.7922555571461, AltitudeM: 3048 + 250}
+	overhead := enrichment.Position{Latitude: -34.11159024409095, Longitude: 150.7922555571461, AltitudeM: 3048 + 140}
 	lag := enrichment.AcousticLag(station, overhead)
 	assert.InDelta(t, 8.89, lag.Seconds(), 0.1)
 
 	// Low and close: under a second.
-	low := enrichment.Position{Latitude: -34.11159024409095, Longitude: 150.7922555571461, AltitudeM: 450}
+	low := enrichment.Position{Latitude: -34.11159024409095, Longitude: 150.7922555571461, AltitudeM: 340}
 	assert.Less(t, enrichment.AcousticLag(station, low).Seconds(), 1.0)
 }
 
@@ -101,7 +101,7 @@ func TestLagCorrectionConvergesAndMovesTheAircraft(t *testing.T) {
 	// arrive, during which it travels over 2 km - far enough that matching on
 	// the uncorrected time can pick a different aircraft entirely.
 	reported := enrichment.Position{
-		Latitude: -34.11159024409095, Longitude: 150.7922555571461, AltitudeM: 3298,
+		Latitude: -34.11159024409095, Longitude: 150.7922555571461, AltitudeM: 3188,
 		GroundSpeedMS: 250, TrackDeg: 90,
 	}
 
@@ -126,7 +126,7 @@ func TestLagCorrectionIsStableForSlowLowTraffic(t *testing.T) {
 	// A light aircraft low and slow: the correction should be small, not a
 	// large swing. This guards against an iteration that diverges.
 	reported := enrichment.Position{
-		Latitude: -34.11159024409095, Longitude: 150.7922555571461, AltitudeM: 550,
+		Latitude: -34.11159024409095, Longitude: 150.7922555571461, AltitudeM: 440,
 		GroundSpeedMS: 50, TrackDeg: 180,
 	}
 	emitted, lag := enrichment.CorrectForAcousticLag(station, reported)
@@ -139,8 +139,8 @@ func TestMatchQualityPrefersCloseAndOverhead(t *testing.T) {
 	t.Parallel()
 	const maxRange = 20000.0
 
-	overhead := enrichment.Position{Latitude: -34.11159024409095, Longitude: 150.7922555571461, AltitudeM: 2250}
-	distant := enrichment.Position{Latitude: -34.01, Longitude: 150.99, AltitudeM: 2250}
+	overhead := enrichment.Position{Latitude: -34.11159024409095, Longitude: 150.7922555571461, AltitudeM: 2140}
+	distant := enrichment.Position{Latitude: -34.01, Longitude: 150.99, AltitudeM: 2140}
 	assert.Greater(t, enrichment.MatchQuality(station, overhead, maxRange),
 		enrichment.MatchQuality(station, distant, maxRange))
 
@@ -230,7 +230,7 @@ func TestLagCredibilityBound(t *testing.T) {
 	t.Parallel()
 
 	// An aircraft overhead at 3 km: about 9 seconds, comfortably trustworthy.
-	overhead := enrichment.Position{Latitude: -34.11159024409095, Longitude: 150.7922555571461, AltitudeM: 3250}
+	overhead := enrichment.Position{Latitude: -34.11159024409095, Longitude: 150.7922555571461, AltitudeM: 3140}
 	assert.True(t, enrichment.LagIsCredible(enrichment.AcousticLag(station, overhead)))
 
 	// A live OpenSky sample at this station had an airliner at 14.7km slant
