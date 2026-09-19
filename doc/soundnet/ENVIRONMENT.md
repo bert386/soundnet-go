@@ -61,3 +61,32 @@ a Go toolchain; build locally and copy the binary.
 This is the hardware the M3 performance budget (<100ms per clip) is measured against.
 It is also where M5/M6 will run against the live ADS-B feed, so the station coordinates in
 the web config refer to *this* machine's location, not the development machine's.
+
+## Keeping the service alive on the Pi
+
+`nohup`, `setsid` and `systemd-run --user` all fail: the process is SIGTERMed
+when the SSH session ends, because `Linger=no` for the `pi` user and there is no
+tmux or screen installed. Enabling lingering needs root.
+
+A **cron keepalive** works, because cron runs detached from login sessions:
+
+    ~/soundnet/keepalive.sh      starts the binary if it is not running
+    crontab:  * * * * *  and  @reboot
+
+## Deploying a new build
+
+The binary is ~173 MB and a single `scp` stalls part-way on this wireless link -
+`scp` stays alive while transferring nothing, the signature of an idle or NAT
+timeout. What works:
+
+1. `gzip -9` the binary (~107 MB) and `split -b 20m` it
+2. `scp` each chunk with `-o ServerAliveInterval=10`, retrying per chunk
+3. reassemble and `gunzip` on the Pi
+
+**Pause the cron keepalive before swapping the binary.** Otherwise cron restarts
+the old process during the swap and `cp`/`mv` fails with "text file busy" - and
+with `set -e` the script aborts silently, leaving the old binary in place and
+looking like success. **Verify by md5 afterwards, not by checking the port.**
+
+Consider building with the `noembed` tag for iteration: most of the 173 MB is the
+embedded frontend and models.
