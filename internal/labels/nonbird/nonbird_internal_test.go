@@ -13,7 +13,11 @@ import (
 func TestClassesGuard(t *testing.T) {
 	t.Parallel()
 
-	const expectedClassCount = 198
+	// SOUNDNET: upstream's 198, plus this fork's AudioSet additions (see
+	// classes_soundnet.go). Counted rather than hardcoded so the two move
+	// together, while keeping upstream's own number visible for merges.
+	const upstreamClassCount = 198
+	expectedClassCount := upstreamClassCount + len(soundNetClasses)
 
 	require.Len(t, classes, expectedClassCount, "classes map must contain exactly %d entries", expectedClassCount)
 
