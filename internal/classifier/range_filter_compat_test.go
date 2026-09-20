@@ -28,6 +28,9 @@ func TestModelRegistry_RangeFilterCompat(t *testing.T) {
 		// SOUNDNET: YAMNet classifies acoustic events, not species. Its labels
 		// carry no geography at all, so no range filter can apply to them.
 		RegistryIDYAMNet: rangeFilterCompatNone,
+		// SOUNDNET: CED classifies acoustic events, not species, so the range
+		// filter has nothing to say about it - same reasoning as YAMNet.
+		RegistryIDCED: rangeFilterCompatNone,
 	}
 	for id := range ModelRegistry {
 		w, ok := want[id]

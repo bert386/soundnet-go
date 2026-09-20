@@ -405,8 +405,9 @@ func TestEmbeddedCatalog_EntryCount(t *testing.T) {
 
 	// 2 wildlife + 2 bird + 1 geomodel + 11 bat = 16 upstream
 	// (bird: bsg-finland + the collapsed hidden BirdNET v2.4 foundation entry)
-	// SOUNDNET: + 1 acoustic-event (YAMNet, registered from model_yamnet.go).
-	assert.Len(t, EmbeddedCatalog, 17, "expected 16 upstream catalog entries plus YAMNet")
+	// SOUNDNET: + 2 acoustic-event (YAMNet from model_yamnet.go, CED from
+	// model_ced.go), both registered by init rather than added to the literal.
+	assert.Len(t, EmbeddedCatalog, 18, "expected 16 upstream catalog entries plus YAMNet and CED")
 }
 
 func TestVisibleCatalog_ExcludesHiddenEntries(t *testing.T) {

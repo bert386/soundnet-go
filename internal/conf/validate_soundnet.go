@@ -1,6 +1,6 @@
 package conf
 
-// SoundNet: YAMNet's config aliases.
+// SoundNet: the fork's model config aliases.
 //
 // ValidAudioModels is hand-maintained because this package cannot import
 // internal/classifier - and classifier's TestKnownConfigIDs_MatchesConfValidAudioModels
@@ -16,4 +16,8 @@ package conf
 func init() {
 	ValidAudioModels["yamnet"] = true
 	ValidAudioModels["yamnet-v1"] = true
+
+	ValidAudioModels["ced"] = true
+	ValidAudioModels["ced-tiny"] = true
+	ValidAudioModels["ced_tiny"] = true
 }

@@ -63,7 +63,8 @@ func TestOnlySoundNetEntriesSetBaseURL(t *testing.T) {
 		if e.BaseURL == "" {
 			continue
 		}
-		assert.Equal(t, "yamnet-v1", e.ID,
+		// SOUNDNET: both of the fork's acoustic-event models are mirrored.
+		assert.Contains(t, []string{"yamnet-v1", "ced-tiny-v1"}, e.ID,
 			"entry %q sets BaseURL; only SoundNet's own entries should", e.ID)
 	}
 }

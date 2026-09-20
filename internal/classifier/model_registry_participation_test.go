@@ -82,6 +82,8 @@ func TestParticipatesInRangeFilter_ExpectedPerModel(t *testing.T) {
 		// SOUNDNET: an aircraft is not more or less likely here than anywhere
 		// else in the way a species is, so there is nothing for the filter to say.
 		RegistryIDYAMNet: false,
+		// SOUNDNET: an AudioSet class is not a species and has no range.
+		RegistryIDCED: false,
 	}
 	for id, expected := range want {
 		t.Run(id, func(t *testing.T) {

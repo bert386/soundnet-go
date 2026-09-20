@@ -862,6 +862,13 @@ func (p *Processor) processResults(settings *conf.Settings, item classifier.Resu
 		p.handleDogDetection(settings, item, result)
 		p.handleHumanDetection(settings, item, result)
 
+		// SOUNDNET: a class emitted only so the two filters above could see it is
+		// not an event and must not be stored. Placed here, after they have run
+		// and before anything is kept. See filteronly_soundnet.go.
+		if soundNetFilterOnlyClass(item.ModelID, result.Species) {
+			continue
+		}
+
 		// Determine confidence threshold and check filters
 		baseThreshold := p.getBaseConfidenceThreshold(settings, commonName, scientificName, item.ModelID)
 

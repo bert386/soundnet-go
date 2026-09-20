@@ -260,17 +260,29 @@ func NewYAMNet(cfg *YAMNetConfig) (*YAMNet, error) {
 	return y, nil
 }
 
-// loadYAMNetClassMap reads the AudioSet class map and returns labels indexed by
+// loadYAMNetClassMap reads YAMNet's AudioSet class map.
+//
+// A thin name over the shared reader: YAMNet and CED ship the same
+// index,mid,display_name format, differing only in how many rows they have.
+func loadYAMNetClassMap(path string) ([]string, error) {
+	return loadAudioSetClassMap(path, "classifier.yamnet")
+}
+
+// loadAudioSetClassMap reads an AudioSet class map and returns labels indexed by
 // class index, normalised to the raw-label form the rest of the pipeline uses.
 //
 // Normalisation is not cosmetic. internal/labels/nonbird keys its table on that
 // form, and a label that misses it is stored as a bird species with the Aves
 // taxonomic class - so "Jet engine" left verbatim would be filed as a bird.
-func loadYAMNetClassMap(path string) ([]string, error) {
+//
+// component names the caller for error attribution, since two adapters now use
+// this and "classifier.yamnet" on a CED failure would send the reader to the
+// wrong file.
+func loadAudioSetClassMap(path, component string) ([]string, error) {
 	f, err := os.Open(path)
 	if err != nil {
 		return nil, errors.New(err).
-			Component("classifier.yamnet").
+			Component(component).
 			Category(errors.CategoryModelLoad).
 			Context("labels_path", path).
 			Build()
@@ -281,14 +293,14 @@ func loadYAMNetClassMap(path string) ([]string, error) {
 	header, err := r.Read()
 	if err != nil {
 		return nil, errors.New(err).
-			Component("classifier.yamnet").
+			Component(component).
 			Category(errors.CategoryValidation).
 			Context("labels_path", path).
 			Build()
 	}
 	if len(header) < 3 {
-		return nil, errors.Newf("YAMNet class map header has %d columns, want index,mid,display_name", len(header)).
-			Component("classifier.yamnet").
+		return nil, errors.Newf("AudioSet class map header has %d columns, want index,mid,display_name", len(header)).
+			Component(component).
 			Category(errors.CategoryValidation).
 			Build()
 	}
@@ -305,7 +317,7 @@ func loadYAMNetClassMap(path string) ([]string, error) {
 		}
 		if readErr != nil {
 			return nil, errors.New(readErr).
-				Component("classifier.yamnet").
+				Component(component).
 				Category(errors.CategoryValidation).
 				Context("labels_path", path).
 				Build()
@@ -313,14 +325,14 @@ func loadYAMNetClassMap(path string) ([]string, error) {
 		idx, convErr := strconv.Atoi(strings.TrimSpace(row[0]))
 		if convErr != nil {
 			return nil, errors.New(convErr).
-				Component("classifier.yamnet").
+				Component(component).
 				Category(errors.CategoryValidation).
 				Context("row", strings.Join(row, ",")).
 				Build()
 		}
 		if _, dup := byIndex[idx]; dup {
-			return nil, errors.Newf("YAMNet class map repeats index %d", idx).
-				Component("classifier.yamnet").
+			return nil, errors.Newf("class map repeats index %d", idx).
+				Component(component).
 				Category(errors.CategoryValidation).
 				Build()
 		}
@@ -329,8 +341,8 @@ func loadYAMNetClassMap(path string) ([]string, error) {
 	}
 
 	if maxIndex < 0 {
-		return nil, errors.Newf("YAMNet class map is empty").
-			Component("classifier.yamnet").
+		return nil, errors.Newf("class map is empty").
+			Component(component).
 			Category(errors.CategoryValidation).
 			Build()
 	}
@@ -338,8 +350,8 @@ func loadYAMNetClassMap(path string) ([]string, error) {
 	for i := range labels {
 		label, ok := byIndex[i]
 		if !ok {
-			return nil, errors.Newf("YAMNet class map has no entry for index %d", i).
-				Component("classifier.yamnet").
+			return nil, errors.Newf("class map has no entry for index %d", i).
+				Component(component).
 				Category(errors.CategoryValidation).
 				Build()
 		}

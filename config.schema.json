@@ -929,6 +929,10 @@
           "type": "boolean",
           "description": "Enabled gates all outbound identification. Off by default: this is the\nonly part of SoundNet that contacts anything outside the machine, and\nupstream's privacy stance is local-only unless explicitly opted in."
         },
+        "corroborationthreshold": {
+          "type": "number",
+          "description": "CorroborationThreshold lowers the acoustic bar for classes an authority\ncan confirm, and zero - the default - leaves the behaviour unchanged.\n\nIt exists to break an ordering problem. A distant aircraft scores\n0.10-0.15, a sensible threshold is 0.7, so no detection is created; and\nbecause none is created, nothing reaches enrichment to discover that an\naircraft really was overhead. The evidence that would justify keeping the\ndetection sits behind the threshold that discards it.\n\nSet above zero and a detection in an enrichable domain scoring at least\nthis much is held rather than dropped, and kept only if an authority\nindependently places a credible source overhead. It is not a lower\nthreshold: nothing is admitted on the acoustic score alone, so the\ndetection list does not fill with quiet guesses.\n\nIt costs API credits - one query per candidate that would otherwise have\nbeen dropped in silence - which is why it is off by default and why the\nADS-B client reuses a fetched sky for five seconds."
+        },
         "adsb": {
           "$ref": "#/$defs/ADSBSettings"
         }
