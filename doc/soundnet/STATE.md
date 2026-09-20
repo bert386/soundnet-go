@@ -434,19 +434,51 @@ exactly the detections the change exists to name.
 mean the same thing - YAMNet's are per-class sigmoid quantised to 1/256 steps,
 and the two confirmed aircraft scored 0.41 and 0.50.
 
-**4. Low-frequency second pass.** Low-passing at 1.2 kHz then normalising takes
-`Aircraft` from 0.000 to 0.332 on a jet that was otherwise invisible. Order
-matters: normalising first is hostage to the loudest bird transient. Worth doing
-for the aircraft/vehicle/rail/watercraft domains; cheap at 26 ms a pass.
+**4. Low-frequency second pass. Done and live.** YAMNet now runs a second time
+over a copy of the window low-passed at 1.2 kHz, and the aircraft classes take
+the higher of the two. Measured on the Pi at **61.8 ms** a window, up from 26,
+against BirdNET's 180.
 
-**5. Raise the capture gain.** Recordings sit at ~-40 dBFS RMS where YAMNet was
-trained on normal loudness. `realtime.audio.sources[].gain` is 9. The single
-largest untapped lever, and free.
+Two limits came out of measuring rather than reasoning, and both contradict what
+this item originally said. Only the **aircraft** classes are raised, because the
+low-pass lifts the aircraft score of clips with no aircraft in them too
+(rustling grass 0.000 -> 0.137) and the margin was only measured on aircraft.
+And **nothing is normalised**: the sweep in MODEL_EVAL.md shows it never converts
+a miss into a detection and raises the worst non-aircraft score monotonically.
+The original recommendation came from measuring only the clips that contained
+aircraft.
+
+**5. Capture gain. Done: 15 dB, set by the operator 2026-09-20.** Also not what
+this item claimed. It said gain was "the single largest untapped lever", which
+was written without measuring the crest factor. Across 84 clips the median is
+14.6 dB with peaks reaching -11.6 dBFS, so lifting the median RMS from -44 to
+the ~-25 dBFS these models are trained on needs +19 dB and clips hard. **Gain
+safely buys about 6 dB, not 19.** The deficit is structural - sharp bird
+transients far above a quiet background - and is a job for per-window processing
+on the analysis copy, not for capture gain. The remaining value of gain is int16
+resolution: at -44 dBFS only about 9 of 16 bits are in use.
 
 **6. Is `DomainAlarm` really not diagnosable?** A siren has Doppler and a
 pass-by geometry exactly like a vehicle, but `Domain.Diagnosable()` returns
 false for it. Looks like an oversight in the domain table rather than a
 decision.
+
+**6b. Adopt CED-tiny.** Measured against the labelled clips in MODEL_EVAL.md:
+zero false positives across ten non-aircraft clips, and it separates a lorry
+from an aeroplane where YAMNet gave both `Vehicle 0.80`. Blocked on one thing -
+its ONNX input is a kaldi log-mel filterbank, and every model here has its
+front-end inside the graph - so it wants a fused re-export rather than a mel
+front-end written in Go.
+
+**6c. Lower the acoustic bar where an authority can corroborate.** The highest
+-value item on this list. Four of seven labelled aircraft stay under 0.30 in
+every model and preprocessing configuration tried; they are the distant ones.
+Nothing acoustic rescued them, and the design already says what does: 0.15 alone
+never clears a sensible threshold, 0.15 beside an ADS-B contact at a credible
+slant range is a confident detection. That corroboration now works end to end
+(detection 990, a Piper PA-28-161 at 1.6 km), so the missing piece is a path
+that lets a low-confidence aircraft candidate reach enrichment at all - today it
+dies at the threshold before any authority is asked.
 
 **Then, in rough value order:**
 
