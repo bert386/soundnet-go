@@ -23,10 +23,10 @@ ENVIRONMENT.md (machines, toolchain, operational gotchas), GROUND_TRUTH.md
 | | State |
 |---|---|
 | M0 project setup | **done**, merged to main |
-| M1 taxonomy + YAMNet | **done** - taxonomy, catalog entry, fetch route, inference adapter. Live on the Pi at 26 ms/window |
+| M1 taxonomy + models | **done** - taxonomy, catalog, fetch route, adapters. YAMNet 66-77 ms/window live; **CED-tiny live at 89 ms** |
 | M2 detection records | **done** |
 | M3 DSP diagnostics | **done**, 24.8 ms/clip measured on the Pi against a 100 ms budget |
-| M5 enrichment / ADS-B | **done** including registration, type, operator and route, plus ambiguous-label resolution for `Vehicle`/`Engine` (untested on the Pi) |
+| M5 enrichment / ADS-B | **done and proven live** - registration, type, operator, route; ambiguity resolution for `Vehicle`/`Engine`/`Thunder`; corroboration-gated thresholds |
 | M6 auto-label collector | **logic done**, not wired to the audio buffer or config |
 | M7 web UI | detail panel, review queue, training export, confusion + threshold APIs, **event-domain filter (API + UI)**, **display names** done; tuner UI and live re-compute remain |
 | M4 sub-classification heads | **not started** - correctly last, it trains on M6's corpus |
@@ -54,13 +54,14 @@ wrong twice when written by hand, so recount it rather than trust it
 conversation; `git diff --numstat main` and grouping by suffix is the whole of
 it).
 
-**Production Go: 14 files, +119 -4.** The number that matters for merges. Only
+**Production Go: 14 files, +141 -5.** The number that matters for merges. Only
 files that already exist on `main` are counted - a new fork-owned file is not a
 merge cost, an edited upstream file is.
 
     internal/api/v2/detections/detections.go  41 -3  category filter, routing, display name
+    internal/analysis/processor/processor.go  19 -1  pipeline hook, candidate threshold,
+                                                     corroboration discard, filter-only drop
     internal/classifier/model_manager.go       9 -1   fold BaseURL into the fetch
-    internal/analysis/processor/processor.go  11      pipeline hook (inside the save sequence)
     internal/api/v2/apicore/sse.go             8      display name on the live feed
     internal/api/v2/detections/search.go       8      display name on search results
     internal/detection/model_info.go           7      YAMNet is not a bird
@@ -73,8 +74,12 @@ merge cost, an edited upstream file is.
     internal/api/v2/detections/handler.go      3      categories route
     internal/conf/defaults.go                  3      defaults call
 
-**Upstream tests: 7 files, +45 -5.** Exhaustive registries that oblige a fork
-addition to declare itself. Every row is marked `SOUNDNET:`. Each of these was
+**Upstream tests: 7 files, +51 -5.** Exhaustive registries that oblige a fork
+addition to declare itself. Adding CED tripped **five at once** - catalog entry
+count, BaseURL ownership, config-alias drift, range-filter compatibility and
+range-filter participation - and the drift guard caught a real mistake rather
+than bookkeeping: `ced-tiny-v1` is a catalog ID, not a registry alias, and did
+not belong in `conf.ValidAudioModels`. Every row is marked `SOUNDNET:`. Each of these was
 found by a test failing *after* the feature shipped, because the package had
 never been run in full - see the verification habits below.
 
@@ -199,6 +204,42 @@ files and touches no upstream line. Two cautions learned the hard way: anything
 *derived* from such a map (`nonbird.firstTokenSet`) must be rebuilt afterwards
 because init order between files is not guaranteed, and upstream's exhaustive
 table tests will fail until the new entry is declared in them too.
+
+## The station, as of 2026-09-20 evening
+
+Three models, one source, 345 ms of inference per 3-second window - an 11%
+duty cycle on a Pi 4.
+
+    BirdNET_V2.4   TFLite   178 ms   186 MB   6522 species
+    CED            ONNX      89 ms    62 MB    527 AudioSet classes
+    YAMNet         TFLite     77 ms    10 MB    521 AudioSet classes
+
+Backends: TFLite and **ONNX Runtime 1.25.1**, both present. OpenVINO compiled in,
+inactive.
+
+**The identification pipeline works end to end.** Nine aircraft identified by
+registration in the first hours after the layers were fixed:
+
+    id=1194  vehicle  -> aircraft   VH-VOL  737NG      3.32 km
+    id=1193  vehicle  -> aircraft   VH-VOL  737NG      5.08 km
+    id=1180  vehicle  -> aircraft   VH-XCW  PA-28-181  1.21 km
+    id=1179  aircraft              VH-XCW  PA-28-181  0.99 km
+    id=1177  vehicle  -> aircraft   VH-XCW  PA-28-181  1.09 km
+    id=1033  aircraft              VH-NRB  PA-28-181  3.66 km
+    id=990   aircraft              VH-FTU  PA-28-161  1.60 km
+
+Five of the nine were acoustically "vehicle" and ADS-B corrected them, including
+a Boeing 737 at 5 km. That is the ambiguity work and `resolvedDomain` doing
+exactly what they exist for.
+
+**Operator settings changed this session** (all reversible, backups beside each
+config):
+
+    realtime.audio.sources[].gain              9  -> 15   (config.yaml.bak.*)
+    soundnet.enrichment.corroborationthreshold 0  -> 0.15 (.bak.corroboration)
+    birdnet.onnxruntimepath                    -> lib/libonnxruntime.so.1.25.1 (.bak.ort)
+    models.enabled + source models             += ced    (.bak.ced)
+    realtime.privacyfilter.vad                 enabled by the operator at 0.35
 
 ## What is running on the Pi
 
@@ -362,174 +403,147 @@ against the old arrangement, a zero detection ID is logged at warn, and
 `Result.Skipped` - which was always computed and never logged - is logged at
 debug.
 
-## Non-taxonomy classes are being stored as detections
+## Fixed: non-taxonomy classes were stored as detections
 
-Also found on 2026-09-20. `chewing_and_mastication` and `crying_and_sobbing`
-are emitted by the YAMNet adapter on purpose: they are `CategoryHuman`, and
-`reportable()` passes human classes through so the privacy filter can see them.
-The comment there says "emitting them costs nothing in stored rows. A speech hit
-makes the privacy filter discard the whole window". That is only true **above**
-the privacy threshold. Below it - 0.50 and 0.59 in the observed rows - the
-window is kept and the class is stored as an ordinary detection, with no domain,
-no display name, and a mangled name in the UI ("and_mastication"). Four rows in
-one hour.
+`chewing_and_mastication`, `burping_and_eructation` and `crying_and_sobbing`
+were appearing as ordinary detections. The operator reviewed four of them as
+"rustling dry grass" and one as "human cough".
 
-Either drop classes that exist only as filter inputs before they reach storage,
-or give them a taxonomy entry. The first is probably right: they are not events.
+They are emitted on purpose: the YAMNet and CED adapters pass through every
+class `vocalization.IsHuman` or `IsDog` recognises, because the privacy and
+dog-bark filters can only act on results the adapter hands them. `reportable()`
+argued this "costs nothing in stored rows", since a speech hit discards the
+whole window. That holds only **above** the privacy threshold. At 0.41-0.59
+these were never going to trip a filter set at 0.7, so the window was kept and
+the class stored with no domain, no display name and a mangled label.
+
+Fixed in `internal/analysis/processor/filteronly_soundnet.go`: dropped after
+both filters have run, before anything is stored. Dropped rather than never
+emitted, because the filters still need to see them. `Dog` stays - it is both a
+filter input and a default-enabled biological event, and a barking dog is worth
+recording. Scoped to the models this fork adds, since upstream decides what
+BirdNET's own non-species labels do.
+
+## CED-tiny: what it took, and the two traps
+
+Live since 2026-09-20. A 2023 tagger distilled from transformer ensembles,
+running beside YAMNet rather than replacing it - they disagree usefully, and the
+cross-model consensus machinery already handles that.
+
+**Why it is worth having.** On the operator-labelled set, YAMNet called a large
+truck and a propeller aircraft both `Vehicle 0.80`; CED gives the truck an
+aircraft score of 0.000 and the aeroplane 0.374. It called a person whistling
+`Whistling` where YAMNet said police siren at 0.74. Zero false positives across
+ten non-aircraft clips. See MODEL_EVAL.md.
+
+**Trap 1: ONNX Runtime was not on the station at all.** The Pi carried only
+`libtensorflowlite_c.so`, so *no* ONNX model in the catalog could load - Perch v2
+and BirdNET v3.0 as much as CED, and nobody had noticed. Two details cost time:
+`RequiredORTAPIMajor` is **1.25**, so the newest release is rejected by the
+version check; and `findONNXRuntimeLibrary()` searches system paths rather than
+`LD_LIBRARY_PATH`, so dropping the library in the lib directory leaves the
+station still reporting `onnx: available: false`. The explicit
+`birdnet.onnxruntimepath` key is what makes it detectable.
+
+**Trap 2: the generic ONNX constructor rejects it, correctly.**
+`inference.NewONNXClassifier` wraps upstream's species-classifier layer, which
+identifies a model by matching tensor geometry against an exhaustive table of
+BirdNET and Perch shapes. CED is 48000 samples at 16 kHz with one output and
+matches none, so it failed with "cannot detect model type". A static input shape
+would not have helped. CED therefore has its own minimal session
+(`ced_session.go`) - fixed shapes, no detection, no abstraction - because that
+package is about species and CED has none.
+
+**The front-end was never a guess.** CED's own repo states it:
+`MelSpectrogram(n_fft=512, win_length=512, hop=160, center=False, n_mels=64,
+f_min=0, f_max=8000)` then `AmplitudeToDB(top_db=120)`. That is **torchaudio,
+not kaldi fbank** - so sherpa-onnx is an approximation of the training recipe,
+and writing the front-end in Go by inferring it from sherpa would have
+faithfully implemented the approximation. It is fused into the graph instead,
+verified against PyTorch at 1.3e-06 across twelve windows.
+
+**Fixed 3-second window is the contract.** CED interpolates positional
+embeddings from input length and the export baked that grid in, so a differently
+sized window fails loudly. Three seconds is BirdNET's window anyway.
+
+**Still to watch:** CED has produced no detections yet. Its top scores on the
+labelled set were 0.3-0.7 against a 0.7 threshold, so it may need a per-model
+threshold before it contributes anything. That is the first thing to check after
+a day of running.
 
 ## Immediately resumable work
 
-Ordered by value. Items 1 and 2 are done; both need a live run on the Pi, which
-was offline when they were written.
+Everything that was on this list on 2026-09-20 morning is done and running. What
+follows is what is left, ordered by value.
 
-**1. Vehicle-domain enrichment. Done; taxonomy and API verified live, pipeline
-blocked.** The station reports it - id 905 (`vehicle`) now answers
-`enrichable: true` with `candidateDomains: [vehicle, aircraft, rail,
-watercraft]`, where before it was `false` - but no enrichment row can be
-written until the section above is resolved. A class now carries
-candidate domains - its own first, then any it cannot exclude - and the pipeline
-asks each authority in turn (`internal/eventclass/ambiguity.go`). `Vehicle` and
-`Engine` are the only two entries, because AudioSet's ontology is a hierarchy
-and SoundNet's domains are flat: both are parents of road, rail, air and water
-transport, which is why an aircraft scores 0.59-0.74 on `Vehicle` while
-`Aircraft` swings 0.11-0.50. `Domain.Enrichable()` is unchanged and still false
-for vehicles - it is the label that is ambiguous, not the domain.
+**1. Wire M6, the auto-label collector.** The highest-leverage thing remaining,
+and the only one that compounds. Every confirmed overflight is a free
+authoritative training label, and the station is now producing them - VH-VOL,
+VH-XCW, VH-NRB, VH-FTU, with slant range, altitude and type. The collector logic
+and its three interfaces exist in `internal/autolabel`; nothing implements them.
 
-Two consequences worth knowing. `Engine` is one of BirdNET v2.4's seven
-non-species labels, so this works on a station with no YAMNet at all. And the
-OpenSky client now reuses a fetched sky for five seconds, because /states/all
-has no time parameter and costs a credit per call; without that, asking about
-vehicles as well would have multiplied the daily spend.
+The pieces are all identified:
 
-**Still to verify:** an `adsb` enrichment on a `Vehicle` or `Engine` row
-carrying `soundnetResolvedDomain: aircraft`. Absence is not proof of a bug -
-most detections have no overflight, which is the honest outcome - so confirm the
-layer runs at all before reading anything into a quiet result.
+    SkyReader     -> internal/enrichment/adsb already satisfies it
+    Capturer      -> buffer.CaptureBuffer.ReadSegment(start, end), reached via
+                     p.BufferMgr.CaptureBuffer(sourceID)
+    CorpusWriter  -> internal/autolabel/corpus.go
 
-**2. Display names. Done and verified live.** On the station:
-`propeller`/`and_airscrew` now reads "Propeller, airscrew",
-`police`/`car_(siren)` reads "Police car (siren)", and no bird carries the
-field. The server sends
-`eventDisplayName` on detection responses, the SSE feed and search results, and
-`localizeSpeciesName` prefers it.
+So it wants a startup wiring file beside `soundnet_startup.go`, a config section,
+and a goroutine. M6 refuses to capture when two aircraft are at similar range -
+a wrong training label teaches the model something false forever, where a wrong
+runtime match is one wrong row.
 
-The reconstruction this started from was wrong, and worth recording because it
-was wrong in the project's usual shape. `DisplayName` rejoined the scientific
-and common names with an underscore, which is correct only for a two-token
-label: `ParseSpeciesString` splits into **at most three** parts, so
-`propeller_and_airscrew` arrives as `("propeller", "and", "airscrew")` and the
-rejoined `propeller_and` matched nothing. Every single-word class passed. The
-lookup now keys on the **first two tokens**, which is as much of a label as
-survives regardless of backend - the species code is not usable, because
-`v2only` recomputes `SpeciesCode` from a map keyed on scientific name when it
-reads a row back, and an event class is in no such map.
+**2. A per-model threshold for CED.** It has produced no detections. Its top
+scores on the labelled set were 0.3-0.7 against BirdNET's 0.7, so it may be
+contributing nothing at all. `modelGlobalConfidenceThreshold` has no CED case,
+exactly as it had no YAMNet case. Check after a day of running; if it is silent,
+this is why.
 
-The field is additive rather than a rewrite of `commonName`, which the plan here
-previously called for. `commonName` is the key `isSpeciesExcluded` matches on,
-so rewriting it would have made "ignore this species" silently stop working for
-exactly the detections the change exists to name.
+**3. Per-domain thresholds generally.** YAMNet and CED both inherit BirdNET's
+0.7, and those numbers do not mean the same thing - YAMNet's are per-class
+sigmoid quantised to 1/256 steps.
 
-**3. Per-domain thresholds.** YAMNet inherits BirdNET's 0.7 via
-`modelGlobalConfidenceThreshold`, which has no YAMNet case. Those numbers do not
-mean the same thing - YAMNet's are per-class sigmoid quantised to 1/256 steps,
-and the two confirmed aircraft scored 0.41 and 0.50.
+**4. Surface `resolvedDomain` in the UI.** The API carries it; nothing shows it.
+A jet recorded as Thunderstorm at 0.94 still *reads* as a thunderstorm in the
+detection list even though ADS-B has named the aircraft. This is a small
+frontend change with real value now that five of nine identifications came from
+a domain correction.
 
-**4. Low-frequency second pass. Done and live.** YAMNet now runs a second time
-over a copy of the window low-passed at 1.2 kHz, and the aircraft classes take
-the higher of the two. Measured on the Pi at **61.8 ms** a window, up from 26,
-against BirdNET's 180.
+**5. Is `DomainAlarm` really not diagnosable?** A siren has Doppler and a pass-by
+geometry exactly like a vehicle, but `Domain.Diagnosable()` returns false. Looks
+like an oversight rather than a decision.
 
-Two limits came out of measuring rather than reasoning, and both contradict what
-this item originally said. Only the **aircraft** classes are raised, because the
-low-pass lifts the aircraft score of clips with no aircraft in them too
-(rustling grass 0.000 -> 0.137) and the margin was only measured on aircraft.
-And **nothing is normalised**: the sweep in MODEL_EVAL.md shows it never converts
-a miss into a detection and raises the worst non-aircraft score monotonically.
-The original recommendation came from measuring only the clips that contained
-aircraft.
-
-**5. Capture gain. Done: 15 dB, set by the operator 2026-09-20.** Also not what
-this item claimed. It said gain was "the single largest untapped lever", which
-was written without measuring the crest factor. Across 84 clips the median is
-14.6 dB with peaks reaching -11.6 dBFS, so lifting the median RMS from -44 to
-the ~-25 dBFS these models are trained on needs +19 dB and clips hard. **Gain
-safely buys about 6 dB, not 19.** The deficit is structural - sharp bird
-transients far above a quiet background - and is a job for per-window processing
-on the analysis copy, not for capture gain. The remaining value of gain is int16
-resolution: at -44 dBFS only about 9 of 16 bits are in use.
-
-**6. Is `DomainAlarm` really not diagnosable?** A siren has Doppler and a
-pass-by geometry exactly like a vehicle, but `Domain.Diagnosable()` returns
-false for it. Looks like an oversight in the domain table rather than a
-decision.
-
-**6a. ONNX Runtime is now on the Pi.** 1.25.1 aarch64, 19 MB, at
-`~/soundnet/lib/libonnxruntime.so.1.25.1` with `birdnet.onnxruntimepath` in the
-config pointing at it. `findONNXRuntimeLibrary()` searches system paths and not
-`LD_LIBRARY_PATH`, so the explicit key is what makes it detectable - dropping
-the file in the lib directory alone is not enough, and the station reported
-`onnx: available: false` for hours with the library already present.
-
-`RequiredORTAPIMajor` is **1.25**, not whatever is newest: the binding is
-`yalue/onnxruntime_go` and 1.30 is rejected by the version check.
-
-This unblocks every ONNX model in the catalog, not only CED - Perch v2 and
-BirdNET v3.0 could not have run on this station before it either.
-
-**6b. Adopt CED-tiny.** Measured against the labelled clips in MODEL_EVAL.md:
-zero false positives across ten non-aircraft clips, and it separates a lorry
-from an aeroplane where YAMNet gave both `Vehicle 0.80`. One obstacle left, now that
-the runtime is in place: its ONNX input is a **64-band kaldi log-mel
-filterbank**, shaped `{1, num_frames, 64}`, and every model here has its
-front-end inside the graph, so the Go side has never needed one.
-
-Two ways, and the first is preferred. **Re-export with the front-end fused**,
-matching the convention BSG and BirdNET already follow - needs PyTorch once,
-offline, after which it is an ordinary catalog entry and the adapter is the same
-shape as the YAMNet one. Or **write the log-mel front-end in Go**, roughly 300
-lines of fiddly DSP (Povey window, snip_edges, preemphasis, mel scale, energy
-floor) on top of the existing radix-2 FFT, where a subtly wrong parameter
-produces a model that loads, runs and returns plausible nonsense.
-
-The second is less dangerous than it sounds, because an oracle exists: the
-prebuilt `sherpa-onnx-offline-audio-tagging` CLI scores any clip with the same
-model, so a Go front-end can be checked against it on real audio rather than
-argued about. That is what makes it a verifiable job rather than a guess.
-
-**6c. Corroboration-gated thresholds. Done, off by default.** A detection in an
-enrichable domain scoring at least `soundnet.enrichment.corroborationthreshold`
-is admitted as a candidate, held to the end of its pending window, and kept only
-if an authority independently places a credible source overhead. Uncorroborated
-candidates are discarded at flush time and no row is written.
-
-Set the threshold to about **0.15** to turn it on; zero, the default, leaves
-behaviour unchanged. It costs one API credit per candidate that would otherwise
-have been dropped for free, bounded by the five-second sky reuse in the ADS-B
-client.
-
-Why it exists: four of seven labelled aircraft stay under 0.30 in every model
-and preprocessing configuration tried, all of them the distant ones. Nothing
-acoustic rescued them. The obstacle was ordering rather than accuracy - no
-detection is created for a 0.15 aircraft, so nothing reaches enrichment to
-discover that one really was overhead, and the evidence that would justify
-keeping it sits behind the threshold that discards it.
+**6. Aircraft photos** from Planespotters, browser-fetched (their terms forbid
+proxying through our own API), with attribution. Now genuinely useful: the
+station produces registrations, and a photo keyed on hex code is one fetch away.
 
 **Then, in rough value order:**
 
 - **M8 enriched alerts** - carry diagnostics and identity through the existing
   alert engine.
-- **Wire M6** to the audio capture buffer and a config section. The collector
-  logic and its `Capturer` interface exist; nothing implements the interface.
 - **Threshold tuner UI** - its API (`/threshold-preview`) is done.
 - **An events-first view** - a new fork-owned route, zero upstream footprint,
   grouped by domain with identity and diagnostics inline. This is where UI
   polish belongs; see "do not rebuild the dashboard" below.
-- **Aircraft photos** from Planespotters, browser-fetched (their terms forbid
-  proxying and re-exposing through our own API), with photographer attribution
-  and a link back. Aircraft is the only domain with a real photo source.
-- **M4** sub-classification heads, once M6 has a corpus and item 3 in
-  OPEN_DECISIONS has an answer.
+- **M4** sub-classification heads, once M6 has a corpus. Note CED is an embedding
+  extractor by design, which is the answer to OPEN_DECISIONS item 3 - the
+  YAMNet build exposing only scores no longer blocks M4 if CED is used instead.
 - **De-bird the UI copy** - 215 hardcoded "BirdNET-Go" strings across 130 files.
+
+## Things to watch on the station
+
+- **CED silence.** See item 2. Zero detections so far is expected-ish but
+  unconfirmed.
+- **The VAD speech gate**, enabled by the operator at 0.35. Measured 2026-09-20:
+  baseline privacy discards are 1-3/min, and a burst to 7-16/min for four
+  minutes was real speech near the microphone, not the gate misfiring. If
+  detections thin out for a *sustained* stretch rather than minutes, this is the
+  first thing to check - a privacy hit discards the whole window for every model.
+- **ADS-B credit spend.** Three things now query it: aircraft detections,
+  ambiguous `Vehicle`/`Engine`/`Thunder` labels, and corroboration candidates.
+  The five-second sky reuse bounds it and `creditfloor` is 200, but nobody has
+  watched a full day yet.
 
 ## Do not rebuild the dashboard
 
@@ -555,6 +569,10 @@ the bird features that work.
   exact case, and the failures sit unnoticed across commits.
 - **Run with `-race`.** It caught a genuine data race: lookup maps filled lazily
   from the detection pipeline. Without it the tests passed.
+- **A green build proves nothing about a model.** CED compiled, passed the full
+  suite and passed the linter while being unloadable on the station - the
+  generic ONNX constructor rejected its tensor geometry at runtime. Install the
+  artefact and read the log before believing a model works.
 - **Test that a feature is reached, not only that it works.** Three times now a
   unit test has passed over something inert in production: a category filter
   whose routing never called it, a display-name lookup keyed on the wrong
