@@ -330,12 +330,66 @@ for an event class - which is in no such map - it comes back empty. Anything
 that needs to identify a class from stored fields keys on the **first two
 tokens** (`eventclass.DisplayName`).
 
+## The station has never written a SoundNet row
+
+Found 2026-09-20 while verifying the vehicle-enrichment change. This outranks
+everything in the list below, because most of it is downstream of it.
+
+    GET /api/v2/soundnet/detections?limit=20  ->  {"count":0,"data":[]}
+
+`soundnet: enabled diagnostics=true enrichment=true` is logged on every start
+going back hours, `soundnet.enabled`, `diagnostics.enabled`,
+`enrichment.enabled` and `adsb.enabled` are all true in the running config, and
+the credentials file is where the config points. Rows that should have produced
+diagnostics - id 759, 760, 805, 824, 825, 828, 905, all in diagnosable domains -
+produced none. So **M3 and M5 have never run in production**, and neither the
+ADS-B work nor the ambiguity work on top of it can do anything until this is
+found.
+
+Nothing is logged either way, which is the same failure shape as the model that
+was loaded but fed no audio. `SoundNetAction.Execute` logs at Debug on success
+and Warn on error, and says **nothing at all when it skips**; the console is at
+info, so a silent skip is invisible. `eventpipeline.Process` already returns
+`Result.Skipped` with the reason - it just is not logged. Log it (throttled, at
+info) before anything else: that alone should name the cause.
+
+Candidates, in order of suspicion, none yet eliminated:
+
+- `buildSoundNetAction` returns nil because `det.pcmData3s` is empty. The clip
+  is read from `item.PCMdata`, and detections flush through a pending queue
+  ("Flushing detection" / "approving detection" in actions.log) rather than
+  going straight to the action list - so whether the PCM is still attached by
+  then is worth checking first.
+- `DetectionContext.NoteID` is still 0 when the action executes, in which case
+  `Process` skips with "detection was not persisted".
+- `soundnet_diagnostics` does not exist, so `Migrate()` never ran. This would
+  error and log a Warn, and no Warn appears - so it is the least likely.
+
+## Non-taxonomy classes are being stored as detections
+
+Also found on 2026-09-20. `chewing_and_mastication` and `crying_and_sobbing`
+are emitted by the YAMNet adapter on purpose: they are `CategoryHuman`, and
+`reportable()` passes human classes through so the privacy filter can see them.
+The comment there says "emitting them costs nothing in stored rows. A speech hit
+makes the privacy filter discard the whole window". That is only true **above**
+the privacy threshold. Below it - 0.50 and 0.59 in the observed rows - the
+window is kept and the class is stored as an ordinary detection, with no domain,
+no display name, and a mangled name in the UI ("and_mastication"). Four rows in
+one hour.
+
+Either drop classes that exist only as filter inputs before they reach storage,
+or give them a taxonomy entry. The first is probably right: they are not events.
+
 ## Immediately resumable work
 
 Ordered by value. Items 1 and 2 are done; both need a live run on the Pi, which
 was offline when they were written.
 
-**1. Vehicle-domain enrichment. Done, unverified on the Pi.** A class now carries
+**1. Vehicle-domain enrichment. Done; taxonomy and API verified live, pipeline
+blocked.** The station reports it - id 905 (`vehicle`) now answers
+`enrichable: true` with `candidateDomains: [vehicle, aircraft, rail,
+watercraft]`, where before it was `false` - but no enrichment row can be
+written until the section above is resolved. A class now carries
 candidate domains - its own first, then any it cannot exclude - and the pipeline
 asks each authority in turn (`internal/eventclass/ambiguity.go`). `Vehicle` and
 `Engine` are the only two entries, because AudioSet's ontology is a hierarchy
@@ -350,14 +404,15 @@ OpenSky client now reuses a fetched sky for five seconds, because /states/all
 has no time parameter and costs a credit per call; without that, asking about
 vehicles as well would have multiplied the daily spend.
 
-**To verify on the Pi:** enrichment is off by default, so first check
-`soundnet.enrichment.enabled` and `soundnet.enrichment.adsb.enabled` are true
-and that the credentials path resolves. Then watch
-`/api/v2/soundnet/detections/:id` on a `Vehicle` or `Engine` row for an `adsb`
-enrichment carrying `soundnetResolvedDomain: aircraft`. Absence is not proof of
-a bug: most detections have no overflight, which is the honest outcome.
+**Still to verify:** an `adsb` enrichment on a `Vehicle` or `Engine` row
+carrying `soundnetResolvedDomain: aircraft`. Absence is not proof of a bug -
+most detections have no overflight, which is the honest outcome - so confirm the
+layer runs at all before reading anything into a quiet result.
 
-**2. Display names. Done, unverified on the Pi.** The server sends
+**2. Display names. Done and verified live.** On the station:
+`propeller`/`and_airscrew` now reads "Propeller, airscrew",
+`police`/`car_(siren)` reads "Police car (siren)", and no bird carries the
+field. The server sends
 `eventDisplayName` on detection responses, the SSE feed and search results, and
 `localizeSpeciesName` prefers it.
 
