@@ -96,6 +96,30 @@ func TestCategoryOptionsComeFromTheTaxonomy(t *testing.T) {
 	}
 }
 
+// TestCategoryForcesAdvancedRouting guards the gap that made the filter a no-op
+// in production while every unit test passed.
+//
+// buildAdvancedSearchFilters - where the category is applied - is only reached
+// on the advanced path. needsAdvancedRouting decides that, and a parameter
+// missing from it is served by the native handlers instead, which return every
+// detection. The result is indistinguishable from a filter that matches
+// everything, so nothing looks broken.
+func TestCategoryForcesAdvancedRouting(t *testing.T) {
+	t.Parallel()
+
+	// "all" has no constant; it is the default when queryType is absent.
+	for _, queryType := range []string{"all", queryTypeHourly, queryTypeSpecies, queryTypeSearch} {
+		withCategory := &detectionQueryParams{QueryType: queryType, Category: "aircraft"}
+		assert.Truef(t, withCategory.needsAdvancedRouting(),
+			"queryType %q with a category must route to advanced search, or the filter is ignored", queryType)
+	}
+
+	// And it must not force the slower path when nothing asked for it.
+	plain := &detectionQueryParams{QueryType: "all"}
+	assert.False(t, plain.needsAdvancedRouting(),
+		"an unfiltered request should keep using the native handler")
+}
+
 // TestCacheKeyIncludesCategory guards a subtle failure: two requests differing
 // only by category sharing a cached result would serve aircraft rows to someone
 // asking for sirens, which looks exactly like a broken filter.

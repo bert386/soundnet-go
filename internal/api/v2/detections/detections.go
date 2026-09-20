@@ -610,7 +610,13 @@ func (p *detectionQueryParams) needsAdvancedRouting() bool {
 	if p.Confidence != "" || p.TimeOfDay != "" ||
 		p.HourRange != "" || p.Verified != "" ||
 		p.Location != "" || p.Source != "" || p.Locked != "" ||
-		p.StartDate != "" || p.EndDate != "" {
+		p.StartDate != "" || p.EndDate != "" ||
+		// SOUNDNET: the category filter is applied in buildAdvancedSearchFilters,
+		// which only the advanced path calls. Without this the native handlers
+		// serve the request and return every detection unfiltered - which is
+		// exactly what happened, and looks identical to a filter that matches
+		// everything.
+		p.Category != "" {
 		return true
 	}
 

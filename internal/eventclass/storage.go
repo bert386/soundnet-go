@@ -50,6 +50,48 @@ func RawLabel(displayName string) string {
 	return strings.ToLower(strings.ReplaceAll(strings.Join(parts, "_and_"), " ", "_"))
 }
 
+// byRaw indexes the taxonomy by the raw label form, built once on first use.
+var byRawIndex map[string]Class
+
+// LookupRaw resolves a raw classifier label ("jet_engine") to its class.
+//
+// Distinct from Lookup, which keys on the AudioSet display name. Both forms are
+// in circulation - the display name in this table, the raw form in the datastore
+// and in nonbird.classes - and a lookup that silently accepts only one of them
+// would fail exactly where it is most needed.
+func LookupRaw(rawLabel string) (Class, bool) {
+	if byRawIndex == nil {
+		byRawIndex = make(map[string]Class, len(audioSetClasses)+len(birdNETClasses))
+		for _, c := range allClasses() {
+			byRawIndex[RawLabel(c.Label)] = c
+		}
+	}
+	c, ok := byRawIndex[strings.ToLower(strings.TrimSpace(rawLabel))]
+	return c, ok
+}
+
+// DisplayName returns the human-readable name for a raw classifier label.
+//
+// The datastore splits a label at the first underscore and stores the halves as
+// a scientific and a common name, so "jet_engine" reaches the UI as "jet" and
+// "engine" - and "pigeon_and_dove" as the frankly baffling "and_dove". Rejoining
+// the halves recovers the raw label, and the taxonomy holds the name a person
+// should actually see.
+//
+// ok is false for anything not in the taxonomy, including every bird species,
+// so callers leave those untouched.
+func DisplayName(scientificName, commonName string) (name string, ok bool) {
+	raw := scientificName
+	if commonName != "" && !strings.EqualFold(commonName, scientificName) {
+		raw = scientificName + "_" + commonName
+	}
+	c, found := LookupRaw(raw)
+	if !found {
+		return "", false
+	}
+	return c.Label, true
+}
+
 // StorageNames returns the stored names of a domain's default-enabled classes,
 // deduplicated and in a stable order, for use as a detection filter.
 //
