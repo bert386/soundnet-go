@@ -58,11 +58,13 @@ func RawLabel(displayName string) string {
 var (
 	byRawIndex     map[string]Class
 	byStorageIndex map[string]Class
+	byPrefixIndex  map[string]Class
 )
 
 func init() {
 	byRawIndex = make(map[string]Class, len(audioSetClasses)+len(birdNETClasses))
 	byStorageIndex = make(map[string]Class, len(audioSetClasses)+len(birdNETClasses))
+	byPrefixIndex = make(map[string]Class, len(audioSetClasses)+len(birdNETClasses))
 	for _, c := range allClasses() {
 		byRawIndex[RawLabel(c.Label)] = c
 		// Keep the first class for a truncated name so the result is stable
@@ -70,6 +72,11 @@ func init() {
 		if name := StorageName(c.Label); name != "" {
 			if _, dup := byStorageIndex[name]; !dup {
 				byStorageIndex[name] = c
+			}
+		}
+		if key := namePrefix(RawLabel(c.Label)); key != "" {
+			if _, dup := byPrefixIndex[key]; !dup {
+				byPrefixIndex[key] = c
 			}
 		}
 	}
@@ -86,22 +93,50 @@ func LookupRaw(rawLabel string) (Class, bool) {
 	return c, ok
 }
 
-// DisplayName returns the human-readable name for a raw classifier label.
+// namePrefix returns the first two underscore-separated tokens of a raw label,
+// which is exactly as much of it as survives the datastore round trip.
 //
-// The datastore splits a label at the first underscore and stores the halves as
-// a scientific and a common name, so "jet_engine" reaches the UI as "jet" and
-// "engine" - and "pigeon_and_dove" as the frankly baffling "and_dove". Rejoining
-// the halves recovers the raw label, and the taxonomy holds the name a person
-// should actually see.
+//	"jet_engine"               -> "jet_engine"
+//	"propeller_and_airscrew"   -> "propeller_and"
+//	"helicopter"               -> "helicopter"
+func namePrefix(rawLabel string) string {
+	rawLabel = strings.ToLower(strings.TrimSpace(rawLabel))
+	parts := strings.SplitN(rawLabel, "_", 3)
+	if len(parts) < 2 {
+		return rawLabel
+	}
+	return parts[0] + "_" + parts[1]
+}
+
+// DisplayName returns the human-readable name for a stored scientific/common
+// name pair.
+//
+// The pair is two thirds of a raw label. detection.ParseSpeciesString splits on
+// "_" into at most three parts, so "propeller_and_airscrew" is stored as the
+// scientific name "propeller", the common name "and" and the species code
+// "airscrew" - which is how "Propeller, airscrew" reaches the UI as "and".
+//
+// Only the first two parts are used to find the class again. The third is
+// deliberately ignored: the v2 datastore recomputes SpeciesCode from a map keyed
+// on scientific name when it reads a row back, so for an event class - which is
+// in no such map - the third part comes back empty and a reconstruction that
+// needed it would work on one datastore and silently fail on the other.
+//
+// Two tokens are enough. The three truncated names that are ambiguous on their
+// own ("aircraft", "car", "engine") each have a distinct second token, and a
+// test asserts that no two classes share a prefix.
 //
 // ok is false for anything not in the taxonomy, including every bird species,
 // so callers leave those untouched.
 func DisplayName(scientificName, commonName string) (name string, ok bool) {
-	raw := scientificName
-	if commonName != "" && !strings.EqualFold(commonName, scientificName) {
-		raw = scientificName + "_" + commonName
+	key := strings.ToLower(strings.TrimSpace(scientificName))
+	if key == "" {
+		return "", false
 	}
-	c, found := LookupRaw(raw)
+	if common := strings.ToLower(strings.TrimSpace(commonName)); common != "" && common != key {
+		key += "_" + common
+	}
+	c, found := byPrefixIndex[key]
 	if !found {
 		return "", false
 	}
@@ -210,4 +245,19 @@ func ParseDomain(s string) (Domain, bool) {
 		}
 	}
 	return "", false
+}
+
+// DisplayNameFor is DisplayName reduced to the single value an API response
+// wants: the taxonomy's name for an event class, or the empty string for
+// anything else.
+//
+// It exists so the hook in an upstream response builder is one unbranched line
+// and the empty case is carried by `json:",omitempty"`. Every bird species
+// returns empty, which is the point: the field appears only where the stored
+// name is one this package mangled on the way in.
+func DisplayNameFor(scientificName, commonName string) string {
+	if name, ok := DisplayName(scientificName, commonName); ok {
+		return name
+	}
+	return ""
 }

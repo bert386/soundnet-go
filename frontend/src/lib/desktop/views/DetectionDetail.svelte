@@ -507,7 +507,7 @@
 <!-- Snippets for better organization -->
 
 {#snippet heroSection(det: Detection)}
-  {@const displayName = localizeSpeciesName(det.scientificName, det.commonName)}
+  {@const displayName = localizeSpeciesName(det.scientificName, det.commonName, det.eventDisplayName)}
   <section class="detection-hero-grid" aria-labelledby="species-heading">
     <!-- Identity Card -->
     <div class="hero-card hero-identity-card">
@@ -834,7 +834,11 @@
       {t('detections.aria.loading')}
     {:else if detection}
       {t('detections.aria.loaded', {
-        species: localizeSpeciesName(detection.scientificName, detection.commonName),
+        species: localizeSpeciesName(
+          detection.scientificName,
+          detection.commonName,
+          detection.eventDisplayName
+        ),
       })}
     {:else if detectionError}
       {t('detections.aria.error', { error: detectionError })}
@@ -922,7 +926,11 @@
           <div
             role="region"
             aria-label={t('detections.detail.aria.audioRecordingFor', {
-              name: localizeSpeciesName(detection.scientificName, detection.commonName),
+              name: localizeSpeciesName(
+          detection.scientificName,
+          detection.commonName,
+          detection.eventDisplayName
+        ),
             })}
           >
             <div class="detail-audio-container">

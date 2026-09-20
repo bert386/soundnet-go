@@ -53,4 +53,43 @@ describe('localizeSpeciesName', () => {
     expect(result).toBe('Eurasian Wren');
     expect(mockedLocalizeScientific).not.toHaveBeenCalled();
   });
+
+  // SOUNDNET: a non-bird event class reaches the client as two halves of a label
+  // the datastore split at an underscore, so neither the scientific nor the
+  // common name is worth showing. The server sends the taxonomy's own name.
+  describe('event display names', () => {
+    it('prefers the event display name over the split label halves', () => {
+      mockedLocalizeScientific.mockReturnValue(undefined);
+
+      const result = localizeSpeciesName('propeller', 'and', 'Propeller, airscrew');
+
+      expect(result).toBe('Propeller, airscrew');
+    });
+
+    it('prefers the event display name over a dictionary hit', () => {
+      // A truncated event name colliding with a species in the dictionary would
+      // otherwise show a bird's name on an aircraft detection.
+      mockedLocalizeScientific.mockReturnValue('Some Bird');
+
+      const result = localizeSpeciesName('propeller', 'and', 'Propeller, airscrew');
+
+      expect(result).toBe('Propeller, airscrew');
+    });
+
+    it('leaves species untouched when no event display name is supplied', () => {
+      mockedLocalizeScientific.mockReturnValue(undefined);
+
+      const result = localizeSpeciesName('Troglodytes troglodytes', 'Eurasian Wren', undefined);
+
+      expect(result).toBe('Eurasian Wren');
+    });
+
+    it('ignores an empty event display name rather than blanking the row', () => {
+      mockedLocalizeScientific.mockReturnValue(undefined);
+
+      const result = localizeSpeciesName('Troglodytes troglodytes', 'Eurasian Wren', '');
+
+      expect(result).toBe('Eurasian Wren');
+    });
+  });
 });

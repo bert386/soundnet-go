@@ -9,6 +9,7 @@ import (
 
 	"github.com/bert386/soundnet-go/internal/audiocore/soundlevel"
 	"github.com/bert386/soundnet-go/internal/datastore"
+	"github.com/bert386/soundnet-go/internal/eventclass"
 	"github.com/bert386/soundnet-go/internal/imageprovider"
 	"github.com/bert386/soundnet-go/internal/logger"
 )
@@ -39,6 +40,11 @@ type SSEDetectionData struct {
 	CommonName     string  `json:"commonName"`
 	SpeciesCode    string  `json:"speciesCode,omitempty"`
 	Confidence     float64 `json:"confidence"` // No omitempty - 0.0 is a valid confidence value
+
+	// SOUNDNET: the taxonomy's name for a non-bird event class, empty for every
+	// bird. Mirrors DetectionResponse.EventDisplayName so the live feed and a
+	// page reload name the same detection the same way.
+	EventDisplayName string `json:"eventDisplayName,omitempty"`
 
 	// Location
 	Latitude  float64 `json:"latitude,omitempty"`
@@ -128,6 +134,8 @@ func NewSSEDetectionData(note *datastore.Note, birdImage *imageprovider.BirdImag
 		Unlikely:       note.Unlikely,
 		Timestamp:      time.Now(),
 		EventType:      "new_detection",
+		// SOUNDNET: names an event class properly; empty for every bird.
+		EventDisplayName: eventclass.DisplayNameFor(note.ScientificName, note.CommonName),
 	}
 
 	// Format time fields as RFC3339 if non-zero

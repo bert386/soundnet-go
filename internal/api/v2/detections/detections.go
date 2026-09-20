@@ -19,6 +19,7 @@ import (
 	"github.com/bert386/soundnet-go/internal/datastore"
 	detectionPkg "github.com/bert386/soundnet-go/internal/detection"
 	"github.com/bert386/soundnet-go/internal/errors"
+	"github.com/bert386/soundnet-go/internal/eventclass"
 	"github.com/bert386/soundnet-go/internal/logger"
 	"github.com/bert386/soundnet-go/internal/notification"
 	"github.com/bert386/soundnet-go/internal/privacy"
@@ -170,6 +171,15 @@ type DetectionResponse struct {
 	DaysThisYear    int    `json:"daysThisYear,omitempty"`    // Days since first this year
 	DaysThisSeason  int    `json:"daysThisSeason,omitempty"`  // Days since first this season
 	CurrentSeason   string `json:"currentSeason,omitempty"`   // Current season name
+
+	// SOUNDNET: the taxonomy's name for a non-bird event class ("Propeller,
+	// airscrew"), empty for everything else including every bird.
+	//
+	// Additive rather than a rewrite of CommonName, deliberately: CommonName is
+	// the key the species exclude list is matched on, so replacing it would make
+	// "ignore this species" silently stop working for exactly the detections
+	// this field exists to name.
+	EventDisplayName string `json:"eventDisplayName,omitempty"`
 }
 
 // SourceInfo describes the audio source of a detection.
@@ -732,6 +742,8 @@ func (c *Handler) noteToDetectionResponse(note *datastore.Note, includeWeather b
 		ClipName: apicore.SafeBaseName(note.ClipName),
 		Locked:   note.Locked,
 		Unlikely: note.Unlikely,
+		// SOUNDNET: names an event class properly; empty for every bird.
+		EventDisplayName: eventclass.DisplayNameFor(note.ScientificName, note.CommonName),
 	}
 
 	// populate source info if available

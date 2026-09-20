@@ -203,6 +203,11 @@ type DetectionRecord struct {
 	Source         string    `json:"source,omitempty"`
 	TimeOfDay      string    `json:"timeOfDay,omitempty"`
 	ModelType      string    `json:"modelType,omitempty"` // AI model type (e.g. "bird", "bat"); drives the spectrogram frequency range
+
+	// SOUNDNET: the taxonomy's name for a non-bird event class, empty for every
+	// bird. Populated by the API layer, which owns the taxonomy; the datastore
+	// never sets it. Additive, so CommonName stays the exclude-list key.
+	EventDisplayName string `json:"eventDisplayName,omitempty"`
 }
 
 // DynamicThreshold represents a persisted dynamic threshold for a species

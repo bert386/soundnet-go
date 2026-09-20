@@ -112,7 +112,11 @@
 <Modal
   {isOpen}
   title={t('common.review.modalTitle', {
-    species: localizeSpeciesName(detection?.scientificName, detection?.commonName) || '',
+    species: localizeSpeciesName(
+      detection?.scientificName,
+      detection?.commonName,
+      detection?.eventDisplayName
+    ) || '',
   })}
   size="7xl"
   showCloseButton={true}
@@ -146,7 +150,11 @@
                 />
                 <div class="flex-1 min-w-0">
                   <h3 class="text-2xl font-semibold text-[var(--color-base-content)] mb-1 truncate">
-                    {localizeSpeciesName(detection.scientificName, detection.commonName)}
+                    {localizeSpeciesName(
+                      detection.scientificName,
+                      detection.commonName,
+                      detection.eventDisplayName
+                    )}
                   </h3>
                   <p class="text-base text-[var(--color-base-content)]/60 italic truncate">
                     {detection.scientificName}

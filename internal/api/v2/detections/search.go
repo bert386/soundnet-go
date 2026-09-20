@@ -11,6 +11,7 @@ import (
 
 	"github.com/bert386/soundnet-go/internal/api/v2/apicore"
 	"github.com/bert386/soundnet-go/internal/datastore"
+	"github.com/bert386/soundnet-go/internal/eventclass"
 	"github.com/bert386/soundnet-go/internal/logger"
 	"github.com/labstack/echo/v4"
 )
@@ -284,6 +285,13 @@ func (c *Handler) buildSearchResponse(req *SearchRequest, results []datastore.De
 	currentPage := 1
 	if req.Page > 0 {
 		currentPage = min(req.Page, totalPages) // Clamp current page to valid range
+	}
+
+	// SOUNDNET: name the non-bird classes the datastore truncated on the way in.
+	// Done here rather than in the datastore because the taxonomy lives in the API
+	// layer, and this is the one place every search result passes through.
+	for i := range results {
+		results[i].EventDisplayName = eventclass.DisplayNameFor(results[i].ScientificName, results[i].CommonName)
 	}
 
 	return SearchResponse{

@@ -22,6 +22,9 @@ export interface Detection {
   speciesCode: string;
   scientificName: string;
   commonName: string;
+  // SOUNDNET: the taxonomy's name for a non-bird event class, absent for birds.
+  // Additive: commonName stays the key the species exclude list matches on.
+  eventDisplayName?: string;
   confidence: number;
   modelType?: string; // AI model type (e.g. 'bird', 'bat'); drives the spectrogram frequency range
   verified: 'correct' | 'false_positive' | 'unverified';
