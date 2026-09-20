@@ -27,8 +27,8 @@ ENVIRONMENT.md (machines, toolchain, operational gotchas), GROUND_TRUTH.md
 | M2 detection records | **done** |
 | M3 DSP diagnostics | **done**, 24.8 ms/clip measured on the Pi against a 100 ms budget |
 | M5 enrichment / ADS-B | **done and proven live** - registration, type, operator, route; ambiguity resolution for `Vehicle`/`Engine`/`Thunder`; corroboration-gated thresholds |
-| M6 auto-label collector | **logic done**, not wired to the audio buffer or config |
-| M7 web UI | detail panel, review queue, training export, confusion + threshold APIs, **event-domain filter (API + UI)**, **display names** done; tuner UI and live re-compute remain |
+| M6 auto-label collector | **wired and deployed**, off by default - three adapters, config section, goroutine |
+| M7 web UI | detail panel, review queue, training export, confusion + threshold APIs, **event-domain filter (API + UI)**, **display names**, **resolved-domain correction in panel and list** done; tuner UI and live re-compute remain |
 | M4 sub-classification heads | **not started** - correctly last, it trains on M6's corpus |
 | M8 enriched alerts | **not started** |
 
@@ -471,44 +471,59 @@ labelled set were 0.3-0.7 against a 0.7 threshold, so it may need a per-model
 threshold before it contributes anything. That is the first thing to check after
 a day of running.
 
+## Why aircraft are recorded as vehicles
+
+Asked by the operator on 2026-09-20, and the answer is in the ontology rather
+than in a misfire.
+
+**AudioSet's `Vehicle` is the parent class of `Aircraft`.** An airliner really is
+a vehicle by that taxonomy, and the parent scores higher than the child because
+its training positives include every aircraft, car, train and boat. Measured
+live on the station, same pass: CED `Vehicle 0.54` against `Aircraft 0.17`;
+YAMNet `Vehicle 0.33` against `Aircraft 0.20`. Both classes fire, and both are
+saved - detections 1224 and 1225 are the same window.
+
+Our `audioset.go` maps `Vehicle` to `DomainVehicle`, which is where the
+misleading *reading* comes from: the label is correct and unspecific, and the
+domain it lands in is road traffic.
+
+Nothing upstream of the display needs to change. `ambiguousDomains` already
+lists `vehicle` as a candidate for aircraft, rail and watercraft, which is what
+sends it to ADS-B; the enrichment then records `soundnetResolvedDomain`. What
+was missing was that nobody showed it. On the evening this was fixed, **54 of
+200 rows on one day carried a correction**, including `Thunderstorm 0.89` and
+`Thunder 0.85` at the same instant, both resolved to aircraft.
+
+If the acoustic label itself should prefer the specific child when both fire,
+that is a separate and larger change - a hierarchy-aware selection over the
+AudioSet ontology - and it should be measured against the operator's labelled
+negatives before being believed.
+
 ## Immediately resumable work
 
 Everything that was on this list on 2026-09-20 morning is done and running. What
 follows is what is left, ordered by value.
 
-**1. Wire M6, the auto-label collector.** The highest-leverage thing remaining,
-and the only one that compounds. Every confirmed overflight is a free
-authoritative training label, and the station is now producing them - VH-VOL,
-VH-XCW, VH-NRB, VH-FTU, with slant range, altitude and type. The collector logic
-and its three interfaces exist in `internal/autolabel`; nothing implements them.
+**1. Enable the M6 collector on the station and watch a day of it.** The wiring
+is deployed but `soundnet.autolabel.enabled` is false, so nothing is being
+collected yet. Turning it on costs one API credit per 30-second poll against an
+allowance shared with runtime enrichment; its reserve is 500 against runtime's
+200, so it stops first. Watch the first day for capture rate and for how many
+polls are refused as ambiguous.
 
-The pieces are all identified:
-
-    SkyReader     -> internal/enrichment/adsb already satisfies it
-    Capturer      -> buffer.CaptureBuffer.ReadSegment(start, end), reached via
-                     p.BufferMgr.CaptureBuffer(sourceID)
-    CorpusWriter  -> internal/autolabel/corpus.go
-
-So it wants a startup wiring file beside `soundnet_startup.go`, a config section,
-and a goroutine. M6 refuses to capture when two aircraft are at similar range -
-a wrong training label teaches the model something false forever, where a wrong
-runtime match is one wrong row.
-
-**2. A per-model threshold for CED.** It has produced no detections. Its top
-scores on the labelled set were 0.3-0.7 against BirdNET's 0.7, so it may be
-contributing nothing at all. `modelGlobalConfidenceThreshold` has no CED case,
-exactly as it had no YAMNet case. Check after a day of running; if it is silent,
-this is why.
+**2. Per-model threshold for CED.** *Not* because CED is silent - that worry is
+answered, see below - but because its scores sit on a different scale from
+BirdNET's and it currently inherits BirdNET's 0.7.
 
 **3. Per-domain thresholds generally.** YAMNet and CED both inherit BirdNET's
 0.7, and those numbers do not mean the same thing - YAMNet's are per-class
 sigmoid quantised to 1/256 steps.
 
-**4. Surface `resolvedDomain` in the UI.** The API carries it; nothing shows it.
-A jet recorded as Thunderstorm at 0.94 still *reads* as a thunderstorm in the
-detection list even though ADS-B has named the aircraft. This is a small
-frontend change with real value now that five of nine identifications came from
-a domain correction.
+**4. Carry the correction into search results.** Done for the detection list and
+the panel; `search.go` still shows the bare acoustic label. Its results are
+`datastore.DetectionRecord` rather than the API response type, so this means
+widening an upstream struct - weigh that footprint against how often anyone
+reads a search result.
 
 **5. Is `DomainAlarm` really not diagnosable?** A siren has Doppler and a pass-by
 geometry exactly like a vehicle, but `Domain.Diagnosable()` returns false. Looks
@@ -533,8 +548,15 @@ station produces registrations, and a photo keyed on hex code is one fetch away.
 
 ## Things to watch on the station
 
-- **CED silence.** See item 2. Zero detections so far is expected-ish but
-  unconfirmed.
+- ~~**CED silence.**~~ **Answered 2026-09-20 21:15 and it was the opposite of
+  the worry.** `/api/v2/system/inference` carries a per-model feed of recent
+  above-threshold predictions, which is the only place the producing model is
+  recoverable - `datastore.Note.Model` is `gorm:"-"` and never persisted. CED
+  was firing roughly every nine seconds and scoring *higher* than YAMNet on the
+  same sound (Vehicle 0.54 against 0.33), and the low-confidence Vehicle rows
+  being saved are CED's, not YAMNet's. Tell them apart by arithmetic if the feed
+  is unavailable: YAMNet quantises to 1/256, so its scores are exact multiples
+  of 0.00390625 and CED's are not.
 - **The VAD speech gate**, enabled by the operator at 0.35. Measured 2026-09-20:
   baseline privacy discards are 1-3/min, and a burst to 7-16/min for four
   minutes was real speech near the microphone, not the gate misfiring. If
