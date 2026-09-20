@@ -235,7 +235,11 @@
   function openMobilePlayer(result: SearchResult) {
     if (!result?.id) return;
     selectedAudioUrl = buildAppUrl(`/api/v2/audio/${result.id}`);
-    selectedSpeciesName = localizeSpeciesName(result.scientificName, result.commonName, result.eventDisplayName);
+    selectedSpeciesName = localizeSpeciesName(
+      result.scientificName,
+      result.commonName,
+      result.eventDisplayName
+    );
     selectedDetectionId = result.id;
     selectedModelType = result.modelType ?? '';
     showMobilePlayer = true;
@@ -862,7 +866,11 @@
             <tbody>
               <!-- Loop through results -->
               {#each results as result, index (result.id)}
-                {@const displayName = localizeSpeciesName(result.scientificName, result.commonName, result.eventDisplayName)}
+                {@const displayName = localizeSpeciesName(
+                  result.scientificName,
+                  result.commonName,
+                  result.eventDisplayName
+                )}
                 <!-- Main row -->
                 <tr
                   class={index % 2 === 0
@@ -1164,7 +1172,11 @@
         <!-- Mobile card list -->
         <div class="md:hidden mt-4 space-y-2" aria-labelledby="search-results-heading">
           {#each results as result (result.id)}
-            {@const displayName = localizeSpeciesName(result.scientificName, result.commonName, result.eventDisplayName)}
+            {@const displayName = localizeSpeciesName(
+              result.scientificName,
+              result.commonName,
+              result.eventDisplayName
+            )}
             <section class="bg-[var(--color-base-100)] rounded-lg p-3">
               <div class="flex items-start gap-3">
                 <!-- Time of Day + Date/Time -->

@@ -50,11 +50,9 @@
 
   // Localized common name for display in the visitor's UI locale. Falls back to
   // the server-provided common name, then the scientific name.
-  const displayName = $derived(localizeSpeciesName(
-      detection.scientificName,
-      detection.commonName,
-      detection.eventDisplayName
-    ));
+  const displayName = $derived(
+    localizeSpeciesName(detection.scientificName, detection.commonName, detection.eventDisplayName)
+  );
 </script>
 
 <div class={cn('species-info-bar', className)}>

@@ -71,12 +71,93 @@ type OpenSkyClient struct {
 	// detections unidentifiable for the rest of the day.
 	CreditFloor int
 
+	// StateTTL is how long a fetched sky is reused for.
+	//
+	// /states/all has no time parameter - it returns the current sky and costs a
+	// credit each time - while OpenSky itself updates an authenticated feed
+	// roughly every five seconds. So two detections seconds apart are billed
+	// twice for data that did not change, which was already wasteful and became
+	// material once ambiguous vehicle labels started asking as well.
+	//
+	// Short by design. The lag correction back-projects an aircraft's track from
+	// its reported position, and that projection is only trustworthy over a few
+	// seconds; a long TTL would quietly turn an accurate match into a stale one.
+	// Zero uses DefaultStateTTL, negative disables reuse entirely.
+	StateTTL time.Duration
+
 	mu             sync.Mutex
+	now            func() time.Time
 	token          string
 	tokenExpiry    time.Time
 	creditsLeft    int
 	creditsKnown   bool
 	retryAfterTime time.Time
+	cachedStates   []State
+	cachedBox      [4]float64
+	cachedAt       time.Time
+}
+
+// SetClock replaces the client's time source. For tests only: it exists so the
+// reuse window can be exercised without sleeping, which is what kept a five
+// second TTL from costing five seconds of test time.
+func (c *OpenSkyClient) SetClock(now func() time.Time) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.now = now
+}
+
+// DefaultStateTTL is the default reuse window for a fetched sky. Five seconds is
+// OpenSky's own authenticated update interval: reusing within it cannot return
+// anything the API would not have returned again.
+const DefaultStateTTL = 5 * time.Second
+
+// clock returns the client's time source. Callers hold mu: now is written by
+// SetClock, so reading it unguarded would be a race the detector rightly
+// refuses.
+func (c *OpenSkyClient) clock() time.Time {
+	if c.now != nil {
+		return c.now()
+	}
+	return time.Now()
+}
+
+// cachedFor returns a still-valid cached sky for this box, if there is one.
+func (c *OpenSkyClient) cachedFor(box [4]float64) ([]State, bool) {
+	ttl := c.StateTTL
+	switch {
+	case ttl < 0:
+		return nil, false
+	case ttl == 0:
+		ttl = DefaultStateTTL
+	}
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if c.cachedAt.IsZero() || c.cachedBox != box {
+		return nil, false
+	}
+	if c.clock().Sub(c.cachedAt) >= ttl {
+		return nil, false
+	}
+	// Copied: the caller ranges over this and the next caller gets the same
+	// backing array, so handing out the slice itself would let one request's
+	// reader see another's mutation.
+	out := make([]State, len(c.cachedStates))
+	copy(out, c.cachedStates)
+	return out, true
+}
+
+// cache stores a freshly fetched sky.
+func (c *OpenSkyClient) cache(box [4]float64, states []State) {
+	if c.StateTTL < 0 {
+		return
+	}
+	stored := make([]State, len(states))
+	copy(stored, states)
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.cachedStates = stored
+	c.cachedBox = box
+	c.cachedAt = c.clock()
 }
 
 // Default endpoints.
@@ -181,6 +262,11 @@ func (c *OpenSkyClient) bearerToken(ctx context.Context) (string, error) {
 // bounding-box area, and anything up to 25 square degrees costs a single credit,
 // so a station-sized query is the cheapest possible request.
 func (c *OpenSkyClient) StatesInBox(ctx context.Context, latMin, lonMin, latMax, lonMax float64) ([]State, error) {
+	box := [4]float64{latMin, lonMin, latMax, lonMax}
+	if states, ok := c.cachedFor(box); ok {
+		return states, nil
+	}
+
 	c.mu.Lock()
 	if !c.retryAfterTime.IsZero() && time.Now().Before(c.retryAfterTime) {
 		retry := c.retryAfterTime
@@ -231,7 +317,12 @@ func (c *OpenSkyClient) StatesInBox(ctx context.Context, latMin, lonMin, latMax,
 	if err != nil {
 		return nil, fmt.Errorf("adsb: read states response: %w", err)
 	}
-	return DecodeStates(body)
+	states, err := DecodeStates(body)
+	if err != nil {
+		return nil, err
+	}
+	c.cache(box, states)
+	return states, nil
 }
 
 // recordRateLimitHeaders keeps the client's view of the credit budget current.

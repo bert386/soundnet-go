@@ -112,11 +112,12 @@
 <Modal
   {isOpen}
   title={t('common.review.modalTitle', {
-    species: localizeSpeciesName(
-      detection?.scientificName,
-      detection?.commonName,
-      detection?.eventDisplayName
-    ) || '',
+    species:
+      localizeSpeciesName(
+        detection?.scientificName,
+        detection?.commonName,
+        detection?.eventDisplayName
+      ) || '',
   })}
   size="7xl"
   showCloseButton={true}

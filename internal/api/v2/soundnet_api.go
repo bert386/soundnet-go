@@ -55,6 +55,12 @@ type soundNetDetectionResponse struct {
 	Diagnosable bool `json:"diagnosable"`
 	Enrichable  bool `json:"enrichable"`
 
+	// CandidateDomains is every domain the label could belong to, its own
+	// first. Longer than one entry only for a label that does not determine
+	// its own domain, and present so that an aircraft identity on a detection
+	// recorded as a vehicle reads as a deliberate question rather than a bug.
+	CandidateDomains []string `json:"candidateDomains,omitempty"`
+
 	Diagnostics *soundNetDiagnostics `json:"diagnostics,omitempty"`
 	Enrichment  []soundNetEnrichment `json:"enrichment,omitempty"`
 	Correction  *soundNetCorrection  `json:"correction,omitempty"`
@@ -162,7 +168,16 @@ func (c *Controller) GetSoundNetDetection(ctx echo.Context) error {
 		class, _ := eventclass.Resolve(label)
 		resp.Domain = string(class.Domain)
 		resp.Diagnosable = class.Domain.Diagnosable()
-		resp.Enrichable = class.Domain.Enrichable()
+		// class.Enrichable rather than class.Domain.Enrichable: for an ambiguous
+		// label the honest answer is that an authority might have something to
+		// say, because one was in fact asked.
+		resp.Enrichable = class.Enrichable()
+		if candidates := class.CandidateDomains(); len(candidates) > 1 {
+			resp.CandidateDomains = make([]string, 0, len(candidates))
+			for _, d := range candidates {
+				resp.CandidateDomains = append(resp.CandidateDomains, string(d))
+			}
+		}
 
 		switch {
 		case resp.Diagnostics == nil && !resp.Diagnosable:
@@ -246,6 +261,11 @@ func (c *Controller) GetSoundNetTaxonomy(ctx echo.Context) error {
 		Domain         string `json:"domain"`
 		DefaultEnabled bool   `json:"defaultEnabled"`
 		AudioSetIndex  int    `json:"audioSetIndex"`
+
+		// CandidateDomains is set only where the class's domain is a best reading
+		// rather than a settled fact, so the taxonomy view shows which few labels
+		// those are instead of leaving it to the source.
+		CandidateDomains []string `json:"candidateDomains,omitempty"`
 	}
 	type domainOut struct {
 		Domain      string     `json:"domain"`
@@ -263,12 +283,18 @@ func (c *Controller) GetSoundNetTaxonomy(ctx echo.Context) error {
 			Classes:     []classOut{},
 		}
 		for _, cl := range eventclass.InDomain(d) {
-			do.Classes = append(do.Classes, classOut{
+			out := classOut{
 				Label:          cl.Label,
 				Domain:         string(cl.Domain),
 				DefaultEnabled: cl.DefaultEnabled,
 				AudioSetIndex:  cl.AudioSetIndex,
-			})
+			}
+			if candidates := cl.CandidateDomains(); len(candidates) > 1 {
+				for _, cd := range candidates {
+					out.CandidateDomains = append(out.CandidateDomains, string(cd))
+				}
+			}
+			do.Classes = append(do.Classes, out)
 		}
 		domains = append(domains, do)
 	}

@@ -87,11 +87,9 @@
 
   // Localized common name for display in the visitor's UI locale. Falls back to
   // the server-provided common name, then the scientific name.
-  const displayName = $derived(localizeSpeciesName(
-      detection.scientificName,
-      detection.commonName,
-      detection.eventDisplayName
-    ));
+  const displayName = $derived(
+    localizeSpeciesName(detection.scientificName, detection.commonName, detection.eventDisplayName)
+  );
 
   // Thumbnail loading with delayed spinner and URL failure tracking
   const thumbnailLoader = useImageDelayedLoading({

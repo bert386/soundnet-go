@@ -253,6 +253,10 @@ func TestClientWithholdsRequestAtCreditFloor(t *testing.T) {
 	c := adsb.NewOpenSkyClient("id", "secret")
 	c.BaseURL, c.TokenURL = srv.URL, srv.URL+"/token"
 	c.CreditFloor = 200
+	// Reuse disabled so this tests the reserve and nothing else. With the cache
+	// on, the second call would be answered from the first fetch - correctly,
+	// since that costs no credits - and the floor would never be reached.
+	c.StateTTL = -1
 
 	// First call succeeds and learns the balance is below the floor.
 	_, err := c.StatesInBox(t.Context(), -35, 150, -33, 152)

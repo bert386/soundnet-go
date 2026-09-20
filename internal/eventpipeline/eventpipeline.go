@@ -14,6 +14,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"maps"
 	"math"
 	"time"
 
@@ -115,6 +116,12 @@ type Result struct {
 	EnrichmentRun    bool
 	IdentityResolved bool
 	Skipped          string
+
+	// ResolvedDomain is the domain the identity came back under, which is not
+	// always Domain. A "Vehicle" detection put to ADS-B and matched to an
+	// overflight resolves as aircraft, and that difference is the whole point of
+	// asking: it is the authority correcting a coarse acoustic reading.
+	ResolvedDomain eventclass.Domain
 }
 
 // Process runs the enabled layers for one detection.
@@ -144,7 +151,10 @@ func (a *Analyser) Process(ctx context.Context, in *Input) (*Result, error) {
 			errs = append(errs, err)
 		}
 	}
-	if a.Config.EnrichmentEnabled && class.Domain.Enrichable() {
+	// class.Enrichable, not class.Domain.Enrichable: a label that does not
+	// determine its own domain ("Vehicle", "Engine") must still reach the
+	// authority for the domains it could be. See internal/eventclass/ambiguity.go.
+	if a.Config.EnrichmentEnabled && class.Enrichable() {
 		if err := a.runEnrichment(ctx, in, class, res); err != nil {
 			errs = append(errs, err)
 		}
@@ -224,26 +234,55 @@ func (a *Analyser) runEnrichment(ctx context.Context, in *Input, class eventclas
 	}
 	res.EnrichmentRun = true
 
-	id, err := a.Resolver.Resolve(ctx, &enrichment.Request{
-		Domain:     string(class.Domain),
-		Label:      in.Label,
-		DetectedAt: in.DetectedAt,
-		Confidence: in.Confidence,
-		Station:    a.Config.Station,
-	})
+	// Each domain the label could belong to, its own first, stopping at the first
+	// authority that answers. Unambiguous classes have exactly one candidate, so
+	// this is the previous single call with no extra work; the loop only costs
+	// anything for "Vehicle" and "Engine".
+	//
+	// A domain with no registered provider returns ErrNoMatch without a network
+	// call, which is what keeps the rail and watercraft candidates free.
+	var (
+		id       *enrichment.Identity
+		resolved eventclass.Domain
+		firstErr error
+	)
+	for _, domain := range class.CandidateDomains() {
+		candidate, err := a.Resolver.Resolve(ctx, &enrichment.Request{
+			Domain:     string(domain),
+			Label:      in.Label,
+			DetectedAt: in.DetectedAt,
+			Confidence: in.Confidence,
+			Station:    a.Config.Station,
+		})
+		switch {
+		case errors.Is(err, enrichment.ErrNoMatch):
+			continue
+		case err != nil:
+			// Keep asking the remaining domains: one provider being down should
+			// not cost an answer another could have given. Reported only if
+			// nothing resolves, so a real match is never masked by a stale error.
+			if firstErr == nil {
+				firstErr = err
+			}
+			continue
+		case candidate == nil:
+			continue
+		}
+		id, resolved = candidate, domain
+		break
+	}
 	switch {
-	case errors.Is(err, enrichment.ErrNoMatch):
+	case id == nil && firstErr != nil:
+		return fmt.Errorf("eventpipeline: resolve identity: %w", firstErr)
+	case id == nil:
 		// The common and correct outcome for most detections. No row is written:
 		// absence is the honest record, and an empty row would later be
 		// indistinguishable from a real match.
 		return nil
-	case err != nil:
-		return fmt.Errorf("eventpipeline: resolve identity: %w", err)
-	case id == nil:
-		return nil
 	}
 
 	res.IdentityResolved = true
+	res.ResolvedDomain = resolved
 	if a.Store == nil {
 		return nil
 	}
@@ -255,7 +294,7 @@ func (a *Analyser) runEnrichment(ctx context.Context, in *Input, class eventclas
 		Source:          id.Source,
 		Confidence:      id.Confidence,
 		LagCorrectionMs: id.LagCorrectionMs,
-		Attributes:      id.Attributes,
+		Attributes:      withQueriedDomain(id.Attributes, class.Domain, resolved),
 	})
 	if err != nil {
 		return fmt.Errorf("eventpipeline: build enrichment record: %w", err)
@@ -264,6 +303,26 @@ func (a *Analyser) runEnrichment(ctx context.Context, in *Input, class eventclas
 		return fmt.Errorf("eventpipeline: store enrichment: %w", err)
 	}
 	return nil
+}
+
+// withQueriedDomain records which question the provider answered, when that is
+// not the question the taxonomy would have asked.
+//
+// Stored in the provider's own attribute document rather than in a column,
+// because it is diagnostic rather than structural: it explains, months later,
+// why a detection the classifier called a vehicle carries an aircraft's
+// registration. The provider's map is copied rather than written through - it
+// belongs to the enrichment layer, and a pipeline that mutated it would be
+// invisible to whoever reads that layer on its own.
+func withQueriedDomain(attrs map[string]any, classified, resolved eventclass.Domain) map[string]any {
+	if resolved == "" || resolved == classified {
+		return attrs
+	}
+	out := make(map[string]any, len(attrs)+2)
+	maps.Copy(out, attrs)
+	out["soundnetClassifiedDomain"] = string(classified)
+	out["soundnetResolvedDomain"] = string(resolved)
+	return out
 }
 
 // DecodePCM converts raw capture bytes to normalised mono samples.
