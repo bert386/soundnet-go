@@ -246,6 +246,16 @@ func topTwo(cs []candidate) (best, runnerUp *candidate) {
 	return best, runnerUp
 }
 
+// BoundingBox returns a lat/lon box of roughly radiusM about the station.
+//
+// Exported for the auto-label collector, which must search the same box runtime
+// matching does. Two different boxes would mean the corpus was recorded from
+// traffic the runtime path never considers, and it would stop describing the
+// station the model actually runs at.
+func BoundingBox(s enrichment.Station, radiusM float64) (latMin, lonMin, latMax, lonMax float64) {
+	return boundingBox(s, radiusM)
+}
+
 // boundingBox returns a lat/lon box of roughly the given radius about a station.
 //
 // The longitude span is widened by the inverse cosine of latitude because a

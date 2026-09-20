@@ -22,6 +22,7 @@ type SoundNetSettings struct {
 	Station     StationSettings     `yaml:"station" json:"station" mapstructure:"station"`
 	Diagnostics DiagnosticsSettings `yaml:"diagnostics" json:"diagnostics" mapstructure:"diagnostics"`
 	Enrichment  EnrichmentSettings  `yaml:"enrichment" json:"enrichment" mapstructure:"enrichment"`
+	AutoLabel   AutoLabelSettings   `yaml:"autolabel" json:"autoLabel" mapstructure:"autolabel"`
 }
 
 // StationSettings holds what upstream's location settings do not.
@@ -128,6 +129,74 @@ type ADSBSettings struct {
 	ResolveAircraftDetail bool `yaml:"resolveaircraftdetail" json:"resolveAircraftDetail" mapstructure:"resolveaircraftdetail"`
 }
 
+// AutoLabelSettings controls the ADS-B auto-labelling collector.
+//
+// This is the enrichment path run backwards. Instead of hearing something and
+// asking ADS-B what it was, it watches for an aircraft close enough to be
+// unmistakably audible and keeps the audio that must contain it, labelled with
+// what the transponder said. Weeks of that is a site-specific training corpus,
+// recorded through this microphone at this location - which is the only way a
+// useful aircraft-type head can exist here.
+//
+// Off by default for two reasons rather than one. It polls an external API on a
+// timer whether or not anything was heard, unlike runtime enrichment which only
+// spends a credit on a detection; and it writes audio to disk continuously.
+type AutoLabelSettings struct {
+	Enabled bool `yaml:"enabled" json:"enabled" mapstructure:"enabled"`
+
+	// CorpusDir is where labelled clips and their JSON sidecars are written,
+	// relative to the binary unless absolute. Its own directory rather than the
+	// clips folder: these are training data with a different lifetime from
+	// detection clips, and the disk manager must not age them out.
+	CorpusDir string `yaml:"corpusdir" json:"corpusDir" mapstructure:"corpusdir"`
+
+	// SourceID names the audio source to record from. Empty means the only
+	// configured source, which is the usual case. It must be set when a station
+	// has several: a corpus that mixes microphones teaches a model the
+	// difference between the microphones as readily as the difference between
+	// aircraft, and nothing downstream would show that had happened.
+	SourceID string `yaml:"sourceid" json:"sourceId" mapstructure:"sourceid"`
+
+	// PollIntervalSec is how often the sky is checked. Every poll costs one API
+	// credit, so this is the main lever on what the collector costs.
+	PollIntervalSec int `yaml:"pollintervalsec" json:"pollIntervalSec" mapstructure:"pollintervalsec"`
+
+	// MaxSlantM is how close an aircraft must be before its sound is assumed to
+	// dominate the clip. Tighter than the runtime matching range on purpose:
+	// runtime asks which aircraft best explains a sound that was definitely
+	// heard, while this has no acoustic evidence at all and is relying on
+	// geometry alone.
+	MaxSlantM float64 `yaml:"maxslantm" json:"maxSlantM" mapstructure:"maxslantm"`
+
+	// MaxAltitudeM excludes high cruise traffic, which is often inaudible under
+	// background noise even when geometrically close.
+	MaxAltitudeM float64 `yaml:"maxaltitudem" json:"maxAltitudeM" mapstructure:"maxaltitudem"`
+
+	// MinSeparationM is how much further away the second-nearest aircraft must
+	// be before the nearest can be called the unambiguous source. Two aircraft
+	// at similar range make the label a guess, and a guessed training label is
+	// worse than no sample: a wrong runtime match is one wrong row, while a
+	// wrong label teaches the model something false permanently.
+	MinSeparationM float64 `yaml:"minseparationm" json:"minSeparationM" mapstructure:"minseparationm"`
+
+	// PerAircraftCooldownMin stops one overflight being captured on every poll
+	// it spans, which would fill the corpus with near-duplicates of a single
+	// event and let a daily scheduled service dominate the training set.
+	PerAircraftCooldownMin int `yaml:"peraircraftcooldownmin" json:"perAircraftCooldownMin" mapstructure:"peraircraftcooldownmin"`
+
+	// MaxCapturesPerHour bounds disk growth and keeps a busy corridor from
+	// swamping the corpus in one afternoon.
+	MaxCapturesPerHour int `yaml:"maxcapturesperhour" json:"maxCapturesPerHour" mapstructure:"maxcapturesperhour"`
+
+	// CreditReserve is the API credit floor the collector stops at. Set higher
+	// than Enrichment.ADSB.CreditFloor on purpose: the two share one daily
+	// allowance, and the collector should run out first. It polls on a timer
+	// whether or not anything flew, whereas runtime enrichment only spends a
+	// credit when something was actually heard - so what remains is worth more
+	// to runtime.
+	CreditReserve int `yaml:"creditreserve" json:"creditReserve" mapstructure:"creditreserve"`
+}
+
 // DefaultSoundNetSettings returns the shipped defaults.
 //
 // The station elevation and the credentials path are prepopulated with this
@@ -145,6 +214,24 @@ func DefaultSoundNetSettings() SoundNetSettings {
 		Diagnostics: DiagnosticsSettings{
 			Enabled:   false,
 			MaxClipMs: 5000,
+		},
+		AutoLabel: AutoLabelSettings{
+			Enabled:   false,
+			CorpusDir: "corpus/aircraft",
+			// Thirty seconds is a compromise: an airliner crosses the capture
+			// radius in well under a minute, so polling much slower misses
+			// overflights entirely, and polling faster spends credits on a sky
+			// that has barely changed.
+			PollIntervalSec: 30,
+			MaxSlantM:       4000,
+			MaxAltitudeM:    2500,
+			MinSeparationM:  3000,
+			// Longer than a single overflight takes to cross the sky, so one
+			// aircraft contributes one sample.
+			PerAircraftCooldownMin: 10,
+			MaxCapturesPerHour:     20,
+			// Above the runtime floor of 200, so the collector stops first.
+			CreditReserve: 500,
 		},
 		Enrichment: EnrichmentSettings{
 			Enabled: false,
@@ -185,4 +272,14 @@ func setSoundNetDefaults() {
 	viper.SetDefault("soundnet.enrichment.adsb.maxrangem", d.Enrichment.ADSB.MaxRangeM)
 	viper.SetDefault("soundnet.enrichment.adsb.creditfloor", d.Enrichment.ADSB.CreditFloor)
 	viper.SetDefault("soundnet.enrichment.adsb.resolveaircraftdetail", d.Enrichment.ADSB.ResolveAircraftDetail)
+	viper.SetDefault("soundnet.autolabel.enabled", d.AutoLabel.Enabled)
+	viper.SetDefault("soundnet.autolabel.corpusdir", d.AutoLabel.CorpusDir)
+	viper.SetDefault("soundnet.autolabel.sourceid", d.AutoLabel.SourceID)
+	viper.SetDefault("soundnet.autolabel.pollintervalsec", d.AutoLabel.PollIntervalSec)
+	viper.SetDefault("soundnet.autolabel.maxslantm", d.AutoLabel.MaxSlantM)
+	viper.SetDefault("soundnet.autolabel.maxaltitudem", d.AutoLabel.MaxAltitudeM)
+	viper.SetDefault("soundnet.autolabel.minseparationm", d.AutoLabel.MinSeparationM)
+	viper.SetDefault("soundnet.autolabel.peraircraftcooldownmin", d.AutoLabel.PerAircraftCooldownMin)
+	viper.SetDefault("soundnet.autolabel.maxcapturesperhour", d.AutoLabel.MaxCapturesPerHour)
+	viper.SetDefault("soundnet.autolabel.creditreserve", d.AutoLabel.CreditReserve)
 }

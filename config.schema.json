@@ -149,6 +149,52 @@
       "type": "object",
       "description": "AudioSourceConfig represents a single audio capture device with per-source settings."
     },
+    "AutoLabelSettings": {
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "corpusdir": {
+          "type": "string",
+          "description": "CorpusDir is where labelled clips and their JSON sidecars are written,\nrelative to the binary unless absolute. Its own directory rather than the\nclips folder: these are training data with a different lifetime from\ndetection clips, and the disk manager must not age them out."
+        },
+        "sourceid": {
+          "type": "string",
+          "description": "SourceID names the audio source to record from. Empty means the only\nconfigured source, which is the usual case. It must be set when a station\nhas several: a corpus that mixes microphones teaches a model the\ndifference between the microphones as readily as the difference between\naircraft, and nothing downstream would show that had happened."
+        },
+        "pollintervalsec": {
+          "type": "integer",
+          "description": "PollIntervalSec is how often the sky is checked. Every poll costs one API\ncredit, so this is the main lever on what the collector costs."
+        },
+        "maxslantm": {
+          "type": "number",
+          "description": "MaxSlantM is how close an aircraft must be before its sound is assumed to\ndominate the clip. Tighter than the runtime matching range on purpose:\nruntime asks which aircraft best explains a sound that was definitely\nheard, while this has no acoustic evidence at all and is relying on\ngeometry alone."
+        },
+        "maxaltitudem": {
+          "type": "number",
+          "description": "MaxAltitudeM excludes high cruise traffic, which is often inaudible under\nbackground noise even when geometrically close."
+        },
+        "minseparationm": {
+          "type": "number",
+          "description": "MinSeparationM is how much further away the second-nearest aircraft must\nbe before the nearest can be called the unambiguous source. Two aircraft\nat similar range make the label a guess, and a guessed training label is\nworse than no sample: a wrong runtime match is one wrong row, while a\nwrong label teaches the model something false permanently."
+        },
+        "peraircraftcooldownmin": {
+          "type": "integer",
+          "description": "PerAircraftCooldownMin stops one overflight being captured on every poll\nit spans, which would fill the corpus with near-duplicates of a single\nevent and let a daily scheduled service dominate the training set."
+        },
+        "maxcapturesperhour": {
+          "type": "integer",
+          "description": "MaxCapturesPerHour bounds disk growth and keeps a busy corridor from\nswamping the corpus in one afternoon."
+        },
+        "creditreserve": {
+          "type": "integer",
+          "description": "CreditReserve is the API credit floor the collector stops at. Set higher\nthan Enrichment.ADSB.CreditFloor on purpose: the two share one daily\nallowance, and the collector should run out first. It polls on a timer\nwhether or not anything flew, whereas runtime enrichment only spends a\ncredit when something was actually heard - so what remains is worth more\nto runtime."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "AutoLabelSettings controls the ADS-B auto-labelling collector."
+    },
     "BSGConfig": {
       "properties": {
         "modelpath": {
@@ -2479,6 +2525,9 @@
         },
         "enrichment": {
           "$ref": "#/$defs/EnrichmentSettings"
+        },
+        "autolabel": {
+          "$ref": "#/$defs/AutoLabelSettings"
         }
       },
       "additionalProperties": false,

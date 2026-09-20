@@ -263,6 +263,13 @@ func (p *AudioPipelineService) Start(_ context.Context) error {
 			logger.String("operation", "startup_audio_check"))
 	}
 
+	// SOUNDNET: start the ADS-B auto-label collector. Here rather than beside the
+	// rest of the SoundNet startup because it reads the capture buffer, which
+	// only exists once the sources above have been added. Inert unless enabled,
+	// and every refusal inside is logged rather than fatal. See
+	// soundnet_autolabel.go.
+	startSoundNetAutoLabel(settings, p.engine.BufferManager(), sourceIDs, p.done, &p.wg, GetLogger())
+
 	// Register watchdog reset callback so analysis monitors are recreated
 	// when the watchdog force-resets a stuck stream.
 	p.engine.StreamManager().SetOnStreamReset(func(newSourceID string) {
