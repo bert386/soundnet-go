@@ -64,6 +64,45 @@ peak and the aircraft under it is barely lifted. After the low-pass the peak is
 the aircraft, so normalising actually helps. RMS normalisation to 0.15 performs
 about the same as peak 0.9; RMS 0.05 is worse than either.
 
+## Operator review notes, and what they corroborate
+
+Three clips were reviewed in the web UI with free-text notes. The notes are
+worth more than the false-positive flags, because they describe how clearly the
+operator themselves could hear the aircraft - and the model's scores track that
+judgement:
+
+| Clip | Operator's note | raw | LPF+norm | `Vehicle` |
+|---|---|---|---|---|
+| `cat_85p_...105143Z` | "Loud and clear propeller aircraft passing overhead" | 0.148 | **0.500** | 0.586 |
+| `cat_74p_...104608Z` | "High flying jet passing overhead, distant human speech, loud crow" | 0.000 | 0.148 | 0.738 |
+| `cat_85p_...105425Z` | "High passing aircraft **or distant traffic noise**, close field grass rustling or sizzling BBQ" | 0.000 | 0.109 | 0.738 |
+
+The confidence is not arbitrary: it falls as the operator's own certainty falls.
+On the third clip the operator could not tell aircraft from traffic either, and
+the model's answer - `Vehicle` 0.738, `Aircraft` 0.109 - is arguably the honest
+one rather than a mistake.
+
+### `Vehicle` is the reliable signal, not `Aircraft`
+
+After preprocessing, `Vehicle` scores **0.59 to 0.74 on every aircraft clip** -
+higher than `Aircraft` in all three, and far more stable. The model detects
+"something motorised" dependably and attributes it to the wrong kind of vehicle.
+
+This is the single most useful result in the set, because it says where the
+acoustic layer should stop:
+
+- **Acoustics answer "is something motorised nearby?"** - reliably, at 0.6-0.74.
+- **Acoustics cannot answer "aircraft or lorry?"** - and neither could the
+  operator on one of the three.
+- **ADS-B answers it** - an aircraft at a credible slant range makes it an
+  aircraft; nothing overhead makes it road traffic.
+
+**Consequence for the pipeline.** `Domain.Enrichable()` is currently true only
+for aircraft and weather, so a detection classified `DomainVehicle` never
+reaches the ADS-B provider - and on this evidence that is precisely the case
+that needs it most. Enrichment has to be attempted for the vehicle domain too,
+with a confirmed overflight promoting the detection to aircraft.
+
 ## What this means for the design
 
 **Presence is recoverable; type is not.** On the helicopter clip, `Helicopter`
