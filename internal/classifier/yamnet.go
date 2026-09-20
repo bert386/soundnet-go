@@ -110,6 +110,14 @@ type YAMNet struct {
 	scoreBuf []float32
 	// emit[i] reports whether class i is one SoundNet records. See reportable.
 	emit []bool
+
+	// SOUNDNET: state for the low-pass second pass. See yamnet_lowpass.go.
+	//
+	// aircraft[i] marks the classes that pass is allowed to raise; lowPassBuf
+	// holds the filtered copy of the window, grown once and then reused, for the
+	// same reason frameBuf is reused.
+	aircraft   []bool
+	lowPassBuf []float32
 }
 
 // reportable marks which of YAMNet's 521 classes are worth emitting.
@@ -232,6 +240,7 @@ func NewYAMNet(cfg *YAMNetConfig) (*YAMNet, error) {
 		modelPath:  cfg.ModelPath,
 		info:       info,
 		frameBuf:   make([]float32, yamnetFrameSamples),
+		aircraft:   aircraftClasses(len(labels)),
 		scoreBuf:   make([]float32, len(labels)),
 		emit:       reportable(len(labels), labels),
 	}
@@ -438,6 +447,16 @@ func (y *YAMNet) Predict(ctx context.Context, samples [][]float32) ([]datastore.
 		for i, s := range scores {
 			y.scoreBuf[i] = max(y.scoreBuf[i], s)
 		}
+	}
+
+	// SOUNDNET: a second pass over a low-passed copy, raising only the aircraft
+	// classes. Failures here are not fatal: the raw scores are a complete,
+	// correct result on their own, and losing a whole window because an
+	// enhancement failed would trade a real detection for an optional one.
+	if err := y.mergeLowPassPass(clip); err != nil {
+		GetLogger().Warn("yamnet: low-pass pass failed, using raw scores",
+			logger.Error(err),
+			logger.String("operation", "yamnet_lowpass"))
 	}
 
 	// No activation applied. YAMNet's output is already per-class probability;
