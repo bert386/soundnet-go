@@ -42,6 +42,28 @@ var ambiguousDomains = map[string][]Domain{
 	// BirdNET "Engine" detection reaches ADS-B on a station where YAMNet is not
 	// installed at all.
 	"engine": {DomainAircraft, DomainRail, DomainWatercraft},
+
+	// Thunder and Thunderstorm are here on evidence rather than on ontology,
+	// which makes them the odd entries in this table and worth explaining.
+	//
+	// A jet and distant thunder are both low-frequency broadband with a slow
+	// envelope, and on this station the model cannot tell them apart at all:
+	// across nineteen operator-reviewed Thunder and Thunderstorm detections,
+	// **every one was a passing jet**, at confidences up to 0.94. Not a bias -
+	// a complete failure of the distinction.
+	//
+	// That matters more than the usual false positive because these clear the
+	// ordinary threshold comfortably, so nothing downstream challenges them.
+	// DomainWeather is enrichable in principle, but only a lightning provider
+	// would ever answer for it and none is registered, so a jet recorded as
+	// Thunderstorm reaches an authority that cannot help and never reaches the
+	// one that can.
+	//
+	// The primary domain stays weather. Thunder is still thunder, and a station
+	// that actually hears a storm should record one; ADS-B simply gets the
+	// chance to say when it was an aeroplane.
+	"thunder":      {DomainAircraft},
+	"thunderstorm": {DomainAircraft},
 }
 
 // CandidateDomains returns every domain this class could belong to, its own

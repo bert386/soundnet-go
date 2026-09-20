@@ -179,7 +179,11 @@ func TestEnrichmentOnlyForDomainsWithAnAuthority(t *testing.T) {
 		why       string
 	}{
 		{"Aircraft", 1, "ADS-B is authoritative for aircraft"},
-		{"Thunder", 1, "lightning networks corroborate thunder"},
+		// Two, not one: thunder is asked of the lightning networks and then of
+		// ADS-B, because at this station nineteen of nineteen reviewed Thunder
+		// and Thunderstorm detections were passing jets. See
+		// internal/eventclass/ambiguity.go.
+		{"Thunder", 2, "lightning networks corroborate thunder; ADS-B says when it was a jet"},
 		{"Gunshot, gunfire", 0, "no public authority identifies a gunshot"},
 		{"Siren", 0, "no public authority identifies a siren"},
 		{"Car passing by", 0, "no public authority identifies a passing car"},

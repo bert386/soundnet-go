@@ -61,6 +61,17 @@ type soundNetDetectionResponse struct {
 	// recorded as a vehicle reads as a deliberate question rather than a bug.
 	CandidateDomains []string `json:"candidateDomains,omitempty"`
 
+	// ResolvedDomain is the domain an authority settled the detection under,
+	// set only when it differs from the acoustic reading.
+	//
+	// It exists because the difference is the answer rather than a
+	// discrepancy. Nineteen of nineteen reviewed Thunder and Thunderstorm
+	// detections at this station were passing jets, so "classified weather,
+	// resolved aircraft, here is the registration" is the true and useful
+	// statement - and showing only the acoustic label would keep presenting
+	// a jet as a thunderstorm at 0.94.
+	ResolvedDomain string `json:"resolvedDomain,omitempty"`
+
 	Diagnostics *soundNetDiagnostics `json:"diagnostics,omitempty"`
 	Enrichment  []soundNetEnrichment `json:"enrichment,omitempty"`
 	Correction  *soundNetCorrection  `json:"correction,omitempty"`
@@ -137,6 +148,15 @@ func (c *Controller) GetSoundNetDetection(ctx echo.Context) error {
 		for i := range enrichRows {
 			var attrs any
 			_ = decodeJSON(enrichRows[i].Payload, &attrs)
+			// The pipeline records which question the provider answered when it
+			// was not the one the taxonomy would have asked. Lifting it out of
+			// the payload is what lets a caller show the corrected domain
+			// without parsing a provider-specific document.
+			if m, ok := attrs.(map[string]any); ok {
+				if d, ok := m["soundnetResolvedDomain"].(string); ok && d != "" {
+					resp.ResolvedDomain = d
+				}
+			}
 			resp.Enrichment = append(resp.Enrichment, soundNetEnrichment{
 				Provider:        enrichRows[i].Provider,
 				Source:          enrichRows[i].Source,

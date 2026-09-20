@@ -207,12 +207,17 @@ func ConfusionSet(label string) []string {
 	switch strings.ToLower(strings.TrimSpace(label)) {
 	case "gunshot, gunfire", "explosion", "firecracker", "fireworks", "engine knocking", "boom":
 		return []string{"Gunshot, gunfire", "Explosion", "Firecracker", "Fireworks", "Engine knocking", "Boom"}
-	case "jet engine", "fixed-wing aircraft, airplane", "propeller, airscrew", "helicopter", "aircraft engine":
-		return []string{"Jet engine", "Fixed-wing aircraft, airplane", "Propeller, airscrew", "Helicopter", "Aircraft engine"}
+	// Jets and thunder are in one set, in both directions. They are both
+	// low-frequency broadband with a slow envelope, and on this station the
+	// model does not distinguish them at all: across nineteen operator-reviewed
+	// Thunder and Thunderstorm detections, every one was a passing jet, at
+	// confidences up to 0.94. Measurement, not intuition - see GROUND_TRUTH.md.
+	case "jet engine", "fixed-wing aircraft, airplane", "propeller, airscrew", "helicopter", "aircraft engine",
+		"thunder", "thunderstorm":
+		return []string{"Jet engine", "Fixed-wing aircraft, airplane", "Propeller, airscrew",
+			"Helicopter", "Aircraft engine", "Thunder", "Thunderstorm"}
 	case "sawing", "chainsaw", "power tool", "drill":
 		return []string{"Sawing", "Chainsaw", "Power tool", "Drill"}
-	case "thunder", "thunderstorm":
-		return []string{"Thunder", "Thunderstorm", "Explosion"}
 	default:
 		return nil
 	}

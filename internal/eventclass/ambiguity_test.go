@@ -23,11 +23,23 @@ func TestCandidateDomainsPutTheClassOwnDomainFirst(t *testing.T) {
 }
 
 // TestAmbiguityIsRareAndDeliberate keeps the table from growing by accident. Its
-// cost is an API credit per detection of every class in it, so a class earns a
-// place here by being a genuine AudioSet superclass, not by being confusable.
-// Confusability is what ConfusionSet is for.
+// cost is an API credit per detection of every class in it, so a class earns its
+// place either by being a genuine AudioSet superclass that contains aircraft, or
+// by measured evidence that the model cannot make the distinction here.
+//
+// Vehicle and Engine are the first kind: the ontology puts aircraft inside them,
+// which holds at any station.
+//
+// Thunder and Thunderstorm are the second, and were deliberately left out when
+// this table was written because one clip is not evidence. Nineteen
+// operator-reviewed Thunder and Thunderstorm detections later, every single one
+// a passing jet at confidences up to 0.94, they were added. This test failing is
+// how that decision was forced to be explicit rather than quietly made.
 func TestAmbiguityIsRareAndDeliberate(t *testing.T) {
-	want := map[string]bool{"Vehicle": true, "Engine": true}
+	want := map[string]bool{
+		"Vehicle": true, "Engine": true,
+		"Thunder": true, "Thunderstorm": true,
+	}
 	for _, c := range allClasses() {
 		ambiguous := len(c.CandidateDomains()) > 1
 		if ambiguous != want[c.Label] {
@@ -67,17 +79,49 @@ func TestSuperclassesAreEnrichable(t *testing.T) {
 	}
 }
 
+// TestThunderReachesTheAircraftAuthority is the specific case nineteen reviewed
+// detections argued for. Thunder stays a weather class - a station that really
+// hears a storm should record one - but ADS-B now gets the chance to say when it
+// was an aeroplane, which at this station it always was.
+func TestThunderReachesTheAircraftAuthority(t *testing.T) {
+	for _, label := range []string{"Thunder", "Thunderstorm"} {
+		c, ok := Lookup(label)
+		if !ok {
+			t.Fatalf("%q is not in the taxonomy", label)
+		}
+		if c.Domain != DomainWeather {
+			t.Errorf("%q should still be weather, got %q", label, c.Domain)
+		}
+		candidates := c.CandidateDomains()
+		if len(candidates) < 2 || candidates[0] != DomainWeather {
+			t.Errorf("%q candidates = %v, want weather first then aircraft", label, candidates)
+		}
+		found := false
+		for _, d := range candidates[1:] {
+			if d == DomainAircraft {
+				found = true
+			}
+		}
+		if !found {
+			t.Errorf("%q cannot reach ADS-B; candidates = %v", label, candidates)
+		}
+	}
+}
+
 // TestIsAmbiguousAcceptsEveryLabelForm guards the trap that has caused two silent
 // bugs on this project: a label reaches this package as a display name, a raw
 // label or the truncated name the datastore stores, and a check that accepts
 // only one of them fails exactly where it matters.
 func TestIsAmbiguousAcceptsEveryLabelForm(t *testing.T) {
-	for _, label := range []string{"Vehicle", "vehicle", "Engine", "engine"} {
+	for _, label := range []string{
+		"Vehicle", "vehicle", "Engine", "engine",
+		"Thunder", "thunder", "Thunderstorm", "thunderstorm",
+	} {
 		if !IsAmbiguous(label) {
 			t.Errorf("IsAmbiguous(%q) = false, want true", label)
 		}
 	}
-	for _, label := range []string{"Car", "car", "Helicopter", "helicopter", "Thunder"} {
+	for _, label := range []string{"Car", "car", "Helicopter", "helicopter", "Gun"} {
 		if IsAmbiguous(label) {
 			t.Errorf("IsAmbiguous(%q) = true, want false", label)
 		}
