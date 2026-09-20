@@ -1,8 +1,14 @@
 <!--
   EventsPage.svelte - the non-bird side of the station, in one place
 
-  Why this page exists: the review queue and the training export were both built
-  and neither was reachable. No route pointed at them, so the only way to record
+  Why this page exists: the review tooling and the training export were both
+  built and neither was reachable.
+
+  Review hands off to the detection page BirdNET-Go already has, rather than
+  reviewing anything here. That page shows the spectrogram, which is most of what
+  tells a jet from a thunder clap by eye, and it is the review the operator
+  already uses. An earlier version of this page carried its own keyboard-driven
+  queue; the operator preferred theirs, and they were right. No route pointed at them, so the only way to record
   that a detection was wrong was to type a sentence into its comment box - which
   is what the operator has been doing, for dozens of detections, producing prose
   where the training export needs structure.
@@ -20,7 +26,7 @@
   import { navigation } from '$lib/stores/navigation.svelte';
   import { Activity, ListChecks, Download, Filter } from '@lucide/svelte';
 
-  import ReviewQueue from '../components/ReviewQueue.svelte';
+  import EventReviewList from '../components/EventReviewList.svelte';
   import TrainingExport from '../components/TrainingExport.svelte';
   import CategoryFilter from '../components/CategoryFilter.svelte';
 
@@ -61,7 +67,7 @@
       </h3>
       <p class="text-sm opacity-70">{t('soundnet.events.reviewIntro')}</p>
       <div class="mt-3">
-        <ReviewQueue />
+        <EventReviewList />
       </div>
     </div>
   </div>

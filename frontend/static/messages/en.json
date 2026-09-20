@@ -5844,9 +5844,13 @@
       "intro": "Everything the station hears that is not a bird: aircraft, road vehicles, tools, weather, alarms.",
       "browse": "Browse a category:",
       "reviewHeading": "Review queue",
-      "reviewIntro": "Confirm, correct or reject unreviewed detections. A correction records what the sound actually was, which a comment cannot - only a correction becomes training data.",
+      "reviewIntro": "Non-bird detections nobody has reviewed yet, one per pass. Each opens the usual review page, with the spectrogram.",
       "exportHeading": "Training export",
-      "exportIntro": "Turn confirmed and corrected detections into a labelled dataset."
+      "exportIntro": "Turn confirmed and corrected detections into a labelled dataset.",
+      "reviewLoading": "Finding detections to review...",
+      "reviewLoadFailed": "Could not load detections to review: {{error}}",
+      "reviewEmpty": "Nothing waiting. Every recent event has been reviewed.",
+      "reviewCount": "{{count}} waiting, most recent first"
     }
   }
 }
