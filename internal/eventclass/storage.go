@@ -93,8 +93,7 @@ func LookupRaw(rawLabel string) (Class, bool) {
 	return c, ok
 }
 
-// namePrefix returns the first two underscore-separated tokens of a raw label,
-// which is exactly as much of it as survives the datastore round trip.
+// namePrefix returns the first two underscore-separated tokens of a raw label.
 //
 //	"jet_engine"               -> "jet_engine"
 //	"propeller_and_airscrew"   -> "propeller_and"
@@ -111,36 +110,59 @@ func namePrefix(rawLabel string) string {
 // DisplayName returns the human-readable name for a stored scientific/common
 // name pair.
 //
-// The pair is two thirds of a raw label. detection.ParseSpeciesString splits on
-// "_" into at most three parts, so "propeller_and_airscrew" is stored as the
-// scientific name "propeller", the common name "and" and the species code
-// "airscrew" - which is how "Propeller, airscrew" reaches the UI as "and".
+// The pair is a raw label that has been split in two. The read path that feeds
+// every API response is datastore.ResolveLabelNames, which does
+// strings.Cut(label, "_") - the *first* underscore only - so the common name is
+// the entire remainder and rejoining the two recovers the label exactly:
 //
-// Only the first two parts are used to find the class again. The third is
-// deliberately ignored: the v2 datastore recomputes SpeciesCode from a map keyed
-// on scientific name when it reads a row back, so for an event class - which is
-// in no such map - the third part comes back empty and a reconstruction that
-// needed it would work on one datastore and silently fail on the other.
+//	"propeller_and_airscrew" -> ("propeller", "and_airscrew")
+//	"police_car_(siren)"     -> ("police",    "car_(siren)")
+//	"vehicle"                -> ("vehicle",   "Vehicle")
 //
-// Two tokens are enough. The three truncated names that are ambiguous on their
-// own ("aircraft", "car", "engine") each have a distinct second token, and a
-// test asserts that no two classes share a prefix.
+// Those are real rows read off the running station, not a reconstruction. The
+// last is the no-separator case: the label has no common name in it, and the
+// resolver supplies the display form, so the two differ only by case.
+//
+// There is a second, different split in the codebase. detection.ParseSpeciesString
+// uses SplitN(label, "_", 3) on the *write* path, giving a scientific name, a
+// common name and a species code - so "propeller_and_airscrew" becomes
+// ("propeller", "and", "airscrew") there. Reading the write path and assuming it
+// described the read path is how an earlier version of this function came to key
+// on two tokens and fail against real data while its test passed. The two-token
+// prefix survives as a last resort so a pair produced by that split still
+// resolves, and it is last because it is the lossy one.
 //
 // ok is false for anything not in the taxonomy, including every bird species,
 // so callers leave those untouched.
 func DisplayName(scientificName, commonName string) (name string, ok bool) {
-	key := strings.ToLower(strings.TrimSpace(scientificName))
-	if key == "" {
+	sci := strings.ToLower(strings.TrimSpace(scientificName))
+	if sci == "" {
 		return "", false
 	}
-	if common := strings.ToLower(strings.TrimSpace(commonName)); common != "" && common != key {
-		key += "_" + common
+	common := strings.ToLower(strings.TrimSpace(commonName))
+	joined := sci
+	if common != "" && common != sci {
+		joined = sci + "_" + common
 	}
-	c, found := byPrefixIndex[key]
-	if !found {
-		return "", false
+
+	// The exact label, rejoined. This is the case in production.
+	if c, found := byRawIndex[joined]; found {
+		return c.Label, true
 	}
-	return c.Label, true
+	// A pair from the three-way write-path split, which loses everything past the
+	// second token. Safe to match on because a test asserts no two classes share a
+	// two-token prefix - and it must come before the fallback below, or ("car",
+	// "passing") would resolve to "Car" rather than "Car passing by".
+	if c, found := byPrefixIndex[namePrefix(joined)]; found {
+		return c.Label, true
+	}
+	// Last resort: the scientific name alone. Reached when the common name is
+	// neither a fragment of the label nor its display form - a localized name,
+	// for instance - where the first token is all that is left to go on.
+	if c, found := byRawIndex[sci]; found {
+		return c.Label, true
+	}
+	return "", false
 }
 
 // Resolve finds a class from a label in whichever form the caller happens to

@@ -35,11 +35,20 @@ func TestNoteToDetectionResponse_EventDisplayName(t *testing.T) {
 		want       string
 	}{
 		{
-			// The case the operator reported: an aircraft shown as "and_airscrew".
-			name:       "three-token event class recovers its full name",
+			// The case the operator reported, in the exact form the station
+			// stores it: id=805 and id=828 are both this pair.
+			name:       "aircraft shown as and_airscrew recovers its full name",
 			scientific: "propeller",
-			common:     "and",
+			common:     "and_airscrew",
 			want:       "Propeller, airscrew",
+		},
+		{
+			// Also read off the station. Parentheses and a second underscore in
+			// one label, which is the shape that breaks naive reconstruction.
+			name:       "siren with punctuation",
+			scientific: "police",
+			common:     "car_(siren)",
+			want:       "Police car (siren)",
 		},
 		{
 			name:       "two-token event class",
@@ -48,13 +57,15 @@ func TestNoteToDetectionResponse_EventDisplayName(t *testing.T) {
 			want:       "Jet engine",
 		},
 		{
-			// Single-word classes were always displayed correctly, which is
-			// precisely why the breakage went unnoticed; pinned so a change that
-			// fixes the multi-word case cannot quietly break this one.
-			name:       "single-token event class is unchanged",
-			scientific: "helicopter",
-			common:     "helicopter",
-			want:       "Helicopter",
+			// A label with no underscore to split on: the resolver supplies the
+			// display form, so the pair differs only by case. Single-word classes
+			// were always displayed correctly, which is precisely why the
+			// breakage went unnoticed - pinned so a fix for the multi-word case
+			// cannot quietly break this one.
+			name:       "class with no separator in its label",
+			scientific: "vehicle",
+			common:     "Vehicle",
+			want:       "Vehicle",
 		},
 		{
 			name:       "bird species carries no event display name",
