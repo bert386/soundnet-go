@@ -19,6 +19,7 @@ import (
 
 	"github.com/bert386/soundnet-go/internal/conf"
 	"github.com/bert386/soundnet-go/internal/detection"
+	"github.com/bert386/soundnet-go/internal/eventclass"
 	"github.com/bert386/soundnet-go/internal/eventpipeline"
 	"github.com/bert386/soundnet-go/internal/logger"
 )
@@ -70,13 +71,7 @@ func (a *SoundNetAction) Execute(ctx context.Context, _ any) error {
 	}
 	detectionID := uint(a.DetectionCtx.NoteID.Load())
 	if detectionID == 0 {
-		// Reported rather than swallowed. This is the state the whole layer sat
-		// in unnoticed, and it is indistinguishable from "nothing was overhead"
-		// unless it says so.
-		GetLogger().Warn("soundnet: no detection id, skipping analysis",
-			logger.String("correlation_id", a.CorrelationID),
-			logger.String("label", a.Label),
-			logger.String("operation", "soundnet_no_detection_id"))
+		a.reportMissingID()
 		return nil
 	}
 
@@ -126,6 +121,38 @@ func (a *SoundNetAction) Execute(ctx context.Context, _ any) error {
 			logger.String("operation", "soundnet_skipped"))
 	}
 	return nil
+}
+
+// reportMissingID says something only when a missing detection ID actually cost
+// us an analysis.
+//
+// A zero ID is usually correct rather than broken: DatabaseAction rate-limits
+// repeated detections of the same species through the EventTracker, and a
+// suppressed save leaves no row to attach anything to. At this station a Common
+// Myna sings for minutes at a time, so warning on every one of those trains the
+// reader to ignore the warning - which is how the layer managed to do nothing
+// at all for weeks without anybody noticing.
+//
+// So the condition is narrowed to the case that matters: a detection whose class
+// would have been measured or identified, arriving with nothing to attach the
+// result to. For everything else - every bird, whose domain has nothing to
+// measure and no authority to ask - the outcome is identical either way and the
+// line is debug.
+func (a *SoundNetAction) reportMissingID() {
+	class, _ := eventclass.Resolve(a.Label)
+	if !class.Domain.Diagnosable() && !class.Enrichable() {
+		GetLogger().Debug("soundnet: detection was not persisted, nothing to analyse",
+			logger.String("correlation_id", a.CorrelationID),
+			logger.String("label", a.Label),
+			logger.String("domain", string(class.Domain)),
+			logger.String("operation", "soundnet_not_persisted"))
+		return
+	}
+	GetLogger().Warn("soundnet: no detection id for an analysable event, skipping",
+		logger.String("correlation_id", a.CorrelationID),
+		logger.String("label", a.Label),
+		logger.String("domain", string(class.Domain)),
+		logger.String("operation", "soundnet_no_detection_id"))
 }
 
 // soundNetBudget caps one detection's analysis.

@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/bert386/soundnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/eventclass"
 	"github.com/bert386/soundnet-go/internal/eventpipeline"
 )
 
@@ -123,4 +124,42 @@ func TestSoundNetActionIsLastInTheSequence(t *testing.T) {
 		}
 	}
 	t.Fatal("no SoundNet action inside the composite")
+}
+
+// TestMissingIDIsOnlyWarnedWhenItCostSomething covers the log line rather than
+// the behaviour, which is unusual and deliberate.
+//
+// A zero detection ID is normal: DatabaseAction rate-limits repeat detections of
+// one species through the EventTracker, and a suppressed save leaves nothing to
+// attach results to. At this station a Common Myna sings for minutes, so the
+// first version of this warning fired five times in half an hour on birds whose
+// domain has nothing to measure anyway. A warning that is usually wrong is worse
+// than no warning - it is how a layer that did nothing at all went unnoticed.
+//
+// The assertion is that the two cases take different branches. It does not
+// inspect the log, only that resolving the class is what decides.
+func TestMissingIDIsOnlyWarnedWhenItCostSomething(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		name       string
+		label      string
+		analysable bool
+	}{
+		{"a bird loses nothing", "Acridotheres tristis_Common Myna", false},
+		{"an aircraft loses an identification", "propeller_and_airscrew", true},
+		{"a vehicle loses a Doppler fit", "vehicle", true},
+		{"thunder loses an envelope", "thunder", true},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			class, _ := eventclass.Resolve(tc.label)
+			got := class.Domain.Diagnosable() || class.Enrichable()
+			assert.Equal(t, tc.analysable, got,
+				"%q resolved to domain %q; the warning fires only when an analysis was actually lost",
+				tc.label, class.Domain)
+		})
+	}
 }
