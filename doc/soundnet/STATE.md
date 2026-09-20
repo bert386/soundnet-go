@@ -28,7 +28,7 @@ ENVIRONMENT.md (machines, toolchain, operational gotchas), GROUND_TRUTH.md
 | M3 DSP diagnostics | **done**, 24.8 ms/clip measured on the Pi against a 100 ms budget |
 | M5 enrichment / ADS-B | **done and proven live** - registration, type, operator, route; ambiguity resolution for `Vehicle`/`Engine`/`Thunder`; corroboration-gated thresholds |
 | M6 auto-label collector | **running and producing** - first two captures 2026-09-21, both RSCU208 (AW139) filed under `corpus/aircraft/A139`. Poll interval now 300 s: at 60 s it exhausted the API allowance in eight hours |
-| M7 web UI | detail panel, review queue, training export, confusion + threshold APIs, **event-domain filter (API + UI)**, **display names**, **resolved-domain correction in panel and list** done; tuner UI and live re-compute remain |
+| M7 web UI | detail panel, review queue, training export, confusion + threshold APIs, **event-domain filter (API + UI)**, **display names**, **resolved-domain correction**, **pass grouping** done; tuner UI and live re-compute remain |
 | M4 sub-classification heads | **not started** - correctly last, it trains on M6's corpus |
 | M8 enriched alerts | **not started** |
 
@@ -576,6 +576,35 @@ corroboration is unavailable.
 
 **The rule does fire.** Confirmed by its new counter: 12 corrections in the five
 minutes after the 07:46 restart, from both YAMNet and CED.
+
+## Pass grouping
+
+Shipped 2026-09-21, after the operator noticed one aircraft arriving as several
+rows. It does: a flyby is audible for half a minute and every three-second
+window in it can produce a detection under whatever class the model reached for.
+Thirteen groups that morning spanned 38 to 76 seconds and held three to six rows
+each, and **every one named exactly one aircraft. None named two**
+(`doc/soundnet/eval/cluster_passes.py`).
+
+The rule is time proximity within a domain, split by identity, in
+`internal/eventpass`. Live on the station in the first hour: **86 event rows
+became 34 list entries**, 73 of them collapsed into 21 passes.
+
+Two things to know about it.
+
+**The domain must be the resolved one.** Those rows belong to three different
+domains by class name, so grouping on the class would scatter one aeroplane into
+three passes. A detection nothing resolved keeps its own domain and stays out,
+because a `Vehicle` row nobody identified may genuinely be a car.
+
+**Which means grouping is weaker whenever ADS-B is unavailable.** With the
+credits exhausted on the 21st, `Thunder` grouped with `Thunderstorm` and
+`Vehicle` with `Vehicle`, but the aircraft passes could not pull their `Vehicle`
+rows in - nothing had resolved them. Grouping quality is downstream of the
+credit budget, which is one more reason that budget is the thing to fix next.
+
+Nothing is discarded. Every row is a model's opinion about one window, and those
+opinions are the training corpus.
 
 ## Immediately resumable work
 
