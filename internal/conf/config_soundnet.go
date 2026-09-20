@@ -67,6 +67,26 @@ type EnrichmentSettings struct {
 	// upstream's privacy stance is local-only unless explicitly opted in.
 	Enabled bool `yaml:"enabled" json:"enabled" mapstructure:"enabled"`
 
+	// CorroborationThreshold lowers the acoustic bar for classes an authority
+	// can confirm, and zero - the default - leaves the behaviour unchanged.
+	//
+	// It exists to break an ordering problem. A distant aircraft scores
+	// 0.10-0.15, a sensible threshold is 0.7, so no detection is created; and
+	// because none is created, nothing reaches enrichment to discover that an
+	// aircraft really was overhead. The evidence that would justify keeping the
+	// detection sits behind the threshold that discards it.
+	//
+	// Set above zero and a detection in an enrichable domain scoring at least
+	// this much is held rather than dropped, and kept only if an authority
+	// independently places a credible source overhead. It is not a lower
+	// threshold: nothing is admitted on the acoustic score alone, so the
+	// detection list does not fill with quiet guesses.
+	//
+	// It costs API credits - one query per candidate that would otherwise have
+	// been dropped in silence - which is why it is off by default and why the
+	// ADS-B client reuses a fetched sky for five seconds.
+	CorroborationThreshold float64 `yaml:"corroborationthreshold" json:"corroborationThreshold" mapstructure:"corroborationthreshold"`
+
 	ADSB ADSBSettings `yaml:"adsb" json:"adsb" mapstructure:"adsb"`
 }
 
@@ -128,6 +148,9 @@ func DefaultSoundNetSettings() SoundNetSettings {
 		},
 		Enrichment: EnrichmentSettings{
 			Enabled: false,
+			// Off. Corroboration spends an API credit on detections that would
+			// otherwise have been dropped for free.
+			CorroborationThreshold: 0,
 			ADSB: ADSBSettings{
 				Enabled:         false,
 				CredentialsPath: "",

@@ -1415,7 +1415,13 @@ func (p *Processor) getBaseConfidenceThreshold(settings *conf.Settings, commonNa
 	}
 
 	// Fall back to the model-specific global threshold.
-	return modelGlobalConfidenceThreshold(settings, modelID)
+	threshold := modelGlobalConfidenceThreshold(settings, modelID)
+
+	// SOUNDNET: admit candidates an authority might confirm. Returns the
+	// threshold unchanged unless corroboration is configured, and the candidates
+	// it lets through are discarded at flush time unless something independently
+	// vouches for them. See corroboration_soundnet.go.
+	return soundNetCandidateThreshold(settings, scientificName, commonName, threshold)
 }
 
 // modelGlobalConfidenceThreshold returns the global confidence threshold applied
@@ -1547,6 +1553,14 @@ func (p *Processor) buildClipPath(settings *conf.Settings, scientificName string
 // calculateMinDetectionsForModel) to avoid redundant settings fetches and ensure
 // consistency within a single flush cycle.
 func (p *Processor) shouldDiscardDetection(item *PendingDetection, settings *conf.Settings, minDetections int) (shouldDiscard bool, reason string) {
+	// SOUNDNET: a detection admitted below the normal threshold is only a
+	// candidate, and is kept solely if an authority places a credible source
+	// overhead at that moment. Checked first so a candidate nothing vouches for
+	// costs nothing else. See corroboration_soundnet.go.
+	if discard, why := p.soundNetDiscardUncorroborated(item, settings); discard {
+		return true, why
+	}
+
 	// Check minimum detection count
 	if item.Count < minDetections {
 		GetLogger().Debug("Detection discarded due to insufficient count",

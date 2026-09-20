@@ -358,3 +358,82 @@ func DecodePCM(pcm []byte, bitDepth, channels int) ([]float64, error) {
 		return nil, fmt.Errorf("eventpipeline: unsupported bit depth %d", bitDepth)
 	}
 }
+
+// Corroboration is what an authority could say about a detection that has not
+// been recorded yet.
+type Corroboration struct {
+	// Matched reports whether an authority placed something it knows about in a
+	// position that could have made this sound.
+	Matched bool
+
+	// Domain is the domain the match came back under, which for an ambiguous
+	// label is often not the one the classifier implied.
+	Domain eventclass.Domain
+
+	// Provider names who answered, for the log line that explains why a quiet
+	// detection was kept.
+	Provider string
+}
+
+// Corroborate asks the authorities whether anything they know about could have
+// made this sound, and records nothing.
+//
+// This exists because of an ordering problem the rest of the pipeline cannot
+// solve. A distant aircraft scores 0.10-0.15, a sensible threshold is 0.7, so no
+// detection is created - and because no detection is created, nothing ever
+// reaches enrichment to discover that an aircraft really was overhead. The
+// evidence that would justify keeping the detection is unreachable from behind
+// the threshold that discards it.
+//
+// So this is deliberately callable before a detection exists. It needs only a
+// label and a time: identity resolution is geometric, and the detection ID is
+// required to *store* a result, not to obtain one.
+//
+// It is not a detector. A match means an authority places a credible source
+// overhead at that moment, which is corroboration for a weak acoustic signal and
+// nothing at all on its own - an aircraft passing over a silent garden is still
+// not a detection.
+func (a *Analyser) Corroborate(ctx context.Context, label string, at time.Time, confidence float64) (*Corroboration, error) {
+	if a.Resolver == nil || !a.Config.EnrichmentEnabled {
+		return &Corroboration{}, nil
+	}
+	if !a.Config.Station.Valid() {
+		return &Corroboration{}, fmt.Errorf("eventpipeline: %w: station position", enrichment.ErrNotConfigured)
+	}
+
+	class, _ := eventclass.Resolve(label)
+	var firstErr error
+	for _, domain := range class.CandidateDomains() {
+		if !domain.Enrichable() {
+			// No authority exists for this domain, so there is nothing to ask and
+			// no credit to spend asking it.
+			continue
+		}
+		id, err := a.Resolver.Resolve(ctx, &enrichment.Request{
+			Domain:     string(domain),
+			Label:      label,
+			DetectedAt: at,
+			Confidence: confidence,
+			Station:    a.Config.Station,
+		})
+		switch {
+		case errors.Is(err, enrichment.ErrNoMatch):
+			continue
+		case err != nil:
+			if firstErr == nil {
+				firstErr = err
+			}
+			continue
+		case id == nil:
+			continue
+		}
+		return &Corroboration{Matched: true, Domain: domain, Provider: id.Provider}, nil
+	}
+	if firstErr != nil {
+		// Reported rather than swallowed as "nothing overhead". A provider that is
+		// down must not look like a quiet sky, or a lowered threshold would
+		// silently stop admitting anything the moment the network failed.
+		return &Corroboration{}, fmt.Errorf("eventpipeline: corroborate: %w", firstErr)
+	}
+	return &Corroboration{}, nil
+}
