@@ -97,11 +97,105 @@ acoustic layer should stop:
 - **ADS-B answers it** - an aircraft at a credible slant range makes it an
   aircraft; nothing overhead makes it road traffic.
 
-**Consequence for the pipeline.** `Domain.Enrichable()` is currently true only
-for aircraft and weather, so a detection classified `DomainVehicle` never
-reaches the ADS-B provider - and on this evidence that is precisely the case
-that needs it most. Enrichment has to be attempted for the vehicle domain too,
-with a confirmed overflight promoting the detection to aircraft.
+**Consequence for the pipeline, now implemented.** `Domain.Enrichable()` was
+true only for aircraft and weather, so a detection classified `DomainVehicle`
+never reached the ADS-B provider - precisely the case that needs it most.
+`Vehicle` and `Engine` now carry candidate domains and the pipeline asks each
+authority in turn; see `internal/eventclass/ambiguity.go`. The domain itself is
+unchanged and still not enrichable, because a detection that really is a car
+still has no authority that can name it.
+
+
+## The full annotated set, 2026-09-20
+
+The operator later reviewed and annotated every non-bird detection of the
+morning, and verified each one correct or false-positive in the UI. Twenty-four
+rows, which is the largest labelled set the project has. It is recorded in full
+because the aggregate says something none of the individual clips does.
+
+**Twelve of the twenty-four are aircraft. Two were labelled as aircraft.**
+
+| id | YAMNet said | conf | operator |
+|---|---|---|---|
+| 674 | Chirp tone | 0.59 | two propeller aircraft, two tones |
+| 679 | Chirp tone | 0.50 | propeller aircraft |
+| 686 | **Cat** | 0.85 | loud, clear propeller overhead |
+| 711 | Chirp tone | 0.50 | distant jet; car-unlock chirp at the start |
+| 715 | Chicken, rooster | 0.50 | distant commercial jet |
+| 726 | **Cat** | 0.85 | high aircraft or distant traffic |
+| 730 | Chicken, rooster | 0.59 | distant aircraft, probably propeller |
+| 733 | Chirp tone | 0.50 | distant propeller **and** approaching helicopter |
+| 759 | **Vehicle** | 0.80 | propeller aircraft overhead |
+| 805 | Propeller, airscrew | 0.41 | turbo-prop passing - **correct** |
+| 824 | **Thunderstorm** | 0.80 | commercial jet |
+| 828 | Propeller, airscrew | 0.50 | close propeller aircraft - **correct** |
+
+And the rest:
+
+| id | YAMNet said | conf | operator |
+|---|---|---|---|
+| 905 | Vehicle | 0.80 | large truck, manual transmission - **correct** |
+| 817 | Police car (siren) | 0.74 | human whistling |
+| 693, 720 | Chirp tone | 0.59 | hammering, moving furniture |
+| 702 | Chicken, rooster | 0.50 | hammering, tapping, faint speech |
+| 725 | Chicken, rooster | 0.50 | rustling grass |
+| 838, 929, 932, 937 | Chewing, mastication | 0.50-0.59 | rustling dry grass, hedge, sticks |
+| 880 | Crying, sobbing | 0.41 | a crow |
+| 826 | *Willie-wagtail* (BirdNET) | 0.71 | no thunder - distant mower or traffic |
+
+### `Vehicle` 0.80 is a truck and `Vehicle` 0.80 is an aeroplane
+
+This is the sharpest evidence in the set, and it needs no analysis: id 905 and
+id 759 carry the **same label at the same score** and are a lorry and an
+aircraft. The acoustic layer is not being imprecise here - it is answering
+correctly and completely, and the question it answers is "is something motorised
+nearby". Nothing in the audio distinguishes the two at this SNR. Only ADS-B can,
+which is why id 759 is the case the domain-ambiguity work exists for.
+
+### Thunderstorm 0.80 on a commercial jet
+
+Not in the ontology's hierarchy the way `Vehicle` is, but the confusion is
+physical: a jet and distant thunder are both low-frequency broadband with a slow
+envelope. Two consequences.
+
+`ConfusionSet` should pair them - it already pairs Thunder with Explosion, and
+this is the same kind of neighbour. More interesting, `DomainWeather` **is**
+enrichable, but only a lightning provider would ever be registered for it, so a
+jet recorded as Thunderstorm reaches an authority that cannot help and never
+reaches the one that can. Adding aircraft as a candidate domain for the thunder
+classes would fix that with the machinery already built.
+
+It is deliberately **not** done yet. `Vehicle` and `Engine` earned their place
+by being AudioSet superclasses that genuinely contain aircraft - an argument
+from the ontology that holds regardless of this station. Thunder would be there
+on the strength of one clip, and a thunderstorm produces a great many detections
+to spend credits on. Decide it with more evidence, not less.
+
+### The mislabelled aircraft would now be silent
+
+`Chirp tone`, `Cat` and `Chicken, rooster` are not in the event taxonomy, so the
+current build does not emit them at all: eight of the twelve aircraft above
+would today produce **no detection whatsoever** rather than a wrong one. That is
+the taxonomy filter working exactly as designed, and it is worth being clear
+that it makes the list cleaner without making the station better at hearing
+aircraft.
+
+So the filter is not the lever. The levers are the ones that change what the
+model is given: raise the capture gain from 9, and run the low-frequency second
+pass. Both act on the -40 dBFS input rather than on the labels.
+
+### Three labels that are not what they say
+
+`Chewing, mastication` at 0.50-0.59 is rustling dry grass, four times over. It
+is emitted only as an input to the privacy filter and has no business being
+stored as a detection - see STATE.md. `Police car (siren)` 0.74 is a person
+whistling. `Crying, sobbing` 0.41 is a crow. All three are human- or
+animal-vocal classes firing on textures, at scores that clear a 0.7-ish bar
+without meaning anything.
+
+And once in the other direction: id 826 is **BirdNET** calling a Willie-wagtail
+at 0.71 on what the operator hears as a distant mower or passing traffic. Bird
+classification is not immune to machinery either.
 
 ## What this means for the design
 

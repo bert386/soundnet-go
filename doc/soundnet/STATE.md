@@ -54,13 +54,13 @@ wrong twice when written by hand, so recount it rather than trust it
 conversation; `git diff --numstat main` and grouping by suffix is the whole of
 it).
 
-**Production Go: 14 files, +117 -4.** The number that matters for merges. Only
+**Production Go: 14 files, +119 -4.** The number that matters for merges. Only
 files that already exist on `main` are counted - a new fork-owned file is not a
 merge cost, an edited upstream file is.
 
     internal/api/v2/detections/detections.go  41 -3  category filter, routing, display name
     internal/classifier/model_manager.go       9 -1   fold BaseURL into the fetch
-    internal/analysis/processor/processor.go   9      pipeline hook
+    internal/analysis/processor/processor.go  11      pipeline hook (inside the save sequence)
     internal/api/v2/apicore/sse.go             8      display name on the live feed
     internal/api/v2/detections/search.go       8      display name on search results
     internal/detection/model_info.go           7      YAMNet is not a bird
@@ -330,40 +330,37 @@ for an event class - which is in no such map - it comes back empty. Anything
 that needs to identify a class from stored fields keys on the **first two
 tokens** (`eventclass.DisplayName`).
 
-## The station has never written a SoundNet row
+## Fixed: the station had never written a SoundNet row
 
-Found 2026-09-20 while verifying the vehicle-enrichment change. This outranks
-everything in the list below, because most of it is downstream of it.
+Found and fixed 2026-09-20. `GET /api/v2/soundnet/detections` returned
+`{"count":0}` on a station where both layers had been enabled for days - not
+"no aircraft today", but no diagnostics row and no enrichment row ever.
 
-    GET /api/v2/soundnet/detections?limit=20  ->  {"count":0,"data":[]}
+**Cause.** `SoundNetAction` reads the database-assigned detection ID from
+`DetectionContext` and returns when it is still zero. `DatabaseAction` stores
+it. The action was appended to the **top level** of `getDefaultActions`, and
+every action returned there is enqueued as its own task on a shared worker
+queue - so it ran concurrently with the save instead of after it, and lost the
+race every time, because the save does disk I/O and it does not.
 
-`soundnet: enabled diagnostics=true enrichment=true` is logged on every start
-going back hours, `soundnet.enabled`, `diagnostics.enabled`,
-`enrichment.enabled` and `adsb.enabled` are all true in the running config, and
-the credentials file is where the config points. Rows that should have produced
-diagnostics - id 759, 760, 805, 824, 825, 828, 905, all in diagnosable domains -
-produced none. So **M3 and M5 have never run in production**, and neither the
-ADS-B work nor the ambiguity work on top of it can do anything until this is
-found.
+Upstream had already solved this for SSE and MQTT, which need the same ID, by
+putting them in a `CompositeAction` after the save. SoundNet now joins that
+sequence, last, and its work is bounded below `CompositeActionTimeout` so it can
+never be the step that trips the sequence.
 
-Nothing is logged either way, which is the same failure shape as the model that
-was loaded but fed no audio. `SoundNetAction.Execute` logs at Debug on success
-and Warn on error, and says **nothing at all when it skips**; the console is at
-info, so a silent skip is invisible. `eventpipeline.Process` already returns
-`Result.Skipped` with the reason - it just is not logged. Log it (throttled, at
-info) before anything else: that alone should name the cause.
+**Verified:** the first diagnostics row appeared 90 seconds after the fix was
+deployed. `computeMs` 0, RMS -40.2 dBFS - which independently corroborates the
+capture-gain finding in GROUND_TRUTH.md from a completely different direction.
 
-Candidates, in order of suspicion, none yet eliminated:
-
-- `buildSoundNetAction` returns nil because `det.pcmData3s` is empty. The clip
-  is read from `item.PCMdata`, and detections flush through a pending queue
-  ("Flushing detection" / "approving detection" in actions.log) rather than
-  going straight to the action list - so whether the PCM is still attached by
-  then is worth checking first.
-- `DetectionContext.NoteID` is still 0 when the action executes, in which case
-  `Process` skips with "detection was not persisted".
-- `soundnet_diagnostics` does not exist, so `Migrate()` never ran. This would
-  error and log a Warn, and no Warn appears - so it is the least likely.
+**Why it stayed hidden.** The requirement was written on the `DetectionCtx`
+field from the start ("this action must run after the save") and the code did
+not do it; `actions_soundnet_test.go` asserted the action was *built* correctly,
+which it always was, and nothing asserted it was *dispatched* somewhere it could
+work. That is the third feature on this project to pass its unit tests while
+being inert in production. The ordering is now asserted by a test that fails
+against the old arrangement, a zero detection ID is logged at warn, and
+`Result.Skipped` - which was always computed and never logged - is logged at
+debug.
 
 ## Non-taxonomy classes are being stored as detections
 
@@ -492,6 +489,12 @@ the bird features that work.
   exact case, and the failures sit unnoticed across commits.
 - **Run with `-race`.** It caught a genuine data race: lookup maps filled lazily
   from the detection pipeline. Without it the tests passed.
+- **Test that a feature is reached, not only that it works.** Three times now a
+  unit test has passed over something inert in production: a category filter
+  whose routing never called it, a display-name lookup keyed on the wrong
+  splitter, and an action dispatched where the ID it needs is always zero. Each
+  had a test of the function and none of the path that reaches it. Ask what
+  calls this, and assert that too.
 - **Test on the Pi, not only in tests.** The category filter passed every unit
   test and was a complete no-op in production, because the routing decision that
   reaches the filter is made somewhere else entirely. Three separate faults this
