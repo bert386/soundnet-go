@@ -126,10 +126,11 @@ collected yet.
 
 ---
 
-## 4. The privacy filter and YAMNet cannot both stay as they are — NEEDS A DECISION
+## 4. The privacy filter and YAMNet — RESOLVED, closed
 
-**Blocks:** running YAMNet on the Pi at all. It is installed, enabled and
-measured, but deliberately not fed audio until this is settled.
+**Resolved 2026-09-20:** threshold raised to 0.7 on the operator's decision,
+and YAMNet is live. Verified afterwards: 8 triggers in 5 minutes, max 0.969,
+no birds discarded. The detail below is kept because the reasoning matters.
 
 YAMNet is genuinely good at recognising speech (0.98 on real speech).
 `realtime.privacyfilter.confidence` is **0.05**, a threshold calibrated for

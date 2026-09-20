@@ -22,7 +22,7 @@ ENVIRONMENT.md (machines, toolchain, operational gotchas).
 | | State |
 |---|---|
 | M0 project setup | **done**, merged to main |
-| M1 taxonomy + YAMNet | **done** - taxonomy, catalog entry, fetch route, inference adapter. Installed and measured on the Pi (26 ms/window), but routed off pending a privacy-filter decision (see below) |
+| M1 taxonomy + YAMNet | **done** - taxonomy, catalog entry, fetch route, inference adapter. Live on the Pi at 26 ms/window |
 | M2 detection records | **done** |
 | M3 DSP diagnostics | **done**, 24.8 ms/clip measured on the Pi against a 100 ms budget |
 | M5 enrichment / ADS-B | **done** including registration, type, operator and route |
@@ -169,7 +169,7 @@ Config at `~/.config/birdnet-go/config.yaml`:
 - models dir is `~/.config/birdnet-go/models`; YAMNet installs to
   `models/yamnet-v1/`
 
-## YAMNet on the Pi: measured, and currently routed OFF
+## YAMNet on the Pi: live and measured
 
 Installed 2026-09-20 through the model gallery, which exercised
 `CatalogEntry.BaseURL` against the GitHub mirror end to end - both files
@@ -189,7 +189,7 @@ not fit was unfounded.
 It classifies correctly on real audio: `speech` 0.98, `animal` 0.89,
 `turkey` 0.80, `silence` 0.80, `chicken_and_rooster` 0.67.
 
-**But YAMNet is currently not fed any audio, deliberately.** See below.
+**YAMNet is live**, reporting only the classes the event taxonomy maps.
 
 ### Enabling a model does not route audio to it
 
@@ -206,42 +206,57 @@ warning, because by the system's own reckoning nothing was wrong.
 **How to tell:** `/api/v2/system/inference` reports `sources: []` against the
 model. That is the only place this is visible.
 
-### YAMNet plus the privacy filter discards almost everything
+### YAMNet and the privacy filter: resolved
 
-With YAMNet routed, detections stopped entirely - including BirdNET's birds.
-The cause is an interaction, not a bug in either part:
+Routing YAMNet in initially stopped detections entirely, including BirdNET's
+birds. The cause was an interaction, not a bug in either part:
 
-- YAMNet is genuinely good at recognising speech (0.98 on real speech).
-- `realtime.privacyfilter.confidence` is **0.05**, calibrated for BirdNET's weak
-  non-species `Human` label, which scores ~0.06 on ambient noise.
+- YAMNet recognises speech well (0.98 on real speech).
+- `realtime.privacyfilter.confidence` was **0.05**, calibrated for BirdNET's
+  weak non-species `Human` label, which scores ~0.06 on ambient noise.
 - A privacy hit discards every detection in that window, for every model.
 
-Measured either side of routing YAMNet in:
+Measured either side of routing YAMNet in at the old threshold:
 
 | | Duration | Triggers | Above 0.5 |
 |---|---|---|---|
 | Before | 11 hours | 1440 | 3.5% |
 | After | 17 minutes | 669 | 41% |
 
-An 18x increase in trigger rate. The high values (0.918, 0.801, 0.891) are
-exactly YAMNet's 1/256 quantisation steps, so the attribution is not in doubt.
 52 rainbow lorikeet, 21 common myna and 13 little wattlebird detections were
 discarded in 17 minutes.
 
-The filter was already over-sensitive before YAMNet - 1440 triggers overnight -
-so this made a pre-existing problem acute rather than creating it.
+**Resolved by raising the threshold to 0.7**, on the operator's decision. This
+works *because* YAMNet is accurate: real speech (0.98) is filtered, ambient
+noise (<0.1) is not. Verified afterwards - 8 triggers in 5 minutes, max 0.969,
+and no birds discarded. At 0.05 the filter fired on everything, which protected
+nothing and destroyed the data too.
 
-**Currently reverted:** `yamnet` removed from the source's `models` list, which
-restored normal detection within three minutes (zero discards since). The model
-stays installed and in `models.enabled`. No setting of the operator's was
-changed; this undid only the fork's own routing edit.
+**The non-obvious part:** filtering YAMNet down to the event taxonomy removes
+speech, and the privacy and dog-bark filters can only act on results the adapter
+hands them. That would have silently undone the protection the raised threshold
+depends on. The adapter therefore reports the taxonomy's classes *plus* anything
+`vocalization.IsHuman` or `IsDog` recognises. It costs nothing in stored rows: a
+speech hit discards the whole window, so the speech result goes with it.
 
-**The fix is the operator's call, because it is a privacy setting.** The
-recommendation is to raise `privacyfilter.confidence` to around 0.7: with an
-accurate speech detector, a high threshold filters real speech (0.98) and
-ignores ambient noise (<0.1), which is better privacy protection *and* keeps the
-bird data. At 0.05 the filter fires on everything, which protects nothing and
-destroys the detections.
+### What a clean run looks like
+
+After the taxonomy filter, the model-type fix and the privacy exception
+(2026-09-20, build 69f129d4):
+
+- 5 minutes, 9 detections, **all genuine birds**, zero junk labels. The previous
+  build wrote 68 rows of `bird`, `animals`, `insect` and `whistling` in 20
+  minutes.
+- Privacy filter still receiving YAMNet's speech signal (max trigger 0.969,
+  which BirdNET's label never reaches).
+- `/api/v2/soundnet/detections` returns 0, correctly: no aircraft, siren or
+  impulsive event has occurred. **YAMNet is now silent unless something in the
+  taxonomy actually happens**, which is the intended behaviour and makes an
+  empty result uninformative rather than alarming.
+
+Still untested in production: the ADS-B enrichment path, which needs a real
+overflight, and the model-type fix, which needs a YAMNet detection to be stored.
+
 
 ## Immediately resumable work
 
