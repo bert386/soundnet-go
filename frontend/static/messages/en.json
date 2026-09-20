@@ -1030,7 +1030,11 @@
       "fetchFailed": "Failed to fetch detections"
     },
     "resolvedDomain": "identified as {{domain}}",
-    "resolvedDomainHint": "The class name describes the sound. An external source identified what was actually there, and it belongs to a different category - open the detection for the details."
+    "resolvedDomainHint": "The class name describes the sound. An external source identified what was actually there, and it belongs to a different category - open the detection for the details.",
+    "pass": {
+      "expand": "+{{count}} more from this pass",
+      "collapse": "show as one pass"
+    }
   },
   "species": {
     "rarity": {

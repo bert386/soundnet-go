@@ -74,3 +74,24 @@ func TestResolvedDomainsSurvivesAnUnreadablePayload(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, map[uint]string{701: "aircraft"}, got)
 }
+
+// The identity is what makes pass-grouping a fact rather than a guess about
+// timing: two detections naming the same aircraft are the same source heard
+// twice, and when identity contradicts the timing it is identity that is right.
+func TestEnrichmentSummariesCarriesTheIdentity(t *testing.T) {
+	t.Parallel()
+	s := newStore(t)
+
+	putADSB(t, s, 1237, "aircraft") // resolved, and names 7c617e
+	putADSB(t, s, 1225, "")         // identified but not a correction
+
+	got, err := s.EnrichmentSummaries([]uint{1225, 1237})
+	require.NoError(t, err)
+
+	assert.Equal(t, "7c617e", got[1237].Identity)
+	assert.Equal(t, "aircraft", got[1237].ResolvedDomain)
+
+	assert.Equal(t, "7c617e", got[1225].Identity,
+		"a detection whose domain needed no correction is still identified, and still groups")
+	assert.Empty(t, got[1225].ResolvedDomain)
+}

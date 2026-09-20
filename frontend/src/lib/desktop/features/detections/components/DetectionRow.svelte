@@ -67,6 +67,15 @@
     onToggleSpecies?: () => void;
     onToggleLock?: () => void;
     onDelete?: () => void;
+    /**
+     * SOUNDNET: how many detections belong to this row's pass, when more than
+     * one. One aeroplane crossing the sky produces three to six rows over half
+     * a minute under whatever class each model reached for; this row stands for
+     * all of them and the rest are hidden until expanded.
+     */
+    passCount?: number;
+    passExpanded?: boolean;
+    onTogglePass?: () => void;
   }
 
   let {
@@ -83,6 +92,9 @@
     onToggleSpecies,
     onToggleLock,
     onDelete,
+    passCount,
+    passExpanded = false,
+    onTogglePass,
   }: Props = $props();
 
   // Localized common name for display in the visitor's UI locale. Falls back to
@@ -282,6 +294,21 @@
           Aircraft - but on its own it reads as road traffic, and the operator
           would have to open every row to discover the aeroplane.
         -->
+        {#if passCount && passCount > 1}
+          <button
+            type="button"
+            class="btn btn-ghost btn-xs h-5 min-h-0 px-1.5 mt-0.5 font-normal opacity-70"
+            aria-expanded={passExpanded}
+            onclick={e => {
+              e.stopPropagation();
+              onTogglePass?.();
+            }}
+          >
+            {passExpanded
+              ? t('detections.pass.collapse')
+              : t('detections.pass.expand', { count: passCount - 1 })}
+          </button>
+        {/if}
         {#if detection.resolvedDomain}
           <span
             class="badge badge-warning badge-xs mt-0.5"

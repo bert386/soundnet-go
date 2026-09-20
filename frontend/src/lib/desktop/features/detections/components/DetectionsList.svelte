@@ -43,7 +43,8 @@
   import { t } from '$lib/i18n';
   import { auth } from '$lib/stores/auth';
   import { toastActions } from '$lib/stores/toast';
-  import type { DetectionSortBy, DetectionsListData } from '$lib/types/detection.types';
+  import type { Detection, DetectionSortBy, DetectionsListData } from '$lib/types/detection.types';
+  import { SvelteSet } from 'svelte/reactivity';
   import { fetchWithCSRF } from '$lib/utils/api';
   import { cn } from '$lib/utils/cn';
   import { loggers } from '$lib/utils/logger';
@@ -261,6 +262,72 @@
   onMount(() => {
     void hydrateExcludedSpecies();
   });
+
+  // SOUNDNET: collapse the several rows one flyby produces into a single entry.
+  //
+  // An aeroplane crossing the sky is audible for half a minute or so, and every
+  // three-second window in that time can produce a detection under whatever
+  // class the model reached for - Vehicle, Aircraft, Fixed-wing, even Thunder.
+  // The server groups them (see internal/eventpass) and marks each with the
+  // pass it belongs to; this shows one row per pass and keeps the rest one
+  // click away. Nothing is dropped: every row is still a model's opinion about
+  // a window, and the list is still the place to correct them.
+  let expandedPasses = $state(new SvelteSet<number>());
+
+  interface PassGroup {
+    members: Detection[];
+    representative: Detection;
+  }
+
+  const passes = $derived.by(() => {
+    const groups = new Map<number, Detection[]>();
+    for (const detection of data?.notes ?? []) {
+      if (!detection.passId) continue;
+      const members = groups.get(detection.passId);
+      if (members) members.push(detection);
+      else groups.set(detection.passId, [detection]);
+    }
+
+    const out = new Map<number, PassGroup>();
+    for (const [passId, members] of groups) {
+      if (members.length < 2) continue;
+      out.set(passId, { members, representative: chooseRepresentative(members) });
+    }
+    return out;
+  });
+
+  // The row that stands for the pass. A detection whose own class already names
+  // the right thing is preferred over one an authority had to correct: the
+  // loudest row in an aircraft pass is usually "Vehicle", and leading with it
+  // would keep showing an aeroplane as road traffic - the exact complaint this
+  // grouping came from. Confidence decides only among equals.
+  function chooseRepresentative(members: Detection[]): Detection {
+    const uncorrected = members.filter(d => !d.resolvedDomain);
+    const candidates = uncorrected.length > 0 ? uncorrected : members;
+    return candidates.reduce((best, d) => (d.confidence > best.confidence ? d : best));
+  }
+
+  const visibleNotes = $derived.by(() => {
+    const notes = data?.notes ?? [];
+    if (passes.size === 0) return notes;
+    return notes.filter(detection => {
+      const group = detection.passId ? passes.get(detection.passId) : undefined;
+      if (!group) return true;
+      return expandedPasses.has(detection.passId!) || group.representative.id === detection.id;
+    });
+  });
+
+  function passCountFor(detection: Detection): number | undefined {
+    const group = detection.passId ? passes.get(detection.passId) : undefined;
+    if (!group || group.representative.id !== detection.id) return undefined;
+    return group.members.length;
+  }
+
+  function togglePass(passId: number | undefined) {
+    if (!passId) return;
+    if (expandedPasses.has(passId)) expandedPasses.delete(passId);
+    else expandedPasses.add(passId);
+  }
 
   const pageIds = $derived((data?.notes ?? []).map(d => String(d.id)));
 
@@ -636,7 +703,7 @@
               </tr>
             </thead>
             <tbody class="divide-y divide-[var(--color-base-200)]">
-              {#each data.notes as detection (detection.id)}
+              {#each visibleNotes as detection (detection.id)}
                 <tr
                   class={cn(
                     selection.selectionActive &&
@@ -648,6 +715,9 @@
                 >
                   <DetectionRow
                     {detection}
+                    passCount={passCountFor(detection)}
+                    passExpanded={detection.passId ? expandedPasses.has(detection.passId) : false}
+                    onTogglePass={() => togglePass(detection.passId)}
                     {showRecordingColumn}
                     {onDetailsClick}
                     isExcluded={isSpeciesExcluded(detection.commonName)}
@@ -672,7 +742,7 @@
 
       <!-- Mobile: card layout (always mobile cards on small screens) -->
       <div class="md:hidden space-y-2">
-        {#each data.notes as detection (detection.id)}
+        {#each visibleNotes as detection (detection.id)}
           <DetectionCardMobile
             {detection}
             {onDetailsClick}

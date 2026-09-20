@@ -180,3 +180,45 @@ describe('DetectionRow resolved domain', () => {
     expect(screen.queryByTitle('detections.resolvedDomainHint')).not.toBeInTheDocument();
   });
 });
+
+// One aeroplane crossing the sky makes three to six rows over half a minute
+// under whatever class each model reached for. The list shows one of them and
+// offers the rest, rather than six entries that look like six aircraft.
+describe('DetectionRow pass grouping', () => {
+  it('offers the rest of the pass when this row stands for several', async () => {
+    const onTogglePass = vi.fn();
+    render(DetectionRow, {
+      props: {
+        detection: createMockDetection({ commonName: 'Aircraft', passId: 1866 }),
+        passCount: 6,
+        onTogglePass,
+      },
+    });
+
+    const button = screen.getByRole('button', { name: /detections\.pass\.expand/ });
+    expect(t).toHaveBeenCalledWith('detections.pass.expand', { count: 5 });
+
+    await fireEvent.click(button);
+    expect(onTogglePass).toHaveBeenCalledTimes(1);
+  });
+
+  it('offers to collapse again once expanded', () => {
+    render(DetectionRow, {
+      props: {
+        detection: createMockDetection({ passId: 1866 }),
+        passCount: 6,
+        passExpanded: true,
+      },
+    });
+
+    expect(screen.getByRole('button', { name: /detections\.pass\.collapse/ })).toBeInTheDocument();
+  });
+
+  // A pass of one is just a detection, and saying so would be noise on every
+  // row in the list.
+  it('says nothing for a detection that stands only for itself', () => {
+    render(DetectionRow, { props: { detection: createMockDetection(), passCount: 1 } });
+
+    expect(screen.queryByRole('button', { name: /detections\.pass\./ })).not.toBeInTheDocument();
+  });
+});

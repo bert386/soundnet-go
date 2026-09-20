@@ -29,6 +29,9 @@ export interface Detection {
   // when it differs from the one the class belongs to. AudioSet's Vehicle is the
   // parent class of Aircraft, so an airliner is recorded as road traffic.
   resolvedDomain?: string;
+  // SOUNDNET: the pass this detection belongs to. One aeroplane makes three to
+  // six rows over half a minute under different class names; they share this.
+  passId?: number;
   confidence: number;
   modelType?: string; // AI model type (e.g. 'bird', 'bat'); drives the spectrogram frequency range
   verified: 'correct' | 'false_positive' | 'unverified';

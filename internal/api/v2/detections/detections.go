@@ -189,6 +189,15 @@ type DetectionResponse struct {
 	// traffic, and without this the list shows a truck where ADS-B has already
 	// named the aeroplane.
 	ResolvedDomain string `json:"resolvedDomain,omitempty"`
+
+	// SOUNDNET: the pass this detection belongs to, when it shares one with
+	// others on the page.
+	//
+	// One aeroplane crossing the sky makes three to six rows over half a minute
+	// under whatever class names each model reached for. They are the same
+	// event, and the transponder proves it. The ID is the first detection's, so
+	// a client can group on it without being told how grouping works.
+	PassID uint `json:"passId,omitempty"`
 }
 
 // SourceInfo describes the audio source of a detection.
@@ -731,7 +740,7 @@ func (c *Handler) convertNotesToDetectionResponses(notes []datastore.Note, inclu
 	}
 
 	// SOUNDNET: one batch lookup for the whole page. See soundnet_resolved.go.
-	c.annotateResolvedDomains(detections)
+	c.annotateSoundNet(detections)
 
 	return detections
 }
