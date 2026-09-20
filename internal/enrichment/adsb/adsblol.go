@@ -63,8 +63,11 @@ func NewADSBLolClient() *ADSBLolClient {
 	}
 }
 
+// adsbLolSourceName is what adsb.lol is called in logs and stored provenance.
+const adsbLolSourceName = "adsb.lol"
+
 // Name identifies the source in logs.
-func (c *ADSBLolClient) Name() string { return "adsb.lol" }
+func (c *ADSBLolClient) Name() string { return adsbLolSourceName }
 
 // CreditsRemaining reports that this source does not meter access.
 //
@@ -170,6 +173,7 @@ func (a *adsbLolAircraft) toState() State {
 		VelocityMS:  a.GS * knotsToMetresS,
 		TrackDeg:    a.Track,
 		HasPosition: a.Lat != 0 || a.Lon != 0,
+		Source:      adsbLolSourceName,
 	}
 
 	baroFeet, onGround := decodeAltBaro(a.AltBaro)

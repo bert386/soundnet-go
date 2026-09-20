@@ -183,11 +183,22 @@ func (p *Provider) Resolve(ctx context.Context, req *enrichment.Request) (*enric
 
 	return &enrichment.Identity{
 		Provider:        "adsb",
-		Source:          "opensky",
+		Source:          stateSource(&best.state),
 		Confidence:      round2(confidence),
 		LagCorrectionMs: best.lag.Milliseconds(),
 		Attributes:      attrs,
 	}, nil
+}
+
+// stateSource is the service that reported a state, for the stored record.
+//
+// Falls back to OpenSky only for a state that does not say, which is a source
+// written before sources had names; every current client sets it.
+func stateSource(s *State) string {
+	if s.Source != "" {
+		return s.Source
+	}
+	return openSkySourceName
 }
 
 // attachMetadata enriches the attributes with aircraft and route detail.

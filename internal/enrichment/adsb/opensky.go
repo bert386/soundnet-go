@@ -40,6 +40,15 @@ type State struct {
 	// true height. Recording the source lets a questionable match be judged
 	// later rather than silently trusted.
 	AltitudeSource string
+
+	// Source names the service that reported this state.
+	//
+	// Added when a second source arrived, because the provider had been writing
+	// "opensky" into every identification as a literal - which became false the
+	// moment anything else could answer. Two networks see different aircraft
+	// with different coverage and latency, and a match that looks wrong later
+	// cannot be judged without knowing which one said it.
+	Source string
 }
 
 // AltitudeM returns the best available altitude, preferring geometric.
@@ -56,6 +65,9 @@ func (s *State) AltitudeM() float64 {
 type StateSource interface {
 	StatesInBox(ctx context.Context, latMin, lonMin, latMax, lonMax float64) ([]State, error)
 }
+
+// openSkySourceName is what OpenSky is called in logs and in stored provenance.
+const openSkySourceName = "opensky"
 
 // OpenSkyClient talks to the OpenSky Network REST API.
 type OpenSkyClient struct {
@@ -190,6 +202,10 @@ func NewOpenSkyClient(clientID, clientSecret string) *OpenSkyClient {
 		CreditFloor:  200,
 	}
 }
+
+// Name identifies this source in a fallback chain's logs, which otherwise could
+// only call it "source 1".
+func (c *OpenSkyClient) Name() string { return openSkySourceName }
 
 // CreditsRemaining reports the last known credit balance, and whether any
 // response has reported one yet.
@@ -379,6 +395,7 @@ func DecodeStates(body []byte) ([]State, error) {
 			ICAO24:   strings.TrimSpace(jsonString(row[idxICAO24])),
 			Callsign: strings.TrimSpace(jsonString(row[idxCallsign])),
 			OnGround: jsonBool(row[idxOnGround]),
+			Source:   openSkySourceName,
 		}
 		lon, lonOK := jsonFloat(row[idxLongitude])
 		lat, latOK := jsonFloat(row[idxLatitude])

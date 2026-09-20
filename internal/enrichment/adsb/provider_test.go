@@ -300,3 +300,24 @@ func TestClientRequiresCredentials(t *testing.T) {
 	// correction - the entire point - is impossible without credentials.
 	require.ErrorContains(t, err, "credentials")
 }
+
+// The provider wrote "opensky" into every identification as a literal, which
+// became false the moment a second source could answer. Two networks see
+// different aircraft with different latency, and a match that looks wrong later
+// cannot be judged without knowing which one said it.
+func TestResolveRecordsWhichSourceActuallyAnswered(t *testing.T) {
+	t.Parallel()
+
+	src := &fixtureSource{states: []adsb.State{{
+		ICAO24: "7c74ce", Callsign: "XCW", HasPosition: true,
+		Latitude: station.Latitude + 0.002, Longitude: station.Longitude,
+		GeoAltitudeM: 340, VelocityMS: 50, TrackDeg: 121, AltitudeSource: "geometric",
+		Source: "adsb.lol",
+	}}}
+	p := &adsb.Provider{Source: src, Config: adsb.DefaultConfig()}
+
+	got, err := p.Resolve(t.Context(), &enrichment.Request{Domain: "aircraft", Station: station})
+	require.NoError(t, err)
+	assert.Equal(t, "adsb.lol", got.Source,
+		"an identification made from adsb.lol data must not be stored as OpenSky's")
+}
