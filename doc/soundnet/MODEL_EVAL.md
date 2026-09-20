@@ -108,7 +108,59 @@ thread, fp32. The int8 model is 6.1 MB. A Pi 4 is perhaps 10-20x slower, which
 puts a 3-second window at roughly 150-300 ms against a budget where BirdNET
 already spends 191 ms. Affordable.
 
-## The one real obstacle
+## The fused export, and what it is verified against
+
+**Done 2026-09-20.** `ced_tiny_fused_single.onnx`, 22.8 MB, md5
+`16ac7af2972101d473679dd6ecbfc721`. Raw 3-second 16 kHz mono waveform in, 527
+AudioSet probabilities out, front-end inside the graph exactly as BirdNET v3 and
+BSG do it. Produced by `eval/export_ced_fused.py`.
+
+The front-end was never a guess in the end. CED's own repository ships
+`onnx_inference_with_torchaudio.py`, which states it exactly:
+
+    MelSpectrogram(f_min=0, sample_rate=16000, win_length=512, center=False,
+                   n_fft=512, f_max=8000, hop_length=160, n_mels=64)
+    AmplitudeToDB(top_db=120)
+
+That is **torchaudio, not kaldi fbank**. sherpa-onnx computes kaldi features in
+C++, so sherpa is an approximation of the training recipe and the fused graph is
+the recipe itself. Anyone inferring the front-end from sherpa - which is what
+writing it in Go would have meant - would have implemented the approximation.
+
+**Verified two ways, and the second is the one that matters.**
+
+Against sherpa-onnx on 3-second windows: top-1 agrees on 7 of 10, median
+absolute score difference 0.061 on the oracle's top class. Every disagreement is
+a near-tie between adjacent classes - Duck, Bird and Fowl within 0.07 of each
+other. That test cannot separate "the export is wrong" from "the two front-ends
+differ", so on its own it proves little.
+
+Against **PyTorch itself**, same weights and same front-end, twelve windows:
+
+    worst |torch - onnx| = 1.3e-06, argmax identical on every window
+
+float32 arithmetic noise. The export is faithful; the difference from sherpa is
+the kaldi approximation, not a defect.
+
+### Fixed length is the contract, not a limitation
+
+CED interpolates its positional embeddings from the input length, so tracing
+bakes the frame grid in and the graph is valid only at the window it was traced
+with. Feeding a 15-second clip to a 3-second graph fails with a broadcast error,
+which is at least loud rather than silent.
+
+Three seconds is what SoundNet wants anyway: it is BirdNET's window, shared so
+that a detection and its diagnostics describe the same audio, and YAMNet is
+already driven at a fixed 15600 samples for the same reason.
+
+## Prerequisite that was missing entirely
+
+ONNX Runtime was not on the station. The Pi carried only
+`libtensorflowlite_c.so`, so **no** ONNX model in the catalog could run there -
+Perch v2 and BirdNET v3.0 as much as CED. Fixed on 2026-09-20 with ORT 1.25.1
+aarch64 (19 MB) plus `birdnet.onnxruntimepath`; see STATE.md for the two traps.
+
+## The obstacle as it was, before the export
 
 CED's ONNX input is named `feats`: it takes a 64-band kaldi log-mel filterbank,
 **not** raw audio. sherpa-onnx computes that in C++ outside the graph.
@@ -135,9 +187,13 @@ The harness is in `doc/soundnet/eval/`. It drives the prebuilt
 `/api/v2/audio/{id}`, so it needs nothing installed and no model conversion -
 only the CLI tarball and the model tarball.
 
-    levels_birds.py   peak/RMS/crest across recent clips; sets the gain ceiling
-    ced_eval.py       CED against the operator's labels, raw clips
-    ced_capsweep.py   low-pass plus a swept normalisation cap
+    levels_birds.py       peak/RMS/crest across recent clips; sets the gain ceiling
+    ced_eval.py           CED against the operator's labels, raw clips
+    ced_lowpass.py        low-pass then normalise, both sides of the set
+    ced_capsweep.py       low-pass plus a swept normalisation cap
+    export_ced_fused.py   the fused export
+    verify_exact.py       fused ONNX against PyTorch - the correctness test
+    verify_3s.py          fused ONNX against sherpa-onnx, 3 s windows
 
 Python rather than Go on purpose: it is a measuring instrument, not part of
 the station, and it has to stay easy to point at the next model. Worth
