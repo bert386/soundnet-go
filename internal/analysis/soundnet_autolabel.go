@@ -301,9 +301,11 @@ func autoLabelDecisionLogger(log logger.Logger) func(*autolabel.Decision) {
 				logger.Float64("slant_m", d.SlantM),
 				logger.Int64("captures", captures),
 				logger.Int64("polls", polls))
-		case polls%autoLabelHeartbeatPolls == 0:
-			// A periodic line at info so a day of finding nothing is still
-			// visibly a day of looking.
+		case polls <= autoLabelOpeningPolls || polls%autoLabelHeartbeatPolls == 0:
+			// The opening polls are info, then hourly. Debug alone was not
+			// enough: the station runs at info, so the first version of this
+			// left an hour between starting and the first sign of life - which
+			// is the ambiguity it was written to remove.
 			log.Info("soundnet: auto-label collector still watching",
 				logger.Int64("polls", polls),
 				logger.Int64("captures", captures),
@@ -319,6 +321,11 @@ func autoLabelDecisionLogger(log logger.Logger) func(*autolabel.Decision) {
 // autoLabelHeartbeatPolls is how many polls pass between info lines. At the
 // default one-minute interval that is roughly hourly.
 const autoLabelHeartbeatPolls = 60
+
+// autoLabelOpeningPolls is how many polls are reported at info on startup, so
+// an operator can tell within a few minutes that the collector is alive and
+// what it is deciding.
+const autoLabelOpeningPolls = 3
 
 // autoLabelConfig translates the settings into the collector's own config.
 func autoLabelConfig(s *conf.AutoLabelSettings) autolabel.Config {
