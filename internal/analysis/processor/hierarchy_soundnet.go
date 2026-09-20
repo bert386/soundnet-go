@@ -95,7 +95,13 @@ func (p *Processor) soundNetPreferSpecific(settings *conf.Settings, item classif
 		if sci == "" || common == "" {
 			return false
 		}
-		return r.Confidence > p.getBaseConfidenceThreshold(settings, common, sci, item.ModelID)
+		// storedConfidenceThreshold, not getBaseConfidenceThreshold: the latter
+		// includes the corroboration discount, and a candidate admitted by it is
+		// discarded at flush unless an authority vouches for it. Dropping the
+		// parent in favour of a child that then vanishes is exactly the loss
+		// this rule promises cannot happen - and it did happen, on the morning
+		// the API credits ran out and every candidate went unconfirmed.
+		return r.Confidence > p.storedConfidenceThreshold(settings, common, sci, item.ModelID)
 	})
 	if dropped := len(item.Results) - len(kept); dropped > 0 {
 		reportSpecificPreferred(dropped, item.ModelID)

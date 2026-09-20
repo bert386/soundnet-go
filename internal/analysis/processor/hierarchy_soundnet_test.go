@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/bert386/soundnet-go/internal/classifier"
+	"github.com/bert386/soundnet-go/internal/conf"
 	"github.com/bert386/soundnet-go/internal/datastore"
 	"github.com/bert386/soundnet-go/internal/eventclass"
 )
@@ -258,5 +259,39 @@ func TestPreferSpecificThrottlesTheLineNotTheCount(t *testing.T) {
 
 	if got := specificPreferred.Load() - before; got != 10 {
 		t.Fatalf("counted %d of 10 corrections; the throttle is eating the count", got)
+	}
+}
+
+// The distinction the hierarchy rule got wrong on its first morning.
+//
+// getBaseConfidenceThreshold includes the corroboration discount, so an
+// enrichable class is "admitted" at 0.15 and then discarded at flush unless an
+// authority vouches for it. The rule read that as "will be recorded" and
+// dropped the parent in favour of a child that then vanished - which is exactly
+// the loss the rule promises cannot happen. It happened live, on the morning the
+// API credits ran out and every candidate went unconfirmed.
+func TestStoredThresholdExcludesTheCorroborationDiscount(t *testing.T) {
+	t.Parallel()
+
+	settings := &conf.Settings{}
+	settings.BirdNET.Threshold = 0.7
+	settings.SoundNet = conf.DefaultSoundNetSettings()
+	settings.SoundNet.Enabled = true
+	settings.SoundNet.Enrichment.Enabled = true
+	settings.SoundNet.Enrichment.CorroborationThreshold = 0.15
+
+	p := &Processor{}
+
+	stored := p.storedConfidenceThreshold(settings, "Aircraft", "aircraft", classifier.RegistryIDCED)
+	base := p.getBaseConfidenceThreshold(settings, "Aircraft", "aircraft", classifier.RegistryIDCED)
+
+	if base != 0.15 {
+		t.Fatalf("base threshold %v, want the 0.15 corroboration floor for an enrichable class", base)
+	}
+	if stored != 0.7 {
+		t.Fatalf("stored threshold %v, want the undiscounted 0.7", stored)
+	}
+	if stored == base {
+		t.Fatal("the two thresholds are identical, so the rule cannot tell an admitted candidate from a kept detection")
 	}
 }

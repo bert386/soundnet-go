@@ -1415,6 +1415,24 @@ func (p *Processor) handleHumanDetection(settings *conf.Settings, item classifie
 // The modelID parameter selects which global threshold to use when no per-species config exists;
 // see modelGlobalConfidenceThreshold for the per-model selection rules.
 func (p *Processor) getBaseConfidenceThreshold(settings *conf.Settings, commonName, scientificName, modelID string) float32 {
+	threshold := p.storedConfidenceThreshold(settings, commonName, scientificName, modelID)
+
+	// SOUNDNET: admit candidates an authority might confirm. Returns the
+	// threshold unchanged unless corroboration is configured, and the candidates
+	// it lets through are discarded at flush time unless something independently
+	// vouches for them. See corroboration_soundnet.go.
+	return soundNetCandidateThreshold(settings, scientificName, commonName, threshold)
+}
+
+// storedConfidenceThreshold is the bar a detection must clear to be kept on its
+// own evidence, before corroboration is allowed to lower it.
+//
+// SOUNDNET: split out from getBaseConfidenceThreshold because the difference
+// matters to anything deciding what will actually survive. A corroboration
+// candidate clears the lowered bar and is still discarded at flush unless an
+// authority vouches for it, so treating "admitted" as "recorded" loses
+// detections whenever the authority is unavailable.
+func (p *Processor) storedConfidenceThreshold(settings *conf.Settings, commonName, scientificName, modelID string) float32 {
 	// Check if species has a custom threshold using both common and scientific name lookup
 	if config, exists := lookupSpeciesConfig(settings.Realtime.Species.Config, commonName, scientificName); exists {
 		if settings.Debug {
@@ -1433,13 +1451,7 @@ func (p *Processor) getBaseConfidenceThreshold(settings *conf.Settings, commonNa
 	// SOUNDNET: a per-domain or per-model threshold, when one is configured.
 	// Returns the threshold unchanged otherwise, and never applies to a label
 	// outside the event taxonomy. See thresholds_soundnet.go.
-	threshold = soundNetThresholdOverride(settings, scientificName, commonName, modelID, threshold)
-
-	// SOUNDNET: admit candidates an authority might confirm. Returns the
-	// threshold unchanged unless corroboration is configured, and the candidates
-	// it lets through are discarded at flush time unless something independently
-	// vouches for them. See corroboration_soundnet.go.
-	return soundNetCandidateThreshold(settings, scientificName, commonName, threshold)
+	return soundNetThresholdOverride(settings, scientificName, commonName, modelID, threshold)
 }
 
 // modelGlobalConfidenceThreshold returns the global confidence threshold applied
