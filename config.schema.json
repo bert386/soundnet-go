@@ -2528,6 +2528,9 @@
         },
         "autolabel": {
           "$ref": "#/$defs/AutoLabelSettings"
+        },
+        "thresholds": {
+          "$ref": "#/$defs/ThresholdSettings"
         }
       },
       "additionalProperties": false,
@@ -2762,6 +2765,27 @@
       "additionalProperties": false,
       "type": "object",
       "description": "TelemetrySettings contains settings for telemetry."
+    },
+    "ThresholdSettings": {
+      "properties": {
+        "models": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "type": "object",
+          "description": "Models maps a model's registry ID (\"YAMNet\", \"CED\") to the threshold its\ndetections must clear. Keys are matched case-insensitively, because viper\nlower-cases YAML keys while registry IDs are mixed case - an exact match\nwould silently never fire."
+        },
+        "domains": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "type": "object",
+          "description": "Domains maps an event domain (\"aircraft\", \"vehicle\", \"weather\") to the\nthreshold its classes must clear, whichever model heard them.\n\nThe more useful of the two: \"how confident must the station be before it\nrecords an aircraft\" is a question about aircraft, not about whichever\nmodel happened to be listening. Takes precedence over Models."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "ThresholdSettings sets detection thresholds that mean the same thing across models."
     },
     "Thumbnails": {
       "properties": {

@@ -23,6 +23,7 @@ type SoundNetSettings struct {
 	Diagnostics DiagnosticsSettings `yaml:"diagnostics" json:"diagnostics" mapstructure:"diagnostics"`
 	Enrichment  EnrichmentSettings  `yaml:"enrichment" json:"enrichment" mapstructure:"enrichment"`
 	AutoLabel   AutoLabelSettings   `yaml:"autolabel" json:"autoLabel" mapstructure:"autolabel"`
+	Thresholds  ThresholdSettings   `yaml:"thresholds" json:"thresholds" mapstructure:"thresholds"`
 }
 
 // StationSettings holds what upstream's location settings do not.
@@ -129,6 +130,32 @@ type ADSBSettings struct {
 	ResolveAircraftDetail bool `yaml:"resolveaircraftdetail" json:"resolveAircraftDetail" mapstructure:"resolveaircraftdetail"`
 }
 
+// ThresholdSettings sets detection thresholds that mean the same thing across
+// models.
+//
+// Every model but Bat, Perch and BirdNET v3 inherits `birdnet.threshold`. That
+// number was chosen for BirdNET's species head and does not transfer: YAMNet
+// emits a per-class sigmoid quantised to 1/256 and its aircraft classes top out
+// around 0.2 on this station's labelled clips, where CED reaches 0.5 on the same
+// audio. One number therefore sets three different sensitivities.
+//
+// Both maps default to empty, which leaves every threshold exactly as it was.
+type ThresholdSettings struct {
+	// Models maps a model's registry ID ("YAMNet", "CED") to the threshold its
+	// detections must clear. Keys are matched case-insensitively, because viper
+	// lower-cases YAML keys while registry IDs are mixed case - an exact match
+	// would silently never fire.
+	Models map[string]float64 `yaml:"models" json:"models" mapstructure:"models"`
+
+	// Domains maps an event domain ("aircraft", "vehicle", "weather") to the
+	// threshold its classes must clear, whichever model heard them.
+	//
+	// The more useful of the two: "how confident must the station be before it
+	// records an aircraft" is a question about aircraft, not about whichever
+	// model happened to be listening. Takes precedence over Models.
+	Domains map[string]float64 `yaml:"domains" json:"domains" mapstructure:"domains"`
+}
+
 // AutoLabelSettings controls the ADS-B auto-labelling collector.
 //
 // This is the enrichment path run backwards. Instead of hearing something and
@@ -215,6 +242,8 @@ func DefaultSoundNetSettings() SoundNetSettings {
 			Enabled:   false,
 			MaxClipMs: 5000,
 		},
+		// Empty: a threshold nobody set must not change.
+		Thresholds: ThresholdSettings{},
 		AutoLabel: AutoLabelSettings{
 			Enabled:   false,
 			CorpusDir: "corpus/aircraft",

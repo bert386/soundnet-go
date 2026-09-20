@@ -1430,6 +1430,11 @@ func (p *Processor) getBaseConfidenceThreshold(settings *conf.Settings, commonNa
 	// Fall back to the model-specific global threshold.
 	threshold := modelGlobalConfidenceThreshold(settings, modelID)
 
+	// SOUNDNET: a per-domain or per-model threshold, when one is configured.
+	// Returns the threshold unchanged otherwise, and never applies to a label
+	// outside the event taxonomy. See thresholds_soundnet.go.
+	threshold = soundNetThresholdOverride(settings, scientificName, commonName, modelID, threshold)
+
 	// SOUNDNET: admit candidates an authority might confirm. Returns the
 	// threshold unchanged unless corroboration is configured, and the candidates
 	// it lets through are discarded at flush time unless something independently

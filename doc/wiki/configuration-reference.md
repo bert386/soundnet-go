@@ -73,6 +73,8 @@ SoundNetSettings configures the SoundNet layers.
 | `soundnet.autolabel.peraircraftcooldownmin` | integer | PerAircraftCooldownMin stops one overflight being captured on every poll it spans, which would fill the corpus with near-duplicates of a single event and let a daily scheduled service dominate the training set. |
 | `soundnet.autolabel.maxcapturesperhour` | integer | MaxCapturesPerHour bounds disk growth and keeps a busy corridor from swamping the corpus in one afternoon. |
 | `soundnet.autolabel.creditreserve` | integer | CreditReserve is the API credit floor the collector stops at. Set higher than Enrichment.ADSB.CreditFloor on purpose: the two share one daily allowance, and the collector should run out first. It polls on a timer whether or not anything flew, whereas runtime enrichment only spends a credit when something was actually heard - so what remains is worth more to runtime. |
+| `soundnet.thresholds.models` | object | Models maps a model's registry ID ("YAMNet", "CED") to the threshold its detections must clear. Keys are matched case-insensitively, because viper lower-cases YAML keys while registry IDs are mixed case - an exact match would silently never fire. |
+| `soundnet.thresholds.domains` | object | Domains maps an event domain ("aircraft", "vehicle", "weather") to the threshold its classes must clear, whichever model heard them.  The more useful of the two: "how confident must the station be before it records an aircraft" is a question about aircraft, not about whichever model happened to be listening. Takes precedence over Models. |
 
 ## main
 
