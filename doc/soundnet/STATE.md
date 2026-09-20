@@ -22,7 +22,7 @@ ENVIRONMENT.md (machines, toolchain, operational gotchas).
 | | State |
 |---|---|
 | M0 project setup | **done**, merged to main |
-| M1 taxonomy + YAMNet | **done** - taxonomy, catalog entry, fetch route and inference adapter. Not yet installed on the Pi |
+| M1 taxonomy + YAMNet | **done** - taxonomy, catalog entry, fetch route, inference adapter. Installed and measured on the Pi (26 ms/window), but routed off pending a privacy-filter decision (see below) |
 | M2 detection records | **done** |
 | M3 DSP diagnostics | **done**, 24.8 ms/clip measured on the Pi against a 100 ms budget |
 | M5 enrichment / ADS-B | **done** including registration, type, operator and route |
@@ -80,20 +80,10 @@ and should never be hand-edited — a previous attempt to stamp a banner on the
 generated reference is what broke `TestSchemaUpToDate`.
 
 Everything else the fork adds is new files, which cannot conflict at all.
-
-Three upstream **test** files also carry a row each (9 lines), because their
-tables are exhaustive over the registry and catalog and a fork-added model has
-to declare itself in them:
-
-    internal/classifier/range_filter_compat_test.go           YAMNet: compat None
-    internal/classifier/model_registry_participation_test.go  YAMNet: participates false
-    internal/classifier/model_catalog_test.go                 acoustic-event category, 17 entries
-
-Every row is marked `SOUNDNET:` so a merge conflict is self-explaining.
-
-Everything else is new files. `ModelRegistry` and `EmbeddedCatalog` are
-package-level vars, so YAMNet registers from an `init()` in a new file with zero
-modified lines - use that pattern for future models.
+`ModelRegistry`, `EmbeddedCatalog`, `modelLoaders`, `conf.ValidAudioModels` and
+`nonbird.classes` are all package-level vars, so the fork extends them from an
+`init()` in a new file with zero modified lines - use that pattern for anything
+else that needs registering.
 
 ## Decisions that shaped the design
 
@@ -176,21 +166,82 @@ Config at `~/.config/birdnet-go/config.yaml`:
 - OpenSky credentials at `~/soundnet/opensky.json`, referenced by path
 - the running binary is `soundnet-go`, not `birdnet-go`. `pgrep birdnet-go`
   returns nothing and looks exactly like a dead service.
+- models dir is `~/.config/birdnet-go/models`; YAMNet installs to
+  `models/yamnet-v1/`
 
-**Field observation, 2026-09-20 06:30 local.** 316 detections recorded, **every
-one a bird species** (Willie-wagtail 103, Rainbow Lorikeet 50, Superb Fairywren
-44, Eurasian Blackbird 43, Little Wattlebird 43, then a tail). The
-`/api/v2/soundnet/detections` endpoint returns `count: 0`.
+## YAMNet on the Pi: measured, and currently routed OFF
 
-That is the expected result, not a fault, and it is worth stating why so it is
-not re-diagnosed later. The only classifier running is BirdNET v2.4, whose label
-set is species plus a handful of weakly-trained non-bird labels; at the
-configured threshold of 0.7 those effectively never fire. Nothing non-bird has
-been classified, so the pipeline hook has had no diagnosable domain to act on
-and has correctly written nothing. **The config is not the problem** - range
-filter, elevation, diagnostics and enrichment are all on and correct. The
-missing piece is the YAMNet inference adapter. Until that exists this figure
-will stay at zero no matter how long the Pi runs.
+Installed 2026-09-20 through the model gallery, which exercised
+`CatalogEntry.BaseURL` against the GitHub mirror end to end - both files
+downloaded with checksums matching the pinned values exactly.
+
+**Performance is not a concern.** Measured over 73 analysis windows:
+
+| Model | Per-window inference | Frames per window |
+|---|---|---|
+| YAMNet | **26 ms** typical, 65 ms worst | 4 |
+| BirdNET v2.4 | 191 ms typical, 258 ms worst | 1 |
+
+Against a 100 ms budget, with four frames per window, on a Cortex-A72. Both
+models together use 426 MB RSS of 7.8 GB. The worry that a second model would
+not fit was unfounded.
+
+It classifies correctly on real audio: `speech` 0.98, `animal` 0.89,
+`turkey` 0.80, `silence` 0.80, `chicken_and_rooster` 0.67.
+
+**But YAMNet is currently not fed any audio, deliberately.** See below.
+
+### Enabling a model does not route audio to it
+
+`models.enabled` controls which models are **loaded**. Each audio source carries
+its own `models:` list naming what it actually **feeds**, and when present that
+list overrides the default target set:
+
+    realtime.audio.sources[].models: [birdnet]     # YAMNet gets nothing
+
+With only `models.enabled` set, YAMNet loaded, appeared in `/api/v2/models`,
+registered in the database, and received not one sample. Nothing logged a
+warning, because by the system's own reckoning nothing was wrong.
+
+**How to tell:** `/api/v2/system/inference` reports `sources: []` against the
+model. That is the only place this is visible.
+
+### YAMNet plus the privacy filter discards almost everything
+
+With YAMNet routed, detections stopped entirely - including BirdNET's birds.
+The cause is an interaction, not a bug in either part:
+
+- YAMNet is genuinely good at recognising speech (0.98 on real speech).
+- `realtime.privacyfilter.confidence` is **0.05**, calibrated for BirdNET's weak
+  non-species `Human` label, which scores ~0.06 on ambient noise.
+- A privacy hit discards every detection in that window, for every model.
+
+Measured either side of routing YAMNet in:
+
+| | Duration | Triggers | Above 0.5 |
+|---|---|---|---|
+| Before | 11 hours | 1440 | 3.5% |
+| After | 17 minutes | 669 | 41% |
+
+An 18x increase in trigger rate. The high values (0.918, 0.801, 0.891) are
+exactly YAMNet's 1/256 quantisation steps, so the attribution is not in doubt.
+52 rainbow lorikeet, 21 common myna and 13 little wattlebird detections were
+discarded in 17 minutes.
+
+The filter was already over-sensitive before YAMNet - 1440 triggers overnight -
+so this made a pre-existing problem acute rather than creating it.
+
+**Currently reverted:** `yamnet` removed from the source's `models` list, which
+restored normal detection within three minutes (zero discards since). The model
+stays installed and in `models.enabled`. No setting of the operator's was
+changed; this undid only the fork's own routing edit.
+
+**The fix is the operator's call, because it is a privacy setting.** The
+recommendation is to raise `privacyfilter.confidence` to around 0.7: with an
+accurate speech detector, a high threshold filters real speech (0.98) and
+ignores ambient noise (<0.1), which is better privacy protection *and* keeps the
+bird data. At 0.05 the filter fires on everything, which protects nothing and
+destroys the detections.
 
 ## Immediately resumable work
 

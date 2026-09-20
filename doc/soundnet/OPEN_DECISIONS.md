@@ -126,7 +126,92 @@ collected yet.
 
 ---
 
-## 4. SoundNet configuration is not bound to `config.yaml`
+## 4. The privacy filter and YAMNet cannot both stay as they are — NEEDS A DECISION
+
+**Blocks:** running YAMNet on the Pi at all. It is installed, enabled and
+measured, but deliberately not fed audio until this is settled.
+
+YAMNet is genuinely good at recognising speech (0.98 on real speech).
+`realtime.privacyfilter.confidence` is **0.05**, a threshold calibrated for
+BirdNET's weak non-species `Human` label, which scores ~0.06 on ambient noise. A
+privacy hit discards every detection in that window, for every model. Together
+they discard nearly everything:
+
+| | Duration | Triggers | Above 0.5 |
+|---|---|---|---|
+| Before YAMNet was routed | 11 hours | 1440 | 3.5% |
+| After | 17 minutes | 669 | 41% |
+
+An 18x increase. In those 17 minutes, 52 rainbow lorikeet, 21 common myna and 13
+little wattlebird detections were discarded. The high-confidence triggers land on
+YAMNet's 1/256 quantisation steps (0.918, 0.801, 0.891), so the attribution is
+not in doubt.
+
+The filter was already over-sensitive before YAMNet — 1440 triggers overnight —
+so this made a pre-existing problem acute rather than creating it.
+
+Options:
+
+1. **Raise `privacyfilter.confidence` to ~0.7.** With an accurate speech
+   detector a high threshold filters real speech (0.98) and ignores ambient
+   noise (<0.1). This is *better* privacy protection than 0.05 gives, and it
+   keeps the bird data.
+2. **Exclude YAMNet from feeding the privacy filter.** Keeps the old behaviour
+   exactly, but throws away the better speech signal, and the filter stays as
+   over-sensitive as it already was.
+3. **Per-model privacy thresholds.** Correct in the long run and more code;
+   `modelGlobalConfidenceThreshold` already has this shape for detection
+   thresholds and has no YAMNet case either.
+
+**Recommended: (1)**, and it is the operator's call because it is a privacy
+setting — not something this fork should change on their behalf. (3) is worth
+doing afterwards regardless, since YAMNet currently inherits BirdNET's detection
+threshold too, and those two numbers do not mean the same thing.
+
+---
+
+## 5. YAMNet's multi-word labels are mangled for display — NEEDS A DECISION
+
+**Blocks:** nothing yet, but it should be settled before YAMNet writes real
+detections, because it affects what is stored.
+
+`SplitSpeciesName` treats `_` as the scientific/common separator, so a
+normalised AudioSet label splits wrongly:
+
+    chicken_and_rooster  ->  scientific "chicken", common "and"
+    wild_animals         ->  scientific "wild",    common "animals"
+    jet_engine           ->  scientific "jet",     common "engine"
+
+Observed in production: `'and'` appeared as a stored common name four times.
+
+The tension is real. `Species` and `RawLabel` are the same string (the processor
+sets `RawLabel: r.Species`), and that string has to do two incompatible jobs:
+match `nonbird.classes` keys in normalised snake_case so the detection is
+categorised as non-bird rather than filed as a bird species, *and* split into a
+sensible display name.
+
+Perch has the identical artefact (`chirp_and_tweet` -> common "and"), so this is
+upstream's convention rather than something the fork introduced — and
+`nonbird.IsNonBirdName` exists specifically to cope with first-token truncation,
+which suggests upstream knows and accepts it.
+
+Options:
+
+1. **Accept it**, matching Perch. Zero work, ugly display names for ~half the
+   mapped classes.
+2. **Give the display layer an AudioSet lookup**, keyed on the raw label, so the
+   UI shows "Chicken, rooster" while storage keeps `chicken_and_rooster`. The
+   taxonomy already holds the exact display names.
+3. **Change the separator convention** so labels survive the split. Diverges
+   from upstream and touches storage; not worth it.
+
+**Recommended: (2).** It fixes what the operator sees without changing what is
+stored or how it is categorised, and the data needed is already in
+`internal/eventclass`.
+
+---
+
+## 6. SoundNet configuration is not bound to `config.yaml`
 
 **Blocks:** turning the diagnostics and enrichment layers on without a code
 change. The pipeline hook is in place and inert; `ConfigureSoundNet` installs the
@@ -142,7 +227,7 @@ station part already has a validated type ready to bind to
 
 ---
 
-## 5. OpenSky credentials are in a local file, not configuration
+## 7. OpenSky credentials are in a local file, not configuration
 
 Currently read from `secrets/opensky-credentials.json` outside the repository.
 That is correct for development, but the running service needs a defined
@@ -150,11 +235,11 @@ location.
 
 **Recommended:** a config key holding a *path* or an environment variable name,
 never the secret itself, so credentials stay out of any versioned file and out
-of support dumps. Depends on item 4.
+of support dumps. Depends on item 6.
 
 ---
 
-## 6. Station coordinates are recorded but not yet operator-editable
+## 8. Station coordinates are recorded but not yet operator-editable
 
 Latitude, longitude and elevation are supplied and used as the development
 fixture. `StationConfig` validates operator input, including DMS and decimal
@@ -166,7 +251,7 @@ interface.
 
 ---
 
-## 7. Aircraft type and registration depend on a third-party service
+## 9. Aircraft type and registration depend on a third-party service
 
 Resolved through adsbdb.com, which is free and unauthenticated. It works, is
 cached, and a failure never costs the identification.
@@ -179,7 +264,7 @@ safely.
 
 ---
 
-## 8. Not yet started
+## 10. Not yet started
 
 For completeness, so the status is not overstated. STATE.md holds the
 authoritative milestone table; this list is what remains untouched or partial:
