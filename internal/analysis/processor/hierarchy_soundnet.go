@@ -20,12 +20,23 @@ package processor
 //	at all - including a clip of a large truck, where `Vehicle` reaches 0.693
 //	and the best aircraft class 0.055.
 //
-// The separator is the child's own threshold, not the ratio. The ratio is kept
-// anyway, at a value with an order of magnitude of headroom over every measured
-// positive, because the corpus contains no example of the case it guards -
-// something genuinely a road vehicle that also weakly excites an aircraft class
-// - and a parameter that costs two windows out of thirty-seven is cheap
-// insurance against a case the evidence is silent on.
+// The separator is the child's own threshold, not the ratio: no negative window
+// reached 0.15 on any aircraft class. The ratio is kept as a guard against the
+// case the labelled corpus has only one example of - something genuinely a road
+// vehicle that also weakly excites an aircraft class - and set from both
+// datasets rather than one.
+//
+// The first value shipped, 0.5, came from the labelled clips alone, where true
+// aircraft windows ran 0.78 to 0.98 of their parent. It was too high. A jet
+// recorded the same evening and confirmed by ADS-B
+// (doc/soundnet/eval/thunder_ratio.py) ran 0.35 to 0.82 with a median near
+// 0.52, so half its windows were refused a correction the transponder then
+// made anyway. The labelled set was not wrong, it was narrow: twelve clips
+// chosen because a person could hear the aircraft in them.
+//
+// 0.25 is set between the two things actually measured: the truck, whose best
+// aircraft class reached 0.055 against Vehicle 0.693 - a ratio of 0.08 - and
+// the lowest confirmed aircraft window at 0.35.
 
 import (
 	"github.com/bert386/soundnet-go/internal/classifier"
@@ -37,7 +48,17 @@ import (
 // soundNetSpecificRatio is how strong a child class must be relative to the
 // parent before the parent is dropped. See the file comment for what it is
 // measured against and why it is not zero.
-const soundNetSpecificRatio = 0.5
+const soundNetSpecificRatio = 0.25
+
+// Known limit, found on the station rather than in the sweep: this compares
+// results within one model's chunk, and the two readings of a sound are not
+// always in the same model's. The Thunder and Thunderstorm rows at this station
+// are YAMNet's, scoring 0.74 to 0.89, while CED - which hears the same audio -
+// puts Thunderstorm at 0.000 and the aircraft classes at 0.15 to 0.38. No
+// within-model rule can reconcile those two, because neither model holds both
+// halves. ADS-B corroboration already resolves the domain for exactly these
+// detections, so the row is correct even when its class name is not; carrying
+// results between models would be a larger change than that is worth today.
 
 // soundNetEventModel reports whether a model emits the AudioSet event taxonomy,
 // and therefore whether its results can contain a parent/child pair at all.

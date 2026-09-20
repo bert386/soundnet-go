@@ -192,3 +192,43 @@ func TestPreferSpecificTestLabelsResolveAsAssumed(t *testing.T) {
 		t.Error("Helicopter determines its own domain; the unambiguous test assumes so")
 	}
 }
+
+// The ratio sits between the two things that were actually measured, and it is
+// worth failing loudly if either anchor is crossed by a later tweak.
+//
+//	0.08 - the truck clip, best aircraft class 0.055 against Vehicle 0.693
+//	0.35 - the lowest window of a jet confirmed overhead by ADS-B
+func TestPreferSpecificRatioSitsBetweenTheMeasuredAnchors(t *testing.T) {
+	t.Parallel()
+
+	const (
+		loudestFalseAircraftRatio = 0.08
+		faintestRealAircraftRatio = 0.35
+	)
+
+	if soundNetSpecificRatio <= loudestFalseAircraftRatio {
+		t.Fatalf("ratio %v does not clear the truck at %v; a road vehicle would be relabelled an aircraft",
+			soundNetSpecificRatio, loudestFalseAircraftRatio)
+	}
+	if soundNetSpecificRatio >= faintestRealAircraftRatio {
+		t.Fatalf("ratio %v is above the faintest confirmed aircraft at %v; real overflights would be refused",
+			soundNetSpecificRatio, faintestRealAircraftRatio)
+	}
+}
+
+// The window that made the first shipped ratio wrong: a confirmed jet whose
+// aircraft class reached 0.35 of Vehicle. At 0.5 this was refused.
+func TestPreferSpecificCorrectsAConfirmedJetAtTheLowEnd(t *testing.T) {
+	t.Parallel()
+
+	results := []datastore.Results{
+		{Species: "vehicle", Confidence: 0.432},
+		{Species: "aircraft", Confidence: 0.151},
+	}
+
+	got := soundNetPreferSpecificWith(results, classifier.RegistryIDCED, admitAbove(0.15))
+
+	if names := labels(got); len(names) != 1 || names[0] != "aircraft" {
+		t.Fatalf("got %v, want only aircraft", names)
+	}
+}

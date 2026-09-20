@@ -147,6 +147,14 @@ type Collector struct {
 	Capture Capturer
 	Corpus  CorpusWriter
 
+	// OnDecision, when set, is called with the outcome of every poll.
+	//
+	// The collector is otherwise completely silent: it writes a file when it
+	// captures and does nothing at all the rest of the time, so "no captures
+	// yet" and "never ran" look identical from outside. That is the exact
+	// failure this project has already had once, in the layer this one feeds.
+	OnDecision func(*Decision)
+
 	mu         sync.Mutex
 	lastSeen   map[string]time.Time
 	captureLog []time.Time
@@ -192,13 +200,25 @@ func (c *Collector) Run(ctx context.Context, station enrichment.Station) error {
 		case <-ctx.Done():
 			return ctx.Err()
 		case <-ticker.C:
-			if _, err := c.Poll(ctx, station); err != nil {
+			decision, err := c.Poll(ctx, station)
+			if err != nil {
 				// A failed poll is not fatal: the sky will still be there next
 				// time, and stopping the collector over one network error would
-				// silently end data collection for the day.
+				// silently end data collection for the day. Reported, though,
+				// because a collector failing every poll for a day looks exactly
+				// like a quiet sky.
+				c.report(&Decision{Skipped: "poll failed: " + err.Error()})
 				continue
 			}
+			c.report(decision)
 		}
+	}
+}
+
+// report hands a decision to the observer, if there is one.
+func (c *Collector) report(d *Decision) {
+	if c.OnDecision != nil && d != nil {
+		c.OnDecision(d)
 	}
 }
 

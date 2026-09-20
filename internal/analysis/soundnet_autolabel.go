@@ -258,6 +258,7 @@ func startSoundNetAutoLabel(settings *conf.Settings, mgr *buffer.Manager, source
 		bufferCapturer{mgr: mgr, sourceID: sourceID},
 		&autolabel.FileCorpus{Root: conf.GetBasePath(corpusDir)},
 	)
+	collector.OnDecision = autoLabelDecisionLogger(log)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	wg.Go(func() {
@@ -279,6 +280,45 @@ func startSoundNetAutoLabel(settings *conf.Settings, mgr *buffer.Manager, source
 		logger.Int("poll_interval_s", cfg.AutoLabel.PollIntervalSec),
 		logger.Int("credit_reserve", cfg.AutoLabel.CreditReserve))
 }
+
+// autoLabelDecisionLogger reports what the collector did with each poll.
+//
+// A capture is worth an info line: it is a new training example and there are at
+// most twenty an hour. A refusal is debug, because there is one a minute and
+// most of them say the same thing - nothing was close enough. But they are
+// logged at all, and counted, because the two states that matter most to an
+// operator are indistinguishable without them: a collector that is running and
+// finding nothing, and a collector that is not running.
+func autoLabelDecisionLogger(log logger.Logger) func(*autolabel.Decision) {
+	var polls, captures int64
+	return func(d *autolabel.Decision) {
+		polls++
+		switch {
+		case d.Captured:
+			captures++
+			log.Info("soundnet: captured a labelled overflight",
+				logger.String("icao24", d.ICAO24),
+				logger.Float64("slant_m", d.SlantM),
+				logger.Int64("captures", captures),
+				logger.Int64("polls", polls))
+		case polls%autoLabelHeartbeatPolls == 0:
+			// A periodic line at info so a day of finding nothing is still
+			// visibly a day of looking.
+			log.Info("soundnet: auto-label collector still watching",
+				logger.Int64("polls", polls),
+				logger.Int64("captures", captures),
+				logger.String("last_reason", d.Skipped))
+		default:
+			log.Debug("soundnet: no capture this poll",
+				logger.String("reason", d.Skipped),
+				logger.String("icao24", d.ICAO24))
+		}
+	}
+}
+
+// autoLabelHeartbeatPolls is how many polls pass between info lines. At the
+// default one-minute interval that is roughly hourly.
+const autoLabelHeartbeatPolls = 60
 
 // autoLabelConfig translates the settings into the collector's own config.
 func autoLabelConfig(s *conf.AutoLabelSettings) autolabel.Config {

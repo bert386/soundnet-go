@@ -271,3 +271,36 @@ func TestAwkwardTypeStringsBecomeSafePaths(t *testing.T) {
 	_, err = os.Stat(path)
 	require.NoError(t, err)
 }
+
+// Without this the collector is invisible: it writes a file when it captures
+// and does nothing at all otherwise, so "running and finding nothing" and
+// "never started" look identical from outside. That is the failure this project
+// has already had once, in the layer this one feeds.
+func TestRunReportsEveryDecision(t *testing.T) {
+	t.Parallel()
+
+	cfg := autolabel.DefaultConfig()
+	cfg.Enabled = true
+	cfg.PollInterval = time.Millisecond
+
+	c := autolabel.New(cfg, &fakeSky{}, nil, nil)
+	seen := make(chan *autolabel.Decision, 4)
+	c.OnDecision = func(d *autolabel.Decision) {
+		select {
+		case seen <- d:
+		default:
+		}
+	}
+
+	ctx, cancel := context.WithCancel(t.Context())
+	defer cancel()
+	go func() { _ = c.Run(ctx, station) }()
+
+	select {
+	case d := <-seen:
+		assert.False(t, d.Captured, "an empty sky reported a capture")
+		assert.NotEmpty(t, d.Skipped, "a refusal with no reason is the same as silence")
+	case <-time.After(5 * time.Second):
+		t.Fatal("the collector polled without reporting anything")
+	}
+}
