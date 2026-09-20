@@ -16,6 +16,7 @@ import (
 	"github.com/bert386/soundnet-go/internal/eventclass"
 	"github.com/bert386/soundnet-go/internal/inference"
 	"github.com/bert386/soundnet-go/internal/inference/tflite"
+	"github.com/bert386/soundnet-go/internal/labels/vocalization"
 	"github.com/bert386/soundnet-go/internal/logger"
 )
 
@@ -126,8 +127,32 @@ type YAMNet struct {
 // taxonomy documents as authoritative, and the label forms differ either side:
 // the taxonomy holds AudioSet display names ("Jet engine"), the adapter emits
 // the normalised storage form ("jet_engine").
-func reportable(numClasses int) []bool {
+func reportable(numClasses int, labels []string) []bool {
 	emit := make([]bool, numClasses)
+
+	// The deliberate exception: classes the privacy and dog-bark filters act on.
+	//
+	// Those filters work by inspecting results as they pass through the
+	// processor (handleHumanDetection / handleDogDetection), so a class the
+	// adapter withholds is a class they can never see. Filtering YAMNet down to
+	// the event taxonomy alone would therefore have silently weakened privacy
+	// protection: speech is not an "event" and is not in the taxonomy, but
+	// YAMNet recognises it at 0.98 where BirdNET's non-species Human label
+	// rarely passes 0.2, and that accuracy is exactly what makes a sane privacy
+	// threshold possible.
+	//
+	// Emitting them costs nothing in stored rows. A speech hit makes the privacy
+	// filter discard the whole window, so the speech result is dropped along
+	// with everything else in it.
+	for i, label := range labels {
+		if i >= numClasses {
+			break
+		}
+		if vocalization.IsHuman(label) || vocalization.IsDog(label) {
+			emit[i] = true
+		}
+	}
+
 	for _, domain := range eventclass.AllDomains() {
 		for _, c := range eventclass.InDomain(domain) {
 			// A negative index is a classifier's own label (BirdNET's "Gun"),
@@ -208,7 +233,7 @@ func NewYAMNet(cfg *YAMNetConfig) (*YAMNet, error) {
 		info:       info,
 		frameBuf:   make([]float32, yamnetFrameSamples),
 		scoreBuf:   make([]float32, len(labels)),
-		emit:       reportable(len(labels)),
+		emit:       reportable(len(labels), labels),
 	}
 
 	reported := 0

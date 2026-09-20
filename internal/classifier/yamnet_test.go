@@ -9,6 +9,7 @@ import (
 	"github.com/bert386/soundnet-go/internal/conf"
 	"github.com/bert386/soundnet-go/internal/datastore/v2/entities"
 	"github.com/bert386/soundnet-go/internal/detection"
+	"github.com/bert386/soundnet-go/internal/labels/vocalization"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -326,7 +327,7 @@ func TestYAMNetBuildSaysSoWhenNotInstalled(t *testing.T) {
 // Indices below are read off the committed class map, not recalled.
 func TestOnlyTaxonomyClassesAreReported(t *testing.T) {
 	t.Parallel()
-	emit := reportable(yamnetClasses)
+	emit := reportable(yamnetClasses, testClassMapLabels(t))
 
 	count := 0
 	for _, ok := range emit {
@@ -347,7 +348,7 @@ func TestOnlyTaxonomyClassesAreReported(t *testing.T) {
 	// The exact classes that flooded the live run. Each is a real AudioSet class
 	// and a perfectly good classification; none is an event worth a detection row.
 	for name, idx := range map[string]int{
-		"Speech": 0, "Whistling": 35, "Animal": 67, "Bird": 106,
+		"Whistling": 35, "Animal": 67, "Bird": 106,
 		"Insect": 121, "Mosquito": 123, "Silence": 494,
 	} {
 		assert.Falsef(t, emit[idx], "%s (index %d) is not in the event taxonomy and must not be reported", name, idx)
@@ -359,8 +360,8 @@ func TestOnlyTaxonomyClassesAreReported(t *testing.T) {
 // write, which is a bad way to find out the artefact changed.
 func TestReportableIsBoundsSafe(t *testing.T) {
 	t.Parallel()
-	assert.Len(t, reportable(10), 10, "a short class list must not panic or over-allocate")
-	assert.Empty(t, reportable(0), "zero classes yields no reportable classes")
+	assert.Len(t, reportable(10, nil), 10, "a short class list must not panic or over-allocate")
+	assert.Empty(t, reportable(0, nil), "zero classes yields no reportable classes")
 }
 
 // TestYAMNetIsNotFiledAsABird pins the model-type resolution.
@@ -378,4 +379,40 @@ func TestYAMNetIsNotFiledAsABird(t *testing.T) {
 		"YAMNet classifies acoustic events, not taxa; Multi is the no-default-taxonomic-class case")
 	assert.NotEqual(t, entities.ModelTypeBird, got,
 		"the bird default would store every acoustic event with the Aves taxonomic class")
+}
+
+// testClassMapLabels loads the normalised labels the adapter actually uses.
+func testClassMapLabels(t *testing.T) []string {
+	t.Helper()
+	labels, err := loadYAMNetClassMap(yamnetFixtureClassMap)
+	require.NoError(t, err)
+	return labels
+}
+
+// TestPrivacyRelevantClassesStayReported guards a regression that would have
+// been invisible: filtering YAMNet down to the event taxonomy alone removes
+// speech, and the privacy filter can only act on results it is handed.
+//
+// The consequence would have been silent. Detections would look fine, birds
+// would be kept, and human speech would quietly stop being filtered - the one
+// failure in this project where the cost falls on someone who never opted in.
+func TestPrivacyRelevantClassesStayReported(t *testing.T) {
+	t.Parallel()
+	labels := testClassMapLabels(t)
+	emit := reportable(yamnetClasses, labels)
+
+	// Speech is not in the event taxonomy and never will be; it is reported
+	// solely so the privacy filter can see it.
+	assert.True(t, emit[0], "speech (index 0) must be reported for the privacy filter")
+
+	// Whatever the vocalization package treats as human or dog must reach the
+	// processor, so the two filters behave the same for YAMNet as for BirdNET.
+	humanOrDog := 0
+	for i, label := range labels {
+		if vocalization.IsHuman(label) || vocalization.IsDog(label) {
+			humanOrDog++
+			assert.Truef(t, emit[i], "%q drives a filter and must be reported", label)
+		}
+	}
+	assert.Positive(t, humanOrDog, "the class map should contain human or dog classes")
 }
