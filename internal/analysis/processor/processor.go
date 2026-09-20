@@ -2212,6 +2212,17 @@ func (p *Processor) getDefaultActions(det *Detections) []Action {
 		sequentialActions = append(sequentialActions, mqttAction)
 	}
 
+	// SOUNDNET: attach diagnostics and external identity to the saved detection.
+	// It belongs in this sequence for the same reason SSE and MQTT do - it reads
+	// the database-assigned ID from detectionCtx - and last, so its DSP and its
+	// outbound lookup delay nothing a user is waiting on. All logic lives in
+	// internal/eventpipeline; this file's only job is to hand it a clip.
+	if databaseAction != nil {
+		if a := p.buildSoundNetAction(det, detectionCtx); a != nil {
+			sequentialActions = append(sequentialActions, a)
+		}
+	}
+
 	if len(sequentialActions) > 1 {
 		// Create composite action for sequential execution with shared context
 		compositeAction := &CompositeAction{
@@ -2267,15 +2278,6 @@ func (p *Processor) getDefaultActions(det *Detections) []Action {
 			Bn:       p.Bn,
 			Settings: settings,
 		})
-	}
-
-	// SOUNDNET: attach diagnostics and external identity once the detection has
-	// been saved. Returns nil unless SoundNet is configured, and the action never
-	// fails a detection. All logic lives in internal/eventpipeline; this file's
-	// only job is to hand it a clip. Single integration point - keep it to one
-	// call so upstream merges stay cheap.
-	if a := p.buildSoundNetAction(det, detectionCtx); a != nil {
-		actions = append(actions, a)
 	}
 
 	return actions
