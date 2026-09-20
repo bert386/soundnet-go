@@ -112,10 +112,12 @@ func NewCED(cfg *CEDConfig) (*CED, error) {
 			Build()
 	}
 
-	classifier, err := inference.NewONNXClassifier(cfg.ModelPath, inference.ONNXClassifierOptions{
-		Labels:  labels,
-		Threads: cfg.Threads,
-	})
+	// A session of our own rather than inference.NewONNXClassifier. That wraps
+	// upstream's species-classifier layer, which auto-detects a model against an
+	// exhaustive table of BirdNET and Perch geometries and rejects everything
+	// else - including this one, on the station, with "cannot detect model type:
+	// unrecognized model: -1 input samples, 1 outputs". See ced_session.go.
+	classifier, err := newCEDSession(cfg.ModelPath, cfg.Threads)
 	if err != nil {
 		return nil, errors.New(err).
 			Component("classifier.ced").
