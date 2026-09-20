@@ -232,3 +232,31 @@ func TestPreferSpecificCorrectsAConfirmedJetAtTheLowEnd(t *testing.T) {
 		t.Fatalf("got %v, want only aircraft", names)
 	}
 }
+
+// Not parallel: the counter is package state, and the point of the test is that
+// it accumulates. It asserts a delta rather than an absolute so it stays honest
+// if another test in this package ever exercises the rule.
+func TestPreferSpecificCountsEveryCorrection(t *testing.T) {
+	before := specificPreferred.Load()
+
+	reportSpecificPreferred(1, classifier.RegistryIDCED)
+	reportSpecificPreferred(2, classifier.RegistryIDCED)
+
+	if got := specificPreferred.Load() - before; got != 3 {
+		t.Fatalf("counted %d corrections, want 3; a rule nobody can count is a rule nobody can check", got)
+	}
+}
+
+// The throttle governs the log line, never the count. A pass-by produces a
+// correction every few seconds and the total must still be right afterwards.
+func TestPreferSpecificThrottlesTheLineNotTheCount(t *testing.T) {
+	before := specificPreferred.Load()
+
+	for range 10 {
+		reportSpecificPreferred(1, classifier.RegistryIDCED)
+	}
+
+	if got := specificPreferred.Load() - before; got != 10 {
+		t.Fatalf("counted %d of 10 corrections; the throttle is eating the count", got)
+	}
+}

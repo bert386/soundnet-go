@@ -258,7 +258,7 @@ func startSoundNetAutoLabel(settings *conf.Settings, mgr *buffer.Manager, source
 		bufferCapturer{mgr: mgr, sourceID: sourceID},
 		&autolabel.FileCorpus{Root: conf.GetBasePath(corpusDir)},
 	)
-	collector.OnDecision = autoLabelDecisionLogger(log)
+	collector.OnDecision = autoLabelDecisionLogger(log, sky)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	wg.Go(func() {
@@ -289,8 +289,20 @@ func startSoundNetAutoLabel(settings *conf.Settings, mgr *buffer.Manager, source
 // logged at all, and counted, because the two states that matter most to an
 // operator are indistinguishable without them: a collector that is running and
 // finding nothing, and a collector that is not running.
-func autoLabelDecisionLogger(log logger.Logger) func(*autolabel.Decision) {
+func autoLabelDecisionLogger(log logger.Logger, sky autolabel.SkyReader) func(*autolabel.Decision) {
 	var polls, captures int64
+	// The credit balance, which nothing recorded until it ran out. On the first
+	// night the collector spent its whole allowance in eight hours and stopped,
+	// and all that could be said afterwards was that 480 polls had been too
+	// many - the number it was too many *of* was never written down. The client
+	// learns the true balance from the rate-limit header on every response, so
+	// it costs nothing to report.
+	credits := func() logger.Field {
+		if n, known := sky.CreditsRemaining(); known {
+			return logger.Int64("credits_left", int64(n))
+		}
+		return logger.String("credits_left", "unknown")
+	}
 	return func(d *autolabel.Decision) {
 		polls++
 		switch {
@@ -300,7 +312,8 @@ func autoLabelDecisionLogger(log logger.Logger) func(*autolabel.Decision) {
 				logger.String("icao24", d.ICAO24),
 				logger.Float64("slant_m", d.SlantM),
 				logger.Int64("captures", captures),
-				logger.Int64("polls", polls))
+				logger.Int64("polls", polls),
+				credits())
 		case polls <= autoLabelOpeningPolls || polls%autoLabelHeartbeatPolls == 0:
 			// The opening polls are info, then hourly. Debug alone was not
 			// enough: the station runs at info, so the first version of this
@@ -309,7 +322,8 @@ func autoLabelDecisionLogger(log logger.Logger) func(*autolabel.Decision) {
 			log.Info("soundnet: auto-label collector still watching",
 				logger.Int64("polls", polls),
 				logger.Int64("captures", captures),
-				logger.String("last_reason", d.Skipped))
+				logger.String("last_reason", d.Skipped),
+				credits())
 		default:
 			log.Debug("soundnet: no capture this poll",
 				logger.String("reason", d.Skipped),

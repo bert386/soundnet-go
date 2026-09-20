@@ -39,10 +39,14 @@ package processor
 // the lowest confirmed aircraft window at 0.35.
 
 import (
+	"sync/atomic"
+	"time"
+
 	"github.com/bert386/soundnet-go/internal/classifier"
 	"github.com/bert386/soundnet-go/internal/conf"
 	"github.com/bert386/soundnet-go/internal/datastore"
 	"github.com/bert386/soundnet-go/internal/eventclass"
+	"github.com/bert386/soundnet-go/internal/logger"
 )
 
 // soundNetSpecificRatio is how strong a child class must be relative to the
@@ -83,7 +87,7 @@ func soundNetEventModel(modelID string) bool {
 //
 //nolint:gocritic // hugeParam: by value to match processResults and
 func (p *Processor) soundNetPreferSpecific(settings *conf.Settings, item classifier.Results) []datastore.Results {
-	return soundNetPreferSpecificWith(item.Results, item.ModelID, func(r datastore.Results) bool {
+	kept := soundNetPreferSpecificWith(item.Results, item.ModelID, func(r datastore.Results) bool {
 		// The real threshold, through the real parser. Deriving the names here
 		// instead would mean reimplementing a splitter this project has already
 		// got wrong once, in a place where being wrong is silent.
@@ -93,6 +97,42 @@ func (p *Processor) soundNetPreferSpecific(settings *conf.Settings, item classif
 		}
 		return r.Confidence > p.getBaseConfidenceThreshold(settings, common, sci, item.ModelID)
 	})
+	if dropped := len(item.Results) - len(kept); dropped > 0 {
+		reportSpecificPreferred(dropped, item.ModelID)
+	}
+	return kept
+}
+
+// specificPreferred counts corrections made since start, and lastPreferLog
+// throttles the line that reports them.
+var (
+	specificPreferred atomic.Int64
+	lastPreferLog     atomic.Int64
+)
+
+// preferLogInterval is the shortest gap between report lines. A pass-by
+// produces a correction every few seconds while it lasts, and a line each time
+// would bury everything else in the log.
+const preferLogInterval = 60 * time.Second
+
+// reportSpecificPreferred makes the rule visible.
+//
+// Shipped without this, and within a day it was impossible to say from outside
+// whether the rule had ever fired - the same failure as the collector's
+// debug-only decisions, one layer over. A rule that silently does nothing and a
+// rule that silently works look identical, and only one of them is worth having.
+func reportSpecificPreferred(dropped int, modelID string) {
+	total := specificPreferred.Add(int64(dropped))
+
+	now := time.Now().UnixNano()
+	last := lastPreferLog.Load()
+	if now-last < int64(preferLogInterval) || !lastPreferLog.CompareAndSwap(last, now) {
+		return
+	}
+	GetLogger().Info("soundnet: preferred the specific class over its parent",
+		logger.String("model_id", modelID),
+		logger.Int("this_chunk", dropped),
+		logger.Int64("total", total))
 }
 
 // soundNetPreferSpecificWith is the decision, separated from the processor so a
