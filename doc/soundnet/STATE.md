@@ -27,7 +27,7 @@ ENVIRONMENT.md (machines, toolchain, operational gotchas), GROUND_TRUTH.md
 | M2 detection records | **done** |
 | M3 DSP diagnostics | **done**, 24.8 ms/clip measured on the Pi against a 100 ms budget |
 | M5 enrichment / ADS-B | **done and proven live** - registration, type, operator, route; ambiguity resolution for `Vehicle`/`Engine`/`Thunder`; corroboration-gated thresholds |
-| M6 auto-label collector | **running on the station** since 2026-09-20 22:18, polling every 60 s, corpus empty so far (nothing has been close and low enough) |
+| M6 auto-label collector | **running and producing** - first two captures 2026-09-21, both RSCU208 (AW139) filed under `corpus/aircraft/A139`. Poll interval now 300 s: at 60 s it exhausted the API allowance in eight hours |
 | M7 web UI | detail panel, review queue, training export, confusion + threshold APIs, **event-domain filter (API + UI)**, **display names**, **resolved-domain correction in panel and list** done; tuner UI and live re-compute remain |
 | M4 sub-classification heads | **not started** - correctly last, it trains on M6's corpus |
 | M8 enriched alerts | **not started** |
@@ -532,12 +532,65 @@ labelled set is evidence about the clips in it. Here the fix was not to check
 the negatives - that had been done - but to notice that the positives were
 selected by audibility.
 
+## The first night, and the two things it broke
+
+**M6 works end to end.** Two captures on 2026-09-21, both the same aircraft -
+RSCU208, hex 7c617e, an AW139 rescue helicopter - at 1.6 km and 3.2 km slant,
+56 minutes apart, each a WAV and a JSON sidecar filed by ICAO type under
+`corpus/aircraft/A139/`. Sky to labelled corpus, unattended.
+
+**The credit reserve worked, and the allowance is small.** At a 60-second poll
+interval the collector made 480 polls and hit its 500-credit reserve by 06:27,
+about eight hours in. It stopped; runtime enrichment, floor 200, was still
+identifying aircraft at 07:06 on what was left. The ordering of the two floors
+is the whole mechanism and it held.
+
+What did not work was knowing any of this in numbers: the balance was never
+logged, so all that could be said afterwards was that 480 polls had been too
+many, never what they had been too many *of*. `credits_left` is now in the
+collector's heartbeat and capture lines. First reading, 07:51: **198** - below
+runtime's floor too, so ADS-B was withheld entirely until the daily reset at
+UTC midnight (10:00 AEST). Interval raised to 300 s as an interim measure; set
+it properly once a full day of `credits_left` exists.
+
+**The hierarchy rule had a real bug, and the station found it within the hour.**
+`getBaseConfidenceThreshold` includes the corroboration discount, so an
+enrichable class is admitted at 0.15 and then discarded at flush unless an
+authority vouches for it. The rule read that as "this child will be recorded",
+dropped the parent, and when corroboration failed both rows disappeared - a
+sound the station had detected becoming one it had not, which is exactly the
+guarantee the rule was written around. The comment claiming the guarantee, and
+the test pinning it, were wrong together: the test's fake did not model the
+difference between *admitted* and *kept*.
+
+It only surfaced because the credits ran out. Below the floor nothing can be
+confirmed, so every correction became a deletion and the event rows went from
+64 in the morning to none. `storedConfidenceThreshold` now stops before the
+discount and the rule asks that instead.
+
+Two lessons worth keeping. A guarantee asserted in a comment and a test is still
+only as good as what the test's fake models. And an external dependency running
+out is not an edge case for this station - it is a daily event at the current
+poll rate, so every rule that leans on corroboration needs to be correct when
+corroboration is unavailable.
+
+**The rule does fire.** Confirmed by its new counter: 12 corrections in the five
+minutes after the 07:46 restart, from both YAMNet and CED.
+
 ## Immediately resumable work
 
 Everything that was on this list on 2026-09-20 morning is done and running. What
 follows is what is left, ordered by value.
 
-**1. Watch the collector's first full day.** It is running and polling; nothing
+**1. Set the poll interval from the measured allowance.** `credits_left` is now
+reported; a full day of it says what the budget actually is and therefore how
+often the collector can afford to look. 300 s is a placeholder chosen because an
+aircraft is inside the 4 km capture radius for one to two minutes, so a
+five-minute poll certainly misses some. Worth reviewing the corroboration spend
+at the same time: runtime enrichment took the balance from 500 to 198 between
+06:27 and 07:51 on its own, so the collector is not the only heavy consumer.
+
+**1b. Watch the collector's first full day.** It is running and polling; nothing
 has yet been close enough and low enough to capture. Confirm the capture rate,
 how many polls are refused as ambiguous, and what a day costs in API credits -
 that last one has never been measured, and the collector spends a credit a
