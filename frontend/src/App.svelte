@@ -66,6 +66,8 @@
   let Settings = $state<Component | null>(null);
   let Notifications = $state<Component | null>(null);
   let Detections = $state<Component | null>(null);
+  // SOUNDNET: the non-bird side of the station. See EventsPage.svelte.
+  let EventsPage = $state<Component | null>(null);
   let DetectionDetail = $state<Component | null>(null);
   let ErrorPage = $state<Component | null>(null);
   let ServerErrorPage = $state<Component | null>(null);
@@ -198,6 +200,9 @@
       titleKey: 'navigation.detections',
       component: 'detections',
     },
+    // SOUNDNET: events, review and training export. The review queue and the
+    // export were both built and neither was reachable; this is the route.
+    { route: 'events', page: 'events', titleKey: 'soundnet.events.title', component: 'events' },
     {
       route: 'detection-detail',
       page: 'detection-detail',
@@ -371,6 +376,12 @@
             Detections = module.default;
           }
           break;
+        case 'events':
+          if (!EventsPage) {
+            const module = await import('./lib/desktop/features/soundnet/pages/EventsPage.svelte');
+            EventsPage = module.default;
+          }
+          break;
         case 'detection-detail':
           if (!DetectionDetail) {
             const module = await import('./lib/desktop/views/DetectionDetail.svelte');
@@ -466,6 +477,7 @@
     [uiPath('analytics', 'review')]: findRouteConfig('analytics-review'),
     [uiPath('search')]: findRouteConfig('search'),
     [uiPath('detections')]: findRouteConfig('detections'),
+    [uiPath('events')]: findRouteConfig('events'),
     [uiPath('about')]: findRouteConfig('about'),
     [uiPath('help')]: findRouteConfig('help'),
     [uiPath('help', 'report-bug')]: findRouteConfig('report-bug'),
@@ -825,6 +837,8 @@
       {@render renderRoute(Settings)}
     {:else if currentRoute === 'detections'}
       {@render renderRoute(Detections)}
+    {:else if currentRoute === 'events'}
+      {@render renderRoute(EventsPage)}
     {:else if currentRoute === 'detection-detail'}
       {#if DetectionDetail}
         {@const Component = DetectionDetail}

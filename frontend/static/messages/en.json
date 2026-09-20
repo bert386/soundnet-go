@@ -5838,6 +5838,15 @@
       "alarm": "Sirens & alarms",
       "rail": "Rail",
       "watercraft": "Watercraft"
+    },
+    "events": {
+      "title": "Events",
+      "intro": "Everything the station hears that is not a bird: aircraft, road vehicles, tools, weather, alarms.",
+      "browse": "Browse a category:",
+      "reviewHeading": "Review queue",
+      "reviewIntro": "Confirm, correct or reject unreviewed detections. A correction records what the sound actually was, which a comment cannot - only a correction becomes training data.",
+      "exportHeading": "Training export",
+      "exportIntro": "Turn confirmed and corrected detections into a labelled dataset."
     }
   }
 }
