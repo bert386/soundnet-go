@@ -135,7 +135,7 @@ func (a *Analyser) Process(ctx context.Context, in *Input) (*Result, error) {
 		return res, nil
 	}
 
-	class, _ := eventclass.Lookup(in.Label)
+	class, _ := eventclass.Resolve(in.Label)
 	res.Domain = class.Domain
 
 	var errs []error

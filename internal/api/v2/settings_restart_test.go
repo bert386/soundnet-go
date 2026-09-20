@@ -312,6 +312,12 @@ func TestHotReloadRestartFieldsCovered(t *testing.T) {
 		"BSG":                     "BSG model path; not wired",
 		"Realtime.Audio.Watchdog": "no UI controls (project decision)",
 		"LowMemory":               "startup-only memory policy; not exposed via the live settings API",
+		// SOUNDNET: initSoundNet captures a settings snapshot once at startup and
+		// the analyser holds it for its lifetime, so every field under SoundNet
+		// takes effect only on restart. Not wired to a detector yet, which means
+		// the settings UI will not prompt for one - a real gap, recorded here
+		// rather than papered over.
+		"SoundNet": "diagnostics and enrichment config read once by initSoundNet; not wired",
 	}
 
 	for path, entry := range hotReloadRegistry {

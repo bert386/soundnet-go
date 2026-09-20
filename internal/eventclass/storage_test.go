@@ -86,6 +86,64 @@ func TestFilterableDomainsExcludeTheUselessOnes(t *testing.T) {
 	assert.Contains(t, got, eventclass.DomainAircraft)
 }
 
+// TestResolveAcceptsEveryLabelForm guards the failure that silently disabled the
+// whole SoundNet pipeline for multi-word classes.
+//
+// Two confirmed propeller aircraft were stored under the truncated name
+// "propeller", looked up against the display name "Propeller, airscrew",
+// matched nothing, and resolved to DomainOther - which is diagnosable by
+// nothing and enrichable by nothing, so no diagnostics ran and ADS-B was never
+// called. Nothing errored; the detections just looked uninteresting.
+//
+// Single-word classes were unaffected, which is why "Thunderstorm" and
+// "Vehicle" worked and hid the bug.
+func TestResolveAcceptsEveryLabelForm(t *testing.T) {
+	t.Parallel()
+
+	for _, form := range []string{
+		"Propeller, airscrew",    // display name, as the taxonomy holds it
+		"propeller_and_airscrew", // raw label, as a classifier emits it
+		"propeller",              // truncated, as the datastore stores it
+		"  PROPELLER  ",          // and not case- or whitespace-fragile
+	} {
+		c, ok := eventclass.Resolve(form)
+		assert.Truef(t, ok, "Resolve(%q) should find a class", form)
+		assert.Equalf(t, eventclass.DomainAircraft, c.Domain,
+			"Resolve(%q) must land in the aircraft domain, or no diagnostics and no ADS-B run", form)
+	}
+
+	// The single-word cases that masked the bug must keep working.
+	for label, want := range map[string]eventclass.Domain{
+		"thunderstorm": eventclass.DomainWeather,
+		"vehicle":      eventclass.DomainVehicle,
+		"helicopter":   eventclass.DomainAircraft,
+	} {
+		c, ok := eventclass.Resolve(label)
+		assert.Truef(t, ok, "Resolve(%q) should find a class", label)
+		assert.Equalf(t, want, c.Domain, "domain for %q", label)
+	}
+
+	// An unknown label still resolves to Other rather than erroring.
+	c, ok := eventclass.Resolve("something nobody mapped")
+	assert.False(t, ok)
+	assert.Equal(t, eventclass.DomainOther, c.Domain)
+}
+
+// TestResolveIsDomainStableForTruncatedNames backs the claim Resolve relies on:
+// the truncated form is ambiguous between sibling classes but never between
+// domains, so the domain a caller acts on is always right.
+func TestResolveIsDomainStableForTruncatedNames(t *testing.T) {
+	t.Parallel()
+	for _, d := range eventclass.AllDomains() {
+		for _, name := range eventclass.StorageNames(d) {
+			c, ok := eventclass.Resolve(name)
+			assert.Truef(t, ok, "stored name %q should resolve", name)
+			assert.Equalf(t, d, c.Domain,
+				"stored name %q resolves to %q but belongs to %q", name, c.Domain, d)
+		}
+	}
+}
+
 func TestParseDomain(t *testing.T) {
 	t.Parallel()
 	for _, in := range []string{"aircraft", "Aircraft", " AIRCRAFT "} {

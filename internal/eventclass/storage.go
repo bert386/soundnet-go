@@ -50,8 +50,30 @@ func RawLabel(displayName string) string {
 	return strings.ToLower(strings.ReplaceAll(strings.Join(parts, "_and_"), " ", "_"))
 }
 
-// byRaw indexes the taxonomy by the raw label form, built once on first use.
-var byRawIndex map[string]Class
+// byRawIndex and byStorageIndex index the taxonomy by the other two label
+// forms. Built eagerly in init rather than on first use: Resolve is called from
+// the detection pipeline, and lazily filling a package-level map from there is
+// a data race the race detector rightly refuses. The maps are a few hundred
+// entries, so there is nothing to defer.
+var (
+	byRawIndex     map[string]Class
+	byStorageIndex map[string]Class
+)
+
+func init() {
+	byRawIndex = make(map[string]Class, len(audioSetClasses)+len(birdNETClasses))
+	byStorageIndex = make(map[string]Class, len(audioSetClasses)+len(birdNETClasses))
+	for _, c := range allClasses() {
+		byRawIndex[RawLabel(c.Label)] = c
+		// Keep the first class for a truncated name so the result is stable
+		// rather than dependent on table order changing under us.
+		if name := StorageName(c.Label); name != "" {
+			if _, dup := byStorageIndex[name]; !dup {
+				byStorageIndex[name] = c
+			}
+		}
+	}
+}
 
 // LookupRaw resolves a raw classifier label ("jet_engine") to its class.
 //
@@ -60,12 +82,6 @@ var byRawIndex map[string]Class
 // and in nonbird.classes - and a lookup that silently accepts only one of them
 // would fail exactly where it is most needed.
 func LookupRaw(rawLabel string) (Class, bool) {
-	if byRawIndex == nil {
-		byRawIndex = make(map[string]Class, len(audioSetClasses)+len(birdNETClasses))
-		for _, c := range allClasses() {
-			byRawIndex[RawLabel(c.Label)] = c
-		}
-	}
 	c, ok := byRawIndex[strings.ToLower(strings.TrimSpace(rawLabel))]
 	return c, ok
 }
@@ -90,6 +106,35 @@ func DisplayName(scientificName, commonName string) (name string, ok bool) {
 		return "", false
 	}
 	return c.Label, true
+}
+
+// Resolve finds a class from a label in whichever form the caller happens to
+// hold, trying the display name, the raw label, and the truncated stored name
+// in that order.
+//
+// This exists because three forms of the same label are in circulation and a
+// lookup that accepts only one of them fails silently - the class resolves to
+// DomainOther, which is diagnosable by nothing and enrichable by nothing, so
+// the whole SoundNet pipeline is skipped and the detection simply looks
+// uninteresting. That is exactly what happened to two confirmed propeller
+// aircraft: stored as "propeller", looked up against "propeller, airscrew",
+// matched nothing, and never reached ADS-B.
+//
+// The truncated form is ambiguous by construction ("aircraft" is both Aircraft
+// and Aircraft engine), which is tolerable because a test proves no truncated
+// name spans two domains - so the domain, which is what callers act on, is
+// always right even when the exact class is a coin toss between siblings.
+func Resolve(label string) (class Class, found bool) {
+	if c, ok := Lookup(label); ok {
+		return c, true
+	}
+	if c, ok := LookupRaw(label); ok {
+		return c, true
+	}
+	if c, ok := byStorageIndex[strings.ToLower(strings.TrimSpace(label))]; ok {
+		return c, true
+	}
+	return Class{Label: label, Domain: DomainOther, DefaultEnabled: false, AudioSetIndex: -1}, false
 }
 
 // StorageNames returns the stored names of a domain's default-enabled classes,

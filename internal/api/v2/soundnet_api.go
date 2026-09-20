@@ -159,7 +159,7 @@ func (c *Controller) GetSoundNetDetection(ctx echo.Context) error {
 
 	// Resolve the domain so the response can explain what was and was not run.
 	if label := c.soundNetLabelFor(detectionID); label != "" {
-		class, _ := eventclass.Lookup(label)
+		class, _ := eventclass.Resolve(label)
 		resp.Domain = string(class.Domain)
 		resp.Diagnosable = class.Domain.Diagnosable()
 		resp.Enrichable = class.Domain.Enrichable()

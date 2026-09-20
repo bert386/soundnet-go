@@ -7,8 +7,10 @@
 package main
 
 import (
+	"bytes"
 	"encoding/binary"
 	"encoding/csv"
+	"errors"
 	"fmt"
 	"math"
 	"os"
@@ -27,16 +29,23 @@ const (
 )
 
 func main() {
+	// run() owns the deferred interpreter teardown; main only decides the exit
+	// code, so os.Exit can never skip a Delete.
+	if err := run(); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+}
+
+func run() error {
 	if len(os.Args) < 4 {
-		fmt.Println("usage: clipscore <model.tflite> <class_map.csv> <clip.wav>...")
-		os.Exit(2)
+		return errors.New("usage: clipscore <model.tflite> <class_map.csv> <clip.wav> [clip.wav]")
 	}
 	labels := loadLabels(os.Args[2])
 
 	model := tflitelib.NewModelFromFile(os.Args[1])
 	if model == nil {
-		fmt.Println("failed to load model")
-		os.Exit(1)
+		return errors.New("failed to load model")
 	}
 	defer model.Delete()
 	opts := tflitelib.NewInterpreterOptions()
@@ -45,15 +54,22 @@ func main() {
 	interp := tflitelib.NewInterpreter(model, opts)
 	defer interp.Delete()
 	if interp.AllocateTensors() != tflitelib.OK {
-		fmt.Println("AllocateTensors failed")
-		os.Exit(1)
+		return errors.New("AllocateTensors failed")
 	}
 
 	for _, path := range os.Args[3:] {
 		scoreClip(interp, labels, path)
 	}
+	return nil
 }
 
+// scoreClip reads a clip, optionally preprocesses it, and prints what YAMNet
+// scored. Deliberately linear - read, resample, filter, normalise, frame,
+// score, print - because a diagnostic is easier to trust when it reads top to
+// bottom, and splitting it to satisfy a complexity metric would make the one
+// thing it does harder to follow.
+//
+//nolint:gocognit,gocyclo // linear by design; see the comment above.
 func scoreClip(interp *tflitelib.Interpreter, labels []string, path string) {
 	pcm, rate, channels, err := readWAV(path)
 	if err != nil {
@@ -75,7 +91,7 @@ func scoreClip(interp *tflitelib.Interpreter, labels []string, path string) {
 			fmt.Printf("  resample: %v\n", rsErr)
 			return
 		}
-		pcm = append([]byte(nil), out...)
+		pcm = bytes.Clone(out)
 	}
 
 	samples := make([]float32, len(pcm)/2)
@@ -219,7 +235,7 @@ func scoreClip(interp *tflitelib.Interpreter, labels []string, path string) {
 	}
 }
 
-func scoreWindow(interp *tflitelib.Interpreter, window []float32, best []float32) {
+func scoreWindow(interp *tflitelib.Interpreter, window, best []float32) {
 	in := interp.GetInputTensor(0)
 	out := interp.GetOutputTensor(0)
 	span := len(window) - frameSamples

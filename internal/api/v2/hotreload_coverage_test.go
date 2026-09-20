@@ -104,6 +104,14 @@ var hotReloadRegistry = map[string]hotReloadEntry{
 	// --- BSG ---
 	"BSG": {categories: []hotReloadCategory{hotReloadRestart}},
 
+	// SOUNDNET: initSoundNet captures a settings snapshot once, during
+	// api_service startup, and the analyser it installs holds that Config for
+	// its lifetime. Nothing re-reads these, so every field under SoundNet -
+	// station elevation, the diagnostics and enrichment toggles, the ADS-B
+	// credentials path and credit floor - takes effect only after a restart.
+	// One parent entry covers all of them (parents cover children).
+	"SoundNet": {categories: []hotReloadCategory{hotReloadRestart}},
+
 	// --- Models ---
 	// Enabled is authoritative since Phase 4: a change loads/unloads models at runtime via
 	// the reconcile_models signal (modelsEnabledChanged in the detector table).
