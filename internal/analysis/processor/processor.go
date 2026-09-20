@@ -838,6 +838,12 @@ func (p *Processor) processResults(settings *conf.Settings, item classifier.Resu
 	feedThrottle := detectionThrottle(classifier.ModelRegistry[item.ModelID].Spec.ClipLength)
 	feedTime := time.Now().Add(-detection.DetectionTimeOffset)
 
+	// SOUNDNET: prefer the specific class over AudioSet's parent, so an
+	// overflight is not recorded as road traffic beside the aircraft row that
+	// names it. Only ever drops a parent in favour of a child that clears its
+	// own threshold. See hierarchy_soundnet.go.
+	item.Results = p.soundNetPreferSpecific(settings, item)
+
 	// Process each result in item.Results
 	for _, result := range item.Results {
 		// Parse and validate species information
