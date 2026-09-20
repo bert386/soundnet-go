@@ -48,7 +48,9 @@
     try {
       // Only unverified detections: the queue exists to shrink, so showing
       // already-reviewed ones would make progress invisible.
-      const response = await fetch('/api/v2/detections?queryType=search&verified=unverified&numResults=100');
+      const response = await fetch(
+        '/api/v2/detections?queryType=search&verified=unverified&numResults=100'
+      );
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const body = (await response.json()) as { data?: QueueDetection[] };
       queue = body.data ?? [];
@@ -166,7 +168,12 @@
       <div role="alert" class="alert alert-error text-sm mt-3">
         <TriangleAlert class="h-4 w-4" aria-hidden="true" />
         <span>{t('soundnet.review.failed', { error })}</span>
-        <button class="btn btn-sm" onclick={() => { error = null; }}>
+        <button
+          class="btn btn-sm"
+          onclick={() => {
+            error = null;
+          }}
+        >
           {t('common.dismiss')}
         </button>
       </div>
@@ -190,17 +197,14 @@
       <article class="mt-4">
         <h3 class="text-xl font-semibold">{current.commonName}</h3>
         <p class="text-sm opacity-70">
-          {current.scientificName} · {current.date} {current.time} ·
+          {current.scientificName} · {current.date}
+          {current.time} ·
           {t('soundnet.review.confidence', { percent: Math.round(current.confidence * 100) })}
         </p>
 
         {#if current.clipName}
           <!-- Hearing the clip is the whole basis of the judgement. -->
-          <audio
-            class="w-full mt-3"
-            controls
-            preload="none"
-            src={`/api/v2/audio/${current.id}`}
+          <audio class="w-full mt-3" controls preload="none" src={`/api/v2/audio/${current.id}`}
           ></audio>
         {/if}
 
@@ -230,15 +234,29 @@
           </div>
         {:else}
           <div class="flex flex-wrap gap-2 mt-4">
-            <button class="btn btn-success btn-sm" disabled={busy} onclick={() => void review('correct')}>
+            <button
+              class="btn btn-success btn-sm"
+              disabled={busy}
+              onclick={() => void review('correct')}
+            >
               <Check class="h-4 w-4" aria-hidden="true" />
               {t('soundnet.review.confirm')} <kbd class="kbd kbd-xs ml-1">C</kbd>
             </button>
-            <button class="btn btn-error btn-sm" disabled={busy} onclick={() => void review('false_positive')}>
+            <button
+              class="btn btn-error btn-sm"
+              disabled={busy}
+              onclick={() => void review('false_positive')}
+            >
               <X class="h-4 w-4" aria-hidden="true" />
               {t('soundnet.review.falsePositive')} <kbd class="kbd kbd-xs ml-1">F</kbd>
             </button>
-            <button class="btn btn-warning btn-sm" disabled={busy} onclick={() => { correcting = true; }}>
+            <button
+              class="btn btn-warning btn-sm"
+              disabled={busy}
+              onclick={() => {
+                correcting = true;
+              }}
+            >
               <PenLine class="h-4 w-4" aria-hidden="true" />
               {t('soundnet.review.correct')} <kbd class="kbd kbd-xs ml-1">E</kbd>
             </button>

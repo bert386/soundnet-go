@@ -99,6 +99,9 @@ export interface DetectionQueryParams {
   numResults?: number;
   offset?: number;
   sortBy?: DetectionSortBy;
+  // SOUNDNET: event-domain filter - "events", or one or more domain ids
+  // (aircraft, vehicle, alarm, ...) as a comma-separated list.
+  category?: string;
 }
 
 export interface DetectionReviewRequest {

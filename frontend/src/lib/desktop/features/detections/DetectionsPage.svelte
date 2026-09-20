@@ -8,6 +8,8 @@
     DetectionSortBy,
   } from '$lib/types/detection.types';
   import DetectionsCard from './components/DetectionsCard.svelte';
+  // SOUNDNET: event-domain filter control
+  import CategoryFilter from '$lib/desktop/features/soundnet/components/CategoryFilter.svelte';
   import { getLogger } from '$lib/utils/logger';
   import { getLocalDateString } from '$lib/utils/date';
   import { navigation } from '$lib/stores/navigation.svelte';
@@ -18,6 +20,9 @@
   let loading = $state(true);
   let error = $state<string | null>(null);
   let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+  // SOUNDNET: mirrors the URL's category parameter so the control reflects the
+  // applied filter after a back/forward navigation, not just after a click.
+  let selectedCategory = $state<string | undefined>(undefined);
 
   // Local storage keys for user preferences
   const RESULTS_PER_PAGE_KEY = 'birdnet-detections-results-per-page';
@@ -99,6 +104,9 @@
       numResults,
       offset: parseInt(params.get('offset') || '0'),
       sortBy,
+      // SOUNDNET: event-domain filter. Passed straight through; the API rejects
+      // an unknown value rather than silently returning everything.
+      category: params.get('category') || undefined,
     };
   }
 
@@ -109,6 +117,8 @@
 
     try {
       const queryParams = getQueryParams();
+      // SOUNDNET: keep the control in step with the URL, including on popstate.
+      selectedCategory = queryParams.category;
       // Build query string
       const queryString = new URLSearchParams();
       Object.entries(queryParams).forEach(([key, value]) => {
@@ -218,6 +228,24 @@
     fetchDetections();
   }
 
+  // SOUNDNET: narrow the list to an event domain.
+  //
+  // Clearing removes the parameter rather than setting an "all" value, so an
+  // unfiltered list keeps a clean, shareable URL. Offset resets because page 4
+  // of the unfiltered list is rarely a page at all once filtered.
+  function handleCategoryChange(category: string | undefined) {
+    const params = new URLSearchParams(window.location.search);
+    if (category) {
+      params.set('category', category);
+    } else {
+      params.delete('category');
+    }
+    params.set('offset', '0');
+
+    window.history.pushState({}, '', `${window.location.pathname}?${params.toString()}`);
+    fetchDetections();
+  }
+
   // Handle details click
   function handleDetailsClick(id: number) {
     // Navigate to detection details page
@@ -272,6 +300,8 @@
 </script>
 
 <div class="col-span-12 space-y-6">
+  <!-- SOUNDNET: event-domain filter -->
+  <CategoryFilter selected={selectedCategory} onChange={handleCategoryChange} />
   <DetectionsCard
     data={detectionsData}
     {loading}

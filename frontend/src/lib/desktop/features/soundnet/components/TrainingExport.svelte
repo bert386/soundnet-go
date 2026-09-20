@@ -55,9 +55,7 @@
     summary?.examples.filter(e => e.origin === 'confirmed').length ?? 0
   );
 
-  const labelRows = $derived(
-    Object.entries(summary?.perLabel ?? {}).sort((a, b) => b[1] - a[1])
-  );
+  const labelRows = $derived(Object.entries(summary?.perLabel ?? {}).sort((a, b) => b[1] - a[1]));
 
   function downloadManifest(): void {
     // The manifest references clips rather than embedding them, so this is a

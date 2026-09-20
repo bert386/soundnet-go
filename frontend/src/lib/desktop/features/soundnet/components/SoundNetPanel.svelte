@@ -17,15 +17,7 @@
 <script lang="ts">
   import { t } from '$lib/i18n';
   import { loggers } from '$lib/utils/logger';
-  import {
-    Activity,
-    Gauge,
-    Plane,
-    Ruler,
-    Timer,
-    TriangleAlert,
-    Waves,
-  } from '@lucide/svelte';
+  import { Activity, Gauge, Plane, Ruler, Timer, TriangleAlert, Waves } from '@lucide/svelte';
 
   const logger = loggers.ui;
 
@@ -224,7 +216,9 @@
             </div>
             <div>
               <dt class="opacity-60 text-xs">{t('soundnet.level.tilt')}</dt>
-              <dd class="font-mono">{round(diagnostics.level.spectral_tilt_db_per_decade)} dB/dec</dd>
+              <dd class="font-mono">
+                {round(diagnostics.level.spectral_tilt_db_per_decade)} dB/dec
+              </dd>
             </div>
             <div>
               <dt class="opacity-60 text-xs">{t('soundnet.level.peak')}</dt>

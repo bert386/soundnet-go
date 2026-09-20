@@ -5816,6 +5816,19 @@
       "manifestNote": "The manifest lists where each clip already lives; audio is not copied.",
       "empty": "No reviewed examples yet",
       "emptyHint": "Confirm or correct detections in the review queue and they will appear here."
+    },
+    "categories": {
+      "label": "Show",
+      "all": "All",
+      "events": "Events",
+      "aircraft": "Aircraft",
+      "vehicle": "Vehicles",
+      "impulse": "Impulsive",
+      "weather": "Weather",
+      "tool": "Tools",
+      "alarm": "Sirens & alarms",
+      "rail": "Rail",
+      "watercraft": "Watercraft"
     }
   }
 }

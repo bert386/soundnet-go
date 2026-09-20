@@ -242,6 +242,9 @@ type detectionQueryParams struct {
 	Location   string
 	Source     string
 	Locked     string
+	// SOUNDNET: Category names one or more event domains, or "events" for all of
+	// them. See category_soundnet.go.
+	Category string
 	// Sorting
 	SortBy string
 	// Include additional data
@@ -253,12 +256,15 @@ type detectionQueryParams struct {
 // species, location, source, which may be URIs) are quoted so a delimiter inside a value
 // cannot make two different requests share a key.
 func (p *detectionQueryParams) advancedSearchCacheKey() string {
-	return fmt.Sprintf("adv_search:%q:%q:%d:%d:%q:%q:%q:%q:%q:%q:%q:%q:%q:%q:%q:%q:%q:%q:%d",
+	// SOUNDNET: Category is part of the key. Without it a request for aircraft
+	// and a request for sirens would share a cache entry and serve each other's
+	// results, which looks exactly like a broken filter.
+	return fmt.Sprintf("adv_search:%q:%q:%d:%d:%q:%q:%q:%q:%q:%q:%q:%q:%q:%q:%q:%q:%q:%q:%d:%q",
 		p.Search, strings.Join(p.SearchScientific, "\x00"), p.NumResults, p.Offset,
 		p.Confidence, p.TimeOfDay, p.HourRange,
 		p.Verified, p.Location, p.Source, p.Locked,
 		p.Species, p.Date, p.StartDate, p.EndDate,
-		p.SortBy, p.QueryType, p.Hour, p.Duration)
+		p.SortBy, p.QueryType, p.Hour, p.Duration, p.Category)
 }
 
 // parseDetectionQueryParams extracts and validates query parameters from the request
@@ -279,6 +285,8 @@ func (c *Handler) parseDetectionQueryParams(ctx echo.Context) (*detectionQueryPa
 		Location:   ctx.QueryParam("location"),
 		Source:     ctx.QueryParam("source"),
 		Locked:     ctx.QueryParam("locked"),
+		// SOUNDNET: event-domain filter (aircraft, vehicle, alarm, ...).
+		Category: ctx.QueryParam("category"),
 		// Sorting
 		SortBy: ctx.QueryParam("sortBy"),
 		// Include weather data
@@ -294,6 +302,14 @@ func (c *Handler) parseDetectionQueryParams(ctx echo.Context) (*detectionQueryPa
 		return nil, echo.NewHTTPError(http.StatusBadRequest, "duration must be between 1 and 24 hours")
 	}
 	params.Duration = duration
+
+	// SOUNDNET: reject an unrecognised category rather than ignoring it. A
+	// dropped filter returns every detection, and the user has no way to tell
+	// that from a genuinely unfiltered result.
+	if _, ok := expandCategory(params.Category); params.Category != "" && !ok {
+		return nil, echo.NewHTTPError(http.StatusBadRequest,
+			"unknown category; expected 'events' or one of the event domains")
+	}
 
 	// Validate dates
 	if err := validateDateParam(params.Date, "date"); err != nil {
@@ -1111,6 +1127,10 @@ func (c *Handler) buildAdvancedSearchFilters(params *detectionQueryParams) datas
 	if params.Species != "" {
 		filters.Species = []string{params.Species}
 	}
+	// SOUNDNET: narrow to an event domain. Already validated in
+	// parseDetectionQueryParams, so a false here cannot happen; ignoring the
+	// result would silently widen the filter rather than fail.
+	applyCategoryFilter(&filters, params.Category)
 	if params.Location != "" {
 		filters.Location = []string{params.Location}
 	}

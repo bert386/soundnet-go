@@ -146,6 +146,9 @@ func (c *Handler) RegisterDetectionRoutes(g *echo.Group) {
 	// To get weather information for a specific detection, use the
 	// /api/v2/weather/detection/:id endpoint after fetching the detection.
 	g.GET("/detections", c.GetDetections)
+	// SOUNDNET: the event-domain filter's option list. Registered before
+	// "/detections/:id" so "categories" is not captured as an id.
+	g.GET("/detections/categories", c.GetDetectionCategories)
 	g.GET("/detections/:id", c.GetDetection)
 	g.GET("/detections/recent", c.GetRecentDetections)
 	g.GET("/detections/:id/time-of-day", c.GetDetectionTimeOfDay)
