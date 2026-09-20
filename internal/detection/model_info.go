@@ -53,6 +53,13 @@ func ResolveModelType(name, version string) entities.ModelType {
 		return entities.ModelTypeMulti
 	case name == "BirdNET" && version != "" && version != "2.4":
 		return entities.ModelTypeMulti
+	// SOUNDNET: YAMNet classifies acoustic events over the AudioSet ontology,
+	// not taxa. Without this it falls to the bird default and every detection is
+	// stored with the Aves taxonomic class - a jet engine filed as a bird.
+	// Multi is the existing "no default taxonomic class" case (see
+	// taxonomicClassForModel), which is exactly right here.
+	case name == "YAMNet":
+		return entities.ModelTypeMulti
 	default:
 		return entities.ModelTypeBird
 	}

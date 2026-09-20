@@ -13,6 +13,7 @@ import (
 
 	"github.com/bert386/soundnet-go/internal/datastore"
 	"github.com/bert386/soundnet-go/internal/errors"
+	"github.com/bert386/soundnet-go/internal/eventclass"
 	"github.com/bert386/soundnet-go/internal/inference"
 	"github.com/bert386/soundnet-go/internal/inference/tflite"
 	"github.com/bert386/soundnet-go/internal/logger"
@@ -106,6 +107,43 @@ type YAMNet struct {
 	frameBuf []float32
 	// scoreBuf accumulates the per-class maximum across frames.
 	scoreBuf []float32
+	// emit[i] reports whether class i is one SoundNet records. See reportable.
+	emit []bool
+}
+
+// reportable marks which of YAMNet's 521 classes are worth emitting.
+//
+// Emitting all of them floods the detection list with classes that are real but
+// useless here: a live run produced "animal" at 0.96, "bird" at 0.92 and
+// "whistling" at 0.99, three or four rows per window, burying the birds the
+// operator actually wants alongside the events SoundNet exists to find.
+//
+// The event taxonomy already encodes which classes matter and which are
+// deliberately "other" (see internal/eventclass). Using it here is what makes
+// that table load-bearing rather than decorative.
+//
+// Matched on AudioSetIndex, not on the label text. The index is the join the
+// taxonomy documents as authoritative, and the label forms differ either side:
+// the taxonomy holds AudioSet display names ("Jet engine"), the adapter emits
+// the normalised storage form ("jet_engine").
+func reportable(numClasses int) []bool {
+	emit := make([]bool, numClasses)
+	for _, domain := range eventclass.AllDomains() {
+		for _, c := range eventclass.InDomain(domain) {
+			// A negative index is a classifier's own label (BirdNET's "Gun"),
+			// not an AudioSet class, so it cannot appear in YAMNet's output.
+			if c.AudioSetIndex < 0 || c.AudioSetIndex >= numClasses {
+				continue
+			}
+			// DefaultEnabled is the taxonomy's own statement of what is worth
+			// recording out of the box. Classes it maps but leaves disabled stay
+			// addressable for a future config key without changing this.
+			if c.DefaultEnabled {
+				emit[c.AudioSetIndex] = true
+			}
+		}
+	}
+	return emit
 }
 
 // NewYAMNet loads YAMNet from its model file and class map.
@@ -170,11 +208,20 @@ func NewYAMNet(cfg *YAMNetConfig) (*YAMNet, error) {
 		info:       info,
 		frameBuf:   make([]float32, yamnetFrameSamples),
 		scoreBuf:   make([]float32, len(labels)),
+		emit:       reportable(len(labels)),
+	}
+
+	reported := 0
+	for _, ok := range y.emit {
+		if ok {
+			reported++
+		}
 	}
 
 	log.Info("YAMNet loaded",
 		logger.String("model_path", cfg.ModelPath),
 		logger.Int("classes", len(labels)),
+		logger.Int("reported_classes", reported),
 		logger.Int("threads", threads))
 	return y, nil
 }
@@ -372,7 +419,7 @@ func (y *YAMNet) Predict(ctx context.Context, samples [][]float32) ([]datastore.
 	// see the file comment.
 	results := make([]datastore.Results, 0, defaultTopKResults*2)
 	for i, s := range y.scoreBuf {
-		if s < yamnetScoreFloor {
+		if s < yamnetScoreFloor || !y.emit[i] {
 			continue
 		}
 		results = append(results, datastore.Results{Species: y.labels[i], Confidence: s})

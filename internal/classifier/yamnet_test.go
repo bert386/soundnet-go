@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/bert386/soundnet-go/internal/conf"
+	"github.com/bert386/soundnet-go/internal/datastore/v2/entities"
+	"github.com/bert386/soundnet-go/internal/detection"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -201,17 +203,30 @@ func TestYAMNetInference(t *testing.T) {
 
 	require.Equal(t, yamnetClasses, y.NumSpecies())
 
-	// Silence is the one input whose correct answer is known without a corpus,
-	// and it exercises the whole path: framing, inference, aggregation, labelling.
 	silence := [][]float32{make([]float32, yamnetClipSeconds*yamnetSampleRate)}
+
+	// Silence classifies confidently as Silence, which is precisely why it must
+	// produce no detection: it is a correct answer about nothing happening.
 	results, err := y.Predict(t.Context(), silence)
+	require.NoError(t, err)
+	assert.Empty(t, results,
+		"Silence is not in the event taxonomy, so a silent clip must yield no detections")
+
+	// The end-to-end path - framing, inference, aggregation, labelling - is still
+	// worth proving, so run the same clip with the taxonomy filter opened up.
+	// This is the assertion that would catch a broken framing or a second
+	// activation being applied to the already-sigmoid output.
+	for i := range y.emit {
+		y.emit[i] = true
+	}
+	results, err = y.Predict(t.Context(), silence)
 	require.NoError(t, err)
 	require.NotEmpty(t, results)
 
 	assert.Equal(t, "silence", results[0].Species,
 		"silence should score the Silence class highest")
-	// Already-sigmoid output: a probability, not a logit. If a second activation
-	// were ever applied this would collapse toward 0.5 and this bound would fail.
+	// A probability, not a logit. A second sigmoid would collapse this toward
+	// 0.5 and fail the bound.
 	assert.Greater(t, results[0].Confidence, float32(0.5))
 	assert.LessOrEqual(t, results[0].Confidence, float32(1.0))
 
@@ -300,4 +315,67 @@ func TestYAMNetBuildSaysSoWhenNotInstalled(t *testing.T) {
 	_, _, err := o.buildYAMNet(&conf.Settings{}, 1)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "not installed")
+}
+
+// TestOnlyTaxonomyClassesAreReported guards the fix for a real production
+// failure: the first live run emitted every class above the score floor, so
+// "animal" at 0.96, "bird" at 0.92, "whistling" at 0.99 and "insect" at 1.00
+// were stored as detections - 49 rows in six minutes, burying the birds and the
+// events SoundNet exists to find.
+//
+// Indices below are read off the committed class map, not recalled.
+func TestOnlyTaxonomyClassesAreReported(t *testing.T) {
+	t.Parallel()
+	emit := reportable(yamnetClasses)
+
+	count := 0
+	for _, ok := range emit {
+		if ok {
+			count++
+		}
+	}
+	assert.Positive(t, count, "some classes must be reportable, or YAMNet can never detect anything")
+	assert.Less(t, count, 100, "only the taxonomy's own classes should be reported, not most of AudioSet")
+
+	// Classes SoundNet exists to find.
+	for name, idx := range map[string]int{
+		"Jet engine": 331, "Helicopter": 333, "Civil defense siren": 391, "Machine gun": 422,
+	} {
+		assert.Truef(t, emit[idx], "%s (index %d) is a default-enabled taxonomy class and must be reported", name, idx)
+	}
+
+	// The exact classes that flooded the live run. Each is a real AudioSet class
+	// and a perfectly good classification; none is an event worth a detection row.
+	for name, idx := range map[string]int{
+		"Speech": 0, "Whistling": 35, "Animal": 67, "Bird": 106,
+		"Insect": 121, "Mosquito": 123, "Silence": 494,
+	} {
+		assert.Falsef(t, emit[idx], "%s (index %d) is not in the event taxonomy and must not be reported", name, idx)
+	}
+}
+
+// TestReportableIsBoundsSafe covers a class map that disagrees with the
+// taxonomy. An index past the end of the model's output would panic on the
+// write, which is a bad way to find out the artefact changed.
+func TestReportableIsBoundsSafe(t *testing.T) {
+	t.Parallel()
+	assert.Len(t, reportable(10), 10, "a short class list must not panic or over-allocate")
+	assert.Empty(t, reportable(0), "zero classes yields no reportable classes")
+}
+
+// TestYAMNetIsNotFiledAsABird pins the model-type resolution.
+//
+// detection.ResolveModelType falls through to ModelTypeBird by default, and
+// taxonomicClassForModel then assigns the Aves class - so before this, every
+// YAMNet detection was stored as a bird. Observed in production: insects,
+// whistling and generic animal classes all carrying modelType "bird".
+func TestYAMNetIsNotFiledAsABird(t *testing.T) {
+	t.Parallel()
+	info := ModelRegistry[RegistryIDYAMNet]
+	got := detection.ResolveModelType(info.DetectionName, info.DetectionVersion)
+
+	assert.Equal(t, entities.ModelTypeMulti, got,
+		"YAMNet classifies acoustic events, not taxa; Multi is the no-default-taxonomic-class case")
+	assert.NotEqual(t, entities.ModelTypeBird, got,
+		"the bird default would store every acoustic event with the Aves taxonomic class")
 }
