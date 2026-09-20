@@ -17,7 +17,16 @@
 <script lang="ts">
   import { t } from '$lib/i18n';
   import { loggers } from '$lib/utils/logger';
-  import { Activity, Gauge, Plane, Ruler, Timer, TriangleAlert, Waves } from '@lucide/svelte';
+  import {
+    Activity,
+    ArrowRight,
+    Gauge,
+    Plane,
+    Ruler,
+    Timer,
+    TriangleAlert,
+    Waves,
+  } from '@lucide/svelte';
 
   const logger = loggers.ui;
 
@@ -95,6 +104,12 @@
   interface SoundNetResponse {
     detectionId: number;
     domain: string;
+    // Every domain the label could belong to, its own first. Longer than one
+    // entry only for a label that does not determine its own domain.
+    candidateDomains?: string[];
+    // The domain an authority settled the detection under, present only when it
+    // differs from the acoustic reading.
+    resolvedDomain?: string;
     diagnosable: boolean;
     enrichable: boolean;
     diagnostics?: Diagnostics;
@@ -134,6 +149,21 @@
   });
 
   const diagnostics = $derived(data?.diagnostics?.payload);
+
+  // A correction, not a discrepancy. AudioSet's Vehicle is the parent class of
+  // Aircraft, so an airliner scores highest on Vehicle and is filed as road
+  // traffic; nineteen of nineteen reviewed Thunder detections at this station
+  // were passing jets. When an authority has since placed a real source
+  // overhead, that is the better answer and the panel leads with it - but it
+  // shows both, because what the microphone heard is still what was recorded.
+  const resolvedDomain = $derived(
+    data?.resolvedDomain && data.resolvedDomain !== data.domain ? data.resolvedDomain : null
+  );
+
+  // Candidate domains beyond the label's own. Worth saying out loud even when
+  // nothing was resolved: it explains why a vehicle detection is queried
+  // against the sky at all.
+  const otherDomains = $derived((data?.candidateDomains ?? []).slice(1));
 
   // Proximity is a comparative judgement, not a distance. The label says so.
   const proximityLabel = $derived.by(() => {
@@ -189,7 +219,15 @@
       </div>
     {:else if data}
       <div class="flex flex-wrap items-center gap-2 text-xs">
-        <span class="badge badge-ghost">{t('soundnet.domain', { domain: data.domain })}</span>
+        {#if resolvedDomain}
+          <span class="badge badge-warning gap-1" title={t('soundnet.domainResolvedHint')}>
+            {data.domain}
+            <ArrowRight class="h-3 w-3" aria-hidden="true" />
+            {resolvedDomain}
+          </span>
+        {:else}
+          <span class="badge badge-ghost">{t('soundnet.domain', { domain: data.domain })}</span>
+        {/if}
         {#if data.diagnostics}
           <span class="badge badge-ghost" title={t('soundnet.computeTimeHint')}>
             <Timer class="h-3 w-3 mr-1" aria-hidden="true" />
@@ -197,6 +235,19 @@
           </span>
         {/if}
       </div>
+
+      {#if resolvedDomain}
+        <p class="text-sm mt-2">
+          {t('soundnet.domainResolved', {
+            classified: data.domain,
+            resolved: resolvedDomain,
+          })}
+        </p>
+      {:else if otherDomains.length > 0}
+        <p class="text-xs opacity-60 mt-2">
+          {t('soundnet.domainAmbiguous', { domains: otherDomains.join(', ') })}
+        </p>
+      {/if}
 
       <!-- Absence is explained, never left as an empty panel. -->
       {#if data.note}

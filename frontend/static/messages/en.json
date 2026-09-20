@@ -5731,6 +5731,9 @@
     "loading": "Analysing…",
     "loadFailed": "Could not load acoustic analysis: {{error}}",
     "domain": "Event type: {{domain}}",
+    "domainResolved": "Heard as {{classified}}, identified as {{resolved}}. The class name describes the sound; the identification names what was actually there.",
+    "domainResolvedHint": "The acoustic label could not tell these apart. An external source placed a real source overhead at the time of the recording.",
+    "domainAmbiguous": "This class does not settle what made the sound. It could also be: {{domains}}.",
     "computeTimeHint": "Time spent measuring this clip",
     "proximity": {
       "near": "Near",
