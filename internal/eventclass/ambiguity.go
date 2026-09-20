@@ -35,13 +35,20 @@ import "strings"
 var ambiguousDomains = map[string][]Domain{
 	// AudioSet 294. The top of the transport hierarchy; its children include
 	// Motor vehicle (road), Rail transport, Aircraft and Boat.
-	"vehicle": {DomainAircraft, DomainRail, DomainWatercraft},
+	// Music is in these lists on the evidence, not on the semantics. A drum kit
+	// is not a kind of vehicle in any ontology; it is simply what this station's
+	// models call one, at 0.85, six times in one evening, because the taxonomy
+	// carried no music class for them to reach for. Listing it lets the rule
+	// that prefers a specific class over its parent reach the case. The other
+	// use of this table is deciding which authority to ask, and no authority is
+	// ever asked about music.
+	"vehicle": {DomainAircraft, DomainRail, DomainWatercraft, DomainMusic},
 
 	// AudioSet 337, and also one of BirdNET's own seven non-species labels -
 	// which is what makes this mapping worth more than its size. It means a
 	// BirdNET "Engine" detection reaches ADS-B on a station where YAMNet is not
 	// installed at all.
-	"engine": {DomainAircraft, DomainRail, DomainWatercraft},
+	"engine": {DomainAircraft, DomainRail, DomainWatercraft, DomainMusic},
 
 	// Thunder and Thunderstorm are here on evidence rather than on ontology,
 	// which makes them the odd entries in this table and worth explaining.

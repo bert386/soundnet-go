@@ -57,6 +57,15 @@ const (
 	DomainBiological Domain = "biological"
 
 	// DomainOther is the fallback for the rest of the AudioSet ontology.
+	// DomainMusic exists because of a measurement, not a wish to be thorough.
+	// A drum kit next door was recorded as `Vehicle` at 0.85 - six times in one
+	// evening - for the simple reason that the taxonomy carried no music class,
+	// so none could be emitted and the nearest thing won. Scored on the
+	// operator's own clips the model is not remotely confused: `Drum kit 0.74`,
+	// `Drum 0.73`, `Music 0.57` against `Vehicle 0.24`. It knew all along; we
+	// were not listening.
+	DomainMusic Domain = "music"
+
 	DomainOther Domain = "other"
 )
 
@@ -65,7 +74,7 @@ func AllDomains() []Domain {
 	return []Domain{
 		DomainAircraft, DomainVehicle, DomainImpulse, DomainWeather,
 		DomainTool, DomainAlarm, DomainRail, DomainWatercraft,
-		DomainBiological, DomainOther,
+		DomainBiological, DomainMusic, DomainOther,
 	}
 }
 

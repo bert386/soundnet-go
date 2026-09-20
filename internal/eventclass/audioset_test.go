@@ -185,3 +185,52 @@ func TestEveryMappedClassHasAKnownDomain(t *testing.T) {
 		}
 	}
 }
+
+// The drum kit that was recorded as a vehicle.
+//
+// Six rows in one evening at `Vehicle` 0.74 to 0.85, because the taxonomy
+// carried no music class and the nearest thing won. Scored on the operator's
+// own clips the model was never confused: Drum kit 0.63-0.74 and Drum 0.67-0.73
+// on the drum clips, against under 0.05 on every vehicle clip.
+func TestPercussionIsRecordedSoADrumKitIsNotAVehicle(t *testing.T) {
+	t.Parallel()
+
+	for _, label := range []string{"Drum kit", "Drum", "Cymbal"} {
+		c, found := eventclass.Lookup(label)
+		if !found {
+			t.Errorf("%q is not in the taxonomy, so it can never be emitted", label)
+			continue
+		}
+		assert.Equal(t, eventclass.DomainMusic, c.Domain, label)
+		assert.True(t, c.DefaultEnabled,
+			"%q must be on by default: a class that is not emitted cannot outrank Vehicle", label)
+	}
+
+	// Music itself stays off, and the guard on that is right rather than
+	// bureaucratic: YAMNet fires on anything tonal, birdsong included.
+	c, found := eventclass.Lookup("Music")
+	assert.True(t, found, "Music is mapped so it is addressable")
+	assert.False(t, c.DefaultEnabled, "a generic Music class would bury the events this station is for")
+}
+
+// The one road-vehicle sub-class this station's models reliably name. Car,
+// Truck and Bus are not: a bin truck scores Bus 0.42, Truck 0.23, Car 0.14 -
+// and Train 0.59.
+func TestReversingBeepsIsRecorded(t *testing.T) {
+	t.Parallel()
+
+	c, found := eventclass.Lookup("Reversing beeps")
+	assert.True(t, found)
+	assert.Equal(t, eventclass.DomainVehicle, c.Domain)
+	assert.True(t, c.DefaultEnabled)
+}
+
+// The rule that prefers a specific class over its parent only reaches a domain
+// listed as a candidate, so this is what lets a drum kit displace Vehicle.
+func TestVehicleIsAmbiguousWithMusic(t *testing.T) {
+	t.Parallel()
+
+	c, found := eventclass.Lookup("Vehicle")
+	assert.True(t, found)
+	assert.Contains(t, c.CandidateDomains(), eventclass.DomainMusic)
+}

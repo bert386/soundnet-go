@@ -54,6 +54,12 @@ var audioSetClasses = []Class{
 	{"Bus", DomainVehicle, false, 315},
 	{"Motorcycle", DomainVehicle, true, 320},
 	{"Traffic noise, roadway noise", DomainVehicle, false, 321},
+	// Reversing beeps carry further than the machine making them and are
+	// unmistakable: 0.57-0.65 on the operator's roadworks clips, at or above
+	// `Vehicle` itself. The one road-vehicle sub-class this station's models
+	// reliably name - Car, Truck and Bus are not (a bin truck scores Bus 0.42,
+	// Truck 0.23, Car 0.14, and Train 0.59).
+	{"Reversing beeps", DomainVehicle, true, 313},
 	// Engine is enabled because BirdNET emits it directly: it is the class
 	// that makes vehicle and aircraft pass-bys detectable before YAMNet exists.
 	{"Engine", DomainVehicle, true, 337},
@@ -88,6 +94,26 @@ var audioSetClasses = []Class{
 	// Off by default, but worth keeping addressable: a run of it explains a gap
 	// in detections better than silence does.
 	{"Wind noise (microphone)", DomainWeather, false, 279},
+
+	// --- Music --------------------------------------------------------------
+	//
+	// Indices are YAMNet's. Only a few are default-enabled: a single drum beat
+	// lights up Drum, Drum kit, Snare drum, Bass drum, Percussion and Music at
+	// once, and enabling them all would answer a complaint about one sound
+	// making several rows by making it worse. The rest stay addressable.
+	// Music itself stays off, and the existing guard on that is right: YAMNet
+	// fires on anything tonal, birdsong included, and a generic Music class
+	// would bury the events this station is for. The specific percussion
+	// classes are what actually separate - Drum kit 0.63-0.74 on the operator's
+	// drum clips against under 0.05 on every vehicle clip - so they carry it.
+	{"Music", DomainMusic, false, 132},
+	{"Musical instrument", DomainMusic, false, 133},
+	{"Percussion", DomainMusic, false, 156},
+	{"Drum kit", DomainMusic, true, 157},
+	{"Drum", DomainMusic, true, 159},
+	{"Snare drum", DomainMusic, false, 160},
+	{"Bass drum", DomainMusic, false, 163},
+	{"Cymbal", DomainMusic, true, 166},
 
 	// --- Tools --------------------------------------------------------------
 	{"Tools", DomainTool, true, 412},
