@@ -1028,7 +1028,9 @@
       "loadFailed": "Failed to load detection (Error {status}). Please try refreshing the page.",
       "noIdProvided": "No detection ID provided.",
       "fetchFailed": "Failed to fetch detections"
-    }
+    },
+    "resolvedDomain": "identified as {{domain}}",
+    "resolvedDomainHint": "The class name describes the sound. An external source identified what was actually there, and it belongs to a different category - open the detection for the details."
   },
   "species": {
     "rarity": {

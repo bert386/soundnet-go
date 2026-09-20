@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/svelte';
 import DetectionRow from './DetectionRow.svelte';
 import type { Detection } from '$lib/types/detection.types';
+import { t } from '$lib/i18n';
 
 // DetectionRow is presentational: opening the action menu and clicking an item
 // must invoke the callback the parent passed (the parent owns the actual
@@ -144,5 +145,38 @@ describe('DetectionRow recording cell gating', () => {
     });
 
     expect(container.querySelector('.spectrogram-player')).toBeNull();
+  });
+});
+
+// The list is where an operator reads detections, and the class name alone
+// misleads for a whole family of them: AudioSet's Vehicle is the parent class of
+// Aircraft, so an airliner is recorded as road traffic. When ADS-B has already
+// named the aeroplane, the row says so rather than making them open it.
+describe('DetectionRow resolved domain', () => {
+  it('shows the identified domain when an authority disagreed with the class', () => {
+    render(DetectionRow, {
+      props: {
+        detection: createMockDetection({
+          commonName: 'Vehicle',
+          scientificName: 'vehicle',
+          eventDisplayName: 'Vehicle',
+          resolvedDomain: 'aircraft',
+        }),
+      },
+    });
+
+    // The shared setup mocks `t` to echo the key, so the badge text is the key
+    // and the domain itself is asserted on the call that produced it.
+    const badge = screen.getByTitle('detections.resolvedDomainHint');
+    expect(badge).toBeInTheDocument();
+    expect(badge).toHaveTextContent('detections.resolvedDomain');
+    expect(t).toHaveBeenCalledWith('detections.resolvedDomain', { domain: 'aircraft' });
+  });
+
+  // Every bird, and every event class nothing corrected, must stay unadorned.
+  it('stays quiet when nothing was resolved', () => {
+    render(DetectionRow, { props: { detection: createMockDetection() } });
+
+    expect(screen.queryByTitle('detections.resolvedDomainHint')).not.toBeInTheDocument();
   });
 });

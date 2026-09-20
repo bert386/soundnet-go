@@ -25,6 +25,10 @@ export interface Detection {
   // SOUNDNET: the taxonomy's name for a non-bird event class, absent for birds.
   // Additive: commonName stays the key the species exclude list matches on.
   eventDisplayName?: string;
+  // SOUNDNET: the domain an authority settled this detection under, present only
+  // when it differs from the one the class belongs to. AudioSet's Vehicle is the
+  // parent class of Aircraft, so an airliner is recorded as road traffic.
+  resolvedDomain?: string;
   confidence: number;
   modelType?: string; // AI model type (e.g. 'bird', 'bat'); drives the spectrogram frequency range
   verified: 'correct' | 'false_positive' | 'unverified';

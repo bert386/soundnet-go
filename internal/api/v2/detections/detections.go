@@ -180,6 +180,15 @@ type DetectionResponse struct {
 	// "ignore this species" silently stop working for exactly the detections
 	// this field exists to name.
 	EventDisplayName string `json:"eventDisplayName,omitempty"`
+
+	// SOUNDNET: the domain an authority settled this detection under, present
+	// only when it differs from the domain the class belongs to.
+	//
+	// The difference is the answer rather than a discrepancy. AudioSet's Vehicle
+	// is the parent class of Aircraft, so an airliner is recorded as road
+	// traffic, and without this the list shows a truck where ADS-B has already
+	// named the aeroplane.
+	ResolvedDomain string `json:"resolvedDomain,omitempty"`
 }
 
 // SourceInfo describes the audio source of a detection.
@@ -720,6 +729,10 @@ func (c *Handler) convertNotesToDetectionResponses(notes []datastore.Note, inclu
 		detection := c.noteToDetectionResponse(note, includeWeather, weatherCache)
 		detections = append(detections, detection)
 	}
+
+	// SOUNDNET: one batch lookup for the whole page. See soundnet_resolved.go.
+	c.annotateResolvedDomains(detections)
+
 	return detections
 }
 

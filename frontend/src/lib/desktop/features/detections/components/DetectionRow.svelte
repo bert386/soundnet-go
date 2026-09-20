@@ -276,6 +276,20 @@
           {displayName}
         </button>
         <div class="sp-species-scientific-name">{detection.scientificName}</div>
+        <!--
+          SOUNDNET: what an authority found, when it disagrees with the sound.
+          The class name is not wrong - AudioSet's Vehicle is the parent of
+          Aircraft - but on its own it reads as road traffic, and the operator
+          would have to open every row to discover the aeroplane.
+        -->
+        {#if detection.resolvedDomain}
+          <span
+            class="badge badge-warning badge-xs mt-0.5"
+            title={t('detections.resolvedDomainHint')}
+          >
+            {t('detections.resolvedDomain', { domain: detection.resolvedDomain })}
+          </span>
+        {/if}
       </div>
     </div>
   </div>
