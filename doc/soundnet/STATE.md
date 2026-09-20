@@ -27,7 +27,7 @@ ENVIRONMENT.md (machines, toolchain, operational gotchas), GROUND_TRUTH.md
 | M2 detection records | **done** |
 | M3 DSP diagnostics | **done**, 24.8 ms/clip measured on the Pi against a 100 ms budget |
 | M5 enrichment / ADS-B | **done and proven live** - registration, type, operator, route; ambiguity resolution for `Vehicle`/`Engine`/`Thunder`; corroboration-gated thresholds |
-| M6 auto-label collector | **wired and deployed**, off by default - three adapters, config section, goroutine |
+| M6 auto-label collector | **running on the station** since 2026-09-20 22:18, polling every 60 s, corpus empty so far (nothing has been close and low enough) |
 | M7 web UI | detail panel, review queue, training export, confusion + threshold APIs, **event-domain filter (API + UI)**, **display names**, **resolved-domain correction in panel and list** done; tuner UI and live re-compute remain |
 | M4 sub-classification heads | **not started** - correctly last, it trains on M6's corpus |
 | M8 enriched alerts | **not started** |
@@ -499,25 +499,67 @@ that is a separate and larger change - a hierarchy-aware selection over the
 AudioSet ontology - and it should be measured against the operator's labelled
 negatives before being believed.
 
+## What the hierarchy rule is, and what measured it
+
+Shipped 2026-09-20. When a class that does not determine its own domain
+(`Vehicle`, `Engine`, `Thunder`, `Thunderstorm`) appears alongside a class from
+one of the domains it is ambiguous between, and that specific class clears its
+own threshold, the general one is dropped. Only ever in that direction, and only
+when the specific class will itself be recorded - so a sound the station
+detected cannot become one it did not.
+
+**First measurement, the operator's labelled clips.** 216 three-second windows,
+108 from clips containing an aircraft and 108 from clips containing none, scored
+with the fused CED export the station runs
+(`doc/soundnet/eval/hierarchy_windows.py`). The rule fired on 35 aircraft
+windows and none of the others. The separator turned out to be the child's own
+threshold, not the ratio: **no negative window reached 0.15 on any aircraft
+class**, including a clip of a large truck where `Vehicle` reached 0.693 and the
+best aircraft class 0.055.
+
+**Second measurement, and it moved the number.** The ratio first shipped at 0.5,
+from those clips alone, where true aircraft windows ran 0.78-0.98 of their
+parent. A jet recorded the same evening and confirmed by ADS-B
+(`doc/soundnet/eval/thunder_ratio.py`) ran **0.35-0.82, median near 0.52** - so
+half its windows were refused a correction the transponder then made anyway. The
+labelled set was not wrong, it was narrow: twelve clips chosen because a person
+could hear the aircraft in them, which selects for the loud ones. 0.25 now sits
+between the truck at 0.08 and the faintest confirmed aircraft window at 0.35,
+with a test that fails if either anchor is crossed.
+
+The lesson is the one already in these notes, arriving from the other side: a
+labelled set is evidence about the clips in it. Here the fix was not to check
+the negatives - that had been done - but to notice that the positives were
+selected by audibility.
+
 ## Immediately resumable work
 
 Everything that was on this list on 2026-09-20 morning is done and running. What
 follows is what is left, ordered by value.
 
-**1. Enable the M6 collector on the station and watch a day of it.** The wiring
-is deployed but `soundnet.autolabel.enabled` is false, so nothing is being
-collected yet. Turning it on costs one API credit per 30-second poll against an
-allowance shared with runtime enrichment; its reserve is 500 against runtime's
-200, so it stops first. Watch the first day for capture rate and for how many
-polls are refused as ambiguous.
+**1. Watch the collector's first full day.** It is running and polling; nothing
+has yet been close enough and low enough to capture. Confirm the capture rate,
+how many polls are refused as ambiguous, and what a day costs in API credits -
+that last one has never been measured, and the collector spends a credit a
+minute whether or not anything flew. Its reserve is 500 against runtime's 200,
+so it stops first, but nobody has watched it reach either.
 
-**2. Per-model threshold for CED.** *Not* because CED is silent - that worry is
-answered, see below - but because its scores sit on a different scale from
-BirdNET's and it currently inherits BirdNET's 0.7.
+**2. Extend the hierarchy rule across models, or decide not to.** The rule that
+prefers `Aircraft` over `Vehicle` compares results inside one model's chunk, and
+the two readings of a sound are not always in the same model's. The `Thunder`
+and `Thunderstorm` rows here are YAMNet's at 0.74-0.89, while CED hears the same
+audio and puts `Thunderstorm` at 0.000 with the aircraft classes at 0.15-0.38.
+Neither model holds both halves. ADS-B already resolves the domain for these, so
+the row is right even when its class name is not - which may well be enough.
 
-**3. Per-domain thresholds generally.** YAMNet and CED both inherit BirdNET's
-0.7, and those numbers do not mean the same thing - YAMNet's are per-class
-sigmoid quantised to 1/256 steps.
+**3. Tune the rest of the per-domain thresholds.** The mechanism is in and
+`aircraft` is set to 0.35, measured against the labelled negatives (best
+aircraft-class score in any window of a clip containing no aircraft: 0.135,
+including a large truck at 0.055). No other domain is set, so every other event
+class still inherits BirdNET's 0.7 and is effectively silent unless
+corroboration rescues it. `weather`, `alarm` and `vehicle` are the ones worth
+measuring next - and `vehicle` needs care, because it has no authority to
+confirm it and a low bar would fill the list.
 
 **4. Carry the correction into search results.** Done for the detection list and
 the panel; `search.go` still shows the bare acoustic label. Its results are
@@ -562,7 +604,10 @@ station produces registrations, and a photo keyed on hex code is one fetch away.
   minutes was real speech near the microphone, not the gate misfiring. If
   detections thin out for a *sustained* stretch rather than minutes, this is the
   first thing to check - a privacy hit discards the whole window for every model.
-- **ADS-B credit spend.** Three things now query it: aircraft detections,
+- **The collector's first captures.** Running since 22:18 on 2026-09-20 and
+  reporting every poll (first three at info, then hourly). An empty corpus is
+  expected at night; an empty corpus after a day of daytime traffic is not.
+- **ADS-B credit spend, now with a fourth consumer.** Four things now query it: aircraft detections,
   ambiguous `Vehicle`/`Engine`/`Thunder` labels, and corroboration candidates.
   The five-second sky reuse bounds it and `creditfloor` is 200, but nobody has
   watched a full day yet.
