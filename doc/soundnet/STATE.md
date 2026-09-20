@@ -463,22 +463,56 @@ pass-by geometry exactly like a vehicle, but `Domain.Diagnosable()` returns
 false for it. Looks like an oversight in the domain table rather than a
 decision.
 
+**6a. ONNX Runtime is now on the Pi.** 1.25.1 aarch64, 19 MB, at
+`~/soundnet/lib/libonnxruntime.so.1.25.1` with `birdnet.onnxruntimepath` in the
+config pointing at it. `findONNXRuntimeLibrary()` searches system paths and not
+`LD_LIBRARY_PATH`, so the explicit key is what makes it detectable - dropping
+the file in the lib directory alone is not enough, and the station reported
+`onnx: available: false` for hours with the library already present.
+
+`RequiredORTAPIMajor` is **1.25**, not whatever is newest: the binding is
+`yalue/onnxruntime_go` and 1.30 is rejected by the version check.
+
+This unblocks every ONNX model in the catalog, not only CED - Perch v2 and
+BirdNET v3.0 could not have run on this station before it either.
+
 **6b. Adopt CED-tiny.** Measured against the labelled clips in MODEL_EVAL.md:
 zero false positives across ten non-aircraft clips, and it separates a lorry
-from an aeroplane where YAMNet gave both `Vehicle 0.80`. Blocked on one thing -
-its ONNX input is a kaldi log-mel filterbank, and every model here has its
-front-end inside the graph - so it wants a fused re-export rather than a mel
-front-end written in Go.
+from an aeroplane where YAMNet gave both `Vehicle 0.80`. One obstacle left, now that
+the runtime is in place: its ONNX input is a **64-band kaldi log-mel
+filterbank**, shaped `{1, num_frames, 64}`, and every model here has its
+front-end inside the graph, so the Go side has never needed one.
 
-**6c. Lower the acoustic bar where an authority can corroborate.** The highest
--value item on this list. Four of seven labelled aircraft stay under 0.30 in
-every model and preprocessing configuration tried; they are the distant ones.
-Nothing acoustic rescued them, and the design already says what does: 0.15 alone
-never clears a sensible threshold, 0.15 beside an ADS-B contact at a credible
-slant range is a confident detection. That corroboration now works end to end
-(detection 990, a Piper PA-28-161 at 1.6 km), so the missing piece is a path
-that lets a low-confidence aircraft candidate reach enrichment at all - today it
-dies at the threshold before any authority is asked.
+Two ways, and the first is preferred. **Re-export with the front-end fused**,
+matching the convention BSG and BirdNET already follow - needs PyTorch once,
+offline, after which it is an ordinary catalog entry and the adapter is the same
+shape as the YAMNet one. Or **write the log-mel front-end in Go**, roughly 300
+lines of fiddly DSP (Povey window, snip_edges, preemphasis, mel scale, energy
+floor) on top of the existing radix-2 FFT, where a subtly wrong parameter
+produces a model that loads, runs and returns plausible nonsense.
+
+The second is less dangerous than it sounds, because an oracle exists: the
+prebuilt `sherpa-onnx-offline-audio-tagging` CLI scores any clip with the same
+model, so a Go front-end can be checked against it on real audio rather than
+argued about. That is what makes it a verifiable job rather than a guess.
+
+**6c. Corroboration-gated thresholds. Done, off by default.** A detection in an
+enrichable domain scoring at least `soundnet.enrichment.corroborationthreshold`
+is admitted as a candidate, held to the end of its pending window, and kept only
+if an authority independently places a credible source overhead. Uncorroborated
+candidates are discarded at flush time and no row is written.
+
+Set the threshold to about **0.15** to turn it on; zero, the default, leaves
+behaviour unchanged. It costs one API credit per candidate that would otherwise
+have been dropped for free, bounded by the five-second sky reuse in the ADS-B
+client.
+
+Why it exists: four of seven labelled aircraft stay under 0.30 in every model
+and preprocessing configuration tried, all of them the distant ones. Nothing
+acoustic rescued them. The obstacle was ordering rather than accuracy - no
+detection is created for a 0.15 aircraft, so nothing reaches enrichment to
+discover that one really was overhead, and the evidence that would justify
+keeping it sits behind the threshold that discards it.
 
 **Then, in rough value order:**
 
