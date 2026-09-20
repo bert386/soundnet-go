@@ -1,0 +1,64 @@
+{
+ "ac": [
+  {
+   "hex": "7c7f53",
+   "flight": "ZFP     ",
+   "r": "VH-ZFP",
+   "t": "P28A",
+   "alt_baro": 1450,
+   "alt_geom": 1600,
+   "gs": 86.3,
+   "track": 237.78,
+   "lat": -33.899852,
+   "lon": 150.927372,
+   "seen_pos": 0.046,
+   "dst": 12.558,
+   "dir": 280.9
+  },
+  {
+   "hex": "7c2dfe",
+   "flight": "JDC     ",
+   "r": "VH-JDC",
+   "t": "P28A",
+   "alt_baro": 700,
+   "alt_geom": 800,
+   "gs": 92.7,
+   "track": 214.89,
+   "lat": -33.920428,
+   "lon": 150.965252,
+   "seen_pos": 0.353,
+   "dst": 10.506,
+   "dir": 276.3
+  },
+  {
+   "hex": "7c6380",
+   "flight": "TXU     ",
+   "r": "VH-TXU",
+   "t": "P28A",
+   "alt_baro": 800,
+   "gs": 56.0,
+   "track": 101.0,
+   "lat": -33.953742,
+   "lon": 151.011924,
+   "seen_pos": 2.237,
+   "dst": 8.162,
+   "dir": 264.1
+  },
+  {
+   "hex": "7c794f",
+   "flight": "NV101   ",
+   "r": "VH-X8X",
+   "t": "C25B",
+   "alt_baro": "ground",
+   "gs": 0.0,
+   "lat": -33.91767,
+   "lon": 150.98927,
+   "seen_pos": 38.6,
+   "dst": 9.343,
+   "dir": 278.1
+  }
+ ],
+ "total": 4,
+ "now": 1789947335000,
+ "msg": "No error"
+}

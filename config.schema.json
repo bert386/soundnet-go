@@ -3,6 +3,20 @@
   "$id": "https://raw.githubusercontent.com/tphakala/birdnet-go/main/config.schema.json",
   "$ref": "#/$defs/Settings",
   "$defs": {
+    "ADSBFallbackSettings": {
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "baseurl": {
+          "type": "string",
+          "description": "BaseURL is the adsb.lol-compatible endpoint. Empty means the public one.\nAny service speaking the same readsb-style point API will do, which is\nseveral of the community networks."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "ADSBFallbackSettings configures the backup aircraft position source."
+    },
     "ADSBSettings": {
       "properties": {
         "enabled": {
@@ -27,6 +41,10 @@
         "resolveaircraftdetail": {
           "type": "boolean",
           "description": "ResolveAircraftDetail turns hex codes and callsigns into registration,\ntype, operator and flight route via a third-party lookup. Separate from\nADSB.Enabled because it is a different service with a different privacy\nimplication, and identification works without it."
+        },
+        "fallback": {
+          "$ref": "#/$defs/ADSBFallbackSettings",
+          "description": "Fallback is a second position source, used only when OpenSky cannot\nanswer - its credits spent, or the service down."
         }
       },
       "additionalProperties": false,

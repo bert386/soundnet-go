@@ -243,9 +243,18 @@ func startSoundNetAutoLabel(settings *conf.Settings, mgr *buffer.Manager, source
 	client := adsb.NewOpenSkyClient(id, secret)
 	client.CreditFloor = cfg.AutoLabel.CreditReserve
 
+	// With a fallback behind it the collector keeps OpenSky's reserve intact for
+	// runtime enrichment - its client withholds at CreditReserve and the request
+	// drops through to the backup - and keeps collecting instead of idling.
+	source := withFallback(client, &cfg.Enrichment.ADSB.Fallback, "collector", log)
+	credits := client.CreditsRemaining
+	if chained, ok := source.(*adsb.FallbackSource); ok {
+		credits = chained.CreditsRemaining
+	}
+
 	sky := &openSkySky{
-		states:          client,
-		credits:         client.CreditsRemaining,
+		states:          source,
+		credits:         credits,
 		metadataWithinM: cfg.AutoLabel.MaxSlantM,
 	}
 	if cfg.Enrichment.ADSB.ResolveAircraftDetail {

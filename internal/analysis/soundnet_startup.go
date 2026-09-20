@@ -123,7 +123,7 @@ func buildEnrichmentRegistry(cfg *conf.SoundNetSettings, log logger.Logger) *enr
 			client.CreditFloor = cfg.Enrichment.ADSB.CreditFloor
 
 			provider := &adsb.Provider{
-				Source: client,
+				Source: withFallback(client, &cfg.Enrichment.ADSB.Fallback, "runtime", log),
 				Config: adsb.Config{
 					SearchRadiusM:   cfg.Enrichment.ADSB.SearchRadiusM,
 					MaxRangeM:       cfg.Enrichment.ADSB.MaxRangeM,
@@ -143,6 +143,35 @@ func buildEnrichmentRegistry(cfg *conf.SoundNetSettings, log logger.Logger) *enr
 		return nil
 	}
 	return registry
+}
+
+// withFallback puts a backup position source behind OpenSky, when configured.
+//
+// Returns the client unchanged otherwise, so the station behaves exactly as it
+// did. When it does chain, every pass-over is logged: a chain is otherwise
+// silent, and a primary that had been failing for a week would look exactly
+// like one that was working.
+func withFallback(primary *adsb.OpenSkyClient, cfg *conf.ADSBFallbackSettings, consumer string, log logger.Logger) adsb.StateSource {
+	if cfg == nil || !cfg.Enabled {
+		return primary
+	}
+	backup := adsb.NewADSBLolClient()
+	if cfg.BaseURL != "" {
+		backup.BaseURL = cfg.BaseURL
+	}
+	log.Info("soundnet: ADS-B fallback enabled",
+		logger.String("consumer", consumer),
+		logger.String("primary", "opensky"),
+		logger.String("fallback", backup.Name()))
+	return &adsb.FallbackSource{
+		Sources: []adsb.StateSource{primary, backup},
+		OnFallback: func(source string, err error) {
+			log.Info("soundnet: ADS-B source passed over, trying the next",
+				logger.String("consumer", consumer),
+				logger.String("source", source),
+				logger.Error(err))
+		},
+	}
 }
 
 // readOpenSkyCredentials loads client credentials from a file.

@@ -128,6 +128,30 @@ type ADSBSettings struct {
 	// ADSB.Enabled because it is a different service with a different privacy
 	// implication, and identification works without it.
 	ResolveAircraftDetail bool `yaml:"resolveaircraftdetail" json:"resolveAircraftDetail" mapstructure:"resolveaircraftdetail"`
+
+	// Fallback is a second position source, used only when OpenSky cannot
+	// answer - its credits spent, or the service down.
+	Fallback ADSBFallbackSettings `yaml:"fallback" json:"fallback" mapstructure:"fallback"`
+}
+
+// ADSBFallbackSettings configures the backup aircraft position source.
+//
+// OpenSky allows 4000 credits a day. On the first night the station spent them
+// in eight hours and then spent the morning unable to identify anything - which
+// cost more than identifications, since the domain correction and pass grouping
+// are built on them.
+//
+// Off by default because it sends the station's position to a further third
+// party, and that is the operator's call rather than a default's. OpenSky stays
+// the primary: its limit is documented, the fallback's is "dynamic based on
+// environment load", and a known limit is the better thing to depend on.
+type ADSBFallbackSettings struct {
+	Enabled bool `yaml:"enabled" json:"enabled" mapstructure:"enabled"`
+
+	// BaseURL is the adsb.lol-compatible endpoint. Empty means the public one.
+	// Any service speaking the same readsb-style point API will do, which is
+	// several of the community networks.
+	BaseURL string `yaml:"baseurl" json:"baseUrl" mapstructure:"baseurl"`
 }
 
 // ThresholdSettings sets detection thresholds that mean the same thing across
@@ -301,6 +325,8 @@ func setSoundNetDefaults() {
 	viper.SetDefault("soundnet.enrichment.adsb.maxrangem", d.Enrichment.ADSB.MaxRangeM)
 	viper.SetDefault("soundnet.enrichment.adsb.creditfloor", d.Enrichment.ADSB.CreditFloor)
 	viper.SetDefault("soundnet.enrichment.adsb.resolveaircraftdetail", d.Enrichment.ADSB.ResolveAircraftDetail)
+	viper.SetDefault("soundnet.enrichment.adsb.fallback.enabled", d.Enrichment.ADSB.Fallback.Enabled)
+	viper.SetDefault("soundnet.enrichment.adsb.fallback.baseurl", d.Enrichment.ADSB.Fallback.BaseURL)
 	viper.SetDefault("soundnet.autolabel.enabled", d.AutoLabel.Enabled)
 	viper.SetDefault("soundnet.autolabel.corpusdir", d.AutoLabel.CorpusDir)
 	viper.SetDefault("soundnet.autolabel.sourceid", d.AutoLabel.SourceID)
