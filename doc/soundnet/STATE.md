@@ -26,10 +26,10 @@ ENVIRONMENT.md (machines, toolchain, operational gotchas), GROUND_TRUTH.md
 | M1 taxonomy + models | **done** - taxonomy, catalog, fetch route, adapters. YAMNet 66-77 ms/window live; **CED-tiny live at 89 ms** |
 | M2 detection records | **done** |
 | M3 DSP diagnostics | **done**, 24.8 ms/clip measured on the Pi against a 100 ms budget |
-| M5 enrichment / ADS-B | **done and proven live** - registration, type, operator, route; ambiguity resolution for `Vehicle`/`Engine`/`Thunder`; corroboration-gated thresholds |
-| M6 auto-label collector | **running and producing** - first two captures 2026-09-21, both RSCU208 (AW139) filed under `corpus/aircraft/A139`. Poll interval now 300 s: at 60 s it exhausted the API allowance in eight hours |
+| M5 enrichment / ADS-B | **done and proven live** - registration, type, operator, route; ambiguity resolution; corroboration-gated thresholds; **two sources, OpenSky primary with adsb.lol fallback**. 67 aircraft in 7 days |
+| M6 auto-label collector | **running and producing** - 4 clips, two types (A139, P28A), filed by ICAO type with WAV + JSON sidecar. Poll interval 300 s: at 60 s it exhausted the API allowance in eight hours |
 | M7 web UI | detail panel, review + training export routed, confusion + threshold APIs, **event-domain filter**, **display names**, **resolved-domain correction**, **pass grouping**, **category overview with aircraft cards** done; tuner UI and live re-compute remain |
-| M4 sub-classification heads | **not started** - correctly last, it trains on M6's corpus |
+| M4 sub-classification heads | **not started, but no longer data-blocked** - ~170 jet and ~90 prop detections with clips and ICAO type codes already on disk; helicopters thin at 3. CED's embeddings supersede the YAMNet blocker. See "M4: the data already exists" |
 | M8 enriched alerts | **not started** |
 
 ## Packages added
@@ -204,6 +204,30 @@ files and touches no upstream line. Two cautions learned the hard way: anything
 *derived* from such a map (`nonbird.firstTokenSet`) must be rebuilt afterwards
 because init order between files is not guaranteed, and upstream's exhaustive
 table tests will fail until the new entry is declared in them too.
+
+## The station, as of 2026-09-21 midday
+
+Three models, one source, 345 ms of inference per 3-second window - an 11% duty
+cycle on a Pi 4. Running continuously; the identification pipeline, the
+auto-label collector and the event UI are all live.
+
+**Where things stand in one screen:**
+
+    identification   two ADS-B sources, OpenSky primary, adsb.lol fallback
+                     67 aircraft by registration in 7 days (9 the day before)
+    collector        M6 running, 300 s poll, 4 clips captured, types A139 + P28A
+    events UI        /ui/events - domain cards, aircraft photo cards, review list
+    naming           every stored event name resolves on every page
+    thunder          50 reviewed, 0 real: every one an aircraft
+
+**Operator settings on the Pi** (all reversible, a dated backup beside each):
+
+    soundnet.autolabel.enabled                 true, pollintervalsec 300
+    soundnet.thresholds.domains.aircraft       0.35
+    soundnet.enrichment.adsb.fallback.enabled  true  (adsb.lol)
+    soundnet.enrichment.corroborationthreshold 0.15
+    realtime.audio.sources[].gain              15
+    realtime.privacyfilter.vad                 enabled by the operator at 0.35
 
 ## The station, as of 2026-09-20 evening
 
@@ -741,103 +765,127 @@ shows its domain's icon, tinted by family, with the domain where the scientific
 name would be - which for an event is a truncated half-label that never told
 anyone anything.
 
+## M4: the data already exists
+
+Checked 2026-09-21, and it overturns the plan's assumption that M4 waits on M6.
+
+The scope has M4 training on M6's corpus, which is collecting a few clips a day.
+But **every identified detection already carries the aircraft's ICAO type code**
+in its enrichment, and its clip is still on disk. Three days of detections:
+
+    B738  117     A320  13     B789  10     B77W  10
+    P28A   53     DA40  28     A388   7     SF34   7
+    C208    4     A139   3     untyped 31
+
+Roughly 170 jet and 90 prop detections with audio, today, scattered across the
+detections table rather than the corpus directory. Two caveats before believing
+it: those are *detections*, not passes - one flyby makes three to six, so real
+examples are perhaps a third, and pass grouping now allows a proper dedup. And
+**helicopters are the gap at 3**, so either M6 is told to prioritise them or the
+first head is a two-way jet/prop.
+
+**The feature-source blocker is also cheaper than OPEN_DECISIONS item 3 says.**
+That entry recommends mirroring a YAMNet build that exposes embeddings, because
+the MediaPipe artefact has only the 521 scores. CED supersedes it: it is a
+transformer with a penultimate representation, we own `export_ced_fused.py`, and
+`verify_exact.py` already checks a re-export against PyTorch to 1.3e-06. Adding
+a second output is a contained change to a script we control.
+
+**Aircraft sub-classing is nearly free; vehicle and tool sub-classing is not.**
+ADS-B labels the aircraft. Nothing labels a bin truck, so car/truck/bus and
+lawn mower can only come from the operator's annotations - which is why the
+review queue being unreachable mattered, and why it is now routed.
+
 ## Immediately resumable work
 
-Everything that was on this list on 2026-09-20 morning is done and running. What
-follows is what is left, ordered by value.
+Rewritten 2026-09-21 midday. Everything on the previous list is done and
+running; what follows is what is left, in the order I would take it.
 
-**1. Set the poll interval from the measured allowance.** `credits_left` is now
-reported; a full day of it says what the budget actually is and therefore how
-often the collector can afford to look. 300 s is a placeholder chosen because an
-aircraft is inside the 4 km capture radius for one to two minutes, so a
-five-minute poll certainly misses some. Worth reviewing the corroboration spend
-at the same time: runtime enrichment took the balance from 500 to 198 between
-06:27 and 07:51 on its own, so the collector is not the only heavy consumer.
+**1. The dashboard and the summary counts** - the operator's stated next
+priority, and where they actually start. The names are right everywhere now, the
+framing is not: "Unique Species 45" counts event classes as species, the top-10
+chart puts `Vehicle` fourth above Eurasian Blackbird, and "New Species Detected"
+lists `car_(siren)`. Four pieces, smallest first:
 
-**1b. Watch the collector's first full day.** It is running and polling; nothing
-has yet been close enough and low enough to capture. Confirm the capture rate,
-how many polls are refused as ambiguous, and what a day costs in API credits -
-that last one has never been measured, and the collector spends a credit a
-minute whether or not anything flew. Its reserve is 500 against runtime's 200,
-so it stops first, but nobody has watched it reach either.
+    a. split the headline count - "38 species, 12 event types"
+    b. separate or stack the top-10 chart by domain
+    c. colour detections-by-hour by domain, so traffic reads against birdsong
+    d. put the domain cards from /ui/events on the dashboard
 
-**2. Extend the hierarchy rule across models, or decide not to.** The rule that
-prefers `Aircraft` over `Vehicle` compares results inside one model's chunk, and
-the two readings of a sound are not always in the same model's. The `Thunder`
-and `Thunderstorm` rows here are YAMNet's at 0.74-0.89, while CED hears the same
-audio and puts `Thunderstorm` at 0.000 with the aircraft classes at 0.15-0.38.
-Neither model holds both halves. ADS-B already resolves the domain for these, so
-the row is right even when its class name is not - which may well be enough.
+All frontend; the `/api/v2/soundnet/overview` endpoint already returns what (a),
+(b) and (d) need.
 
-**3. Tune the rest of the per-domain thresholds.** The mechanism is in and
-`aircraft` is set to 0.35, measured against the labelled negatives (best
-aircraft-class score in any window of a clip containing no aircraft: 0.135,
-including a large truck at 0.055). No other domain is set, so every other event
-class still inherits BirdNET's 0.7 and is effectively silent unless
-corroboration rescues it. `weather`, `alarm` and `vehicle` are the ones worth
-measuring next - and `vehicle` needs care, because it has no authority to
-confirm it and a low bar would fill the list.
+**2. M4, starting with a backfill script.** See "M4: the data already exists".
+The step that turns "we might have data" into a number is: pull identified
+detections, read `type_code`, dedup by pass, copy clip plus label into the
+corpus. Then a type-code to engine-class table, then the CED embedding
+re-export, then the head itself.
 
-**4. The dashboard and the summary counts.** Still species-shaped, and where
-the operator starts: "Unique Species 45" counts event classes as species, the
-top-10 chart mixes `Vehicle` in with `Common Myna`, and "New Species Detected"
-lists `car_(siren)` as a new species. The names are right everywhere now, but
-the framing is not.
+**3. Tune the remaining per-domain thresholds.** `aircraft` is set to 0.35 from
+the labelled negatives. `weather`, `alarm` and `vehicle` still inherit BirdNET's
+0.7 and are effectively silent unless corroboration rescues them. `vehicle`
+needs care: nothing can confirm it, so a low bar just fills the list.
 
-**4b. Carry the correction into search results.** Done for the detection list and
-the panel; `search.go` still shows the bare acoustic label. Its results are
-`datastore.DetectionRecord` rather than the API response type, so this means
-widening an upstream struct - weigh that footprint against how often anyone
-reads a search result.
+**4. Measure a day of API credits, then size the poll interval.** `credits_left`
+is in the collector heartbeat now. Runtime enrichment, not the collector, is the
+heavy consumer - it took the balance from 500 to 198 in ninety minutes. 300 s is
+a placeholder, and a measured number should replace it. Worth reviewing the
+corroboration spend at the same time.
 
-**5. Is `DomainAlarm` really not diagnosable?** A siren has Doppler and a pass-by
+**5. Extend the hierarchy rule across models, or decide not to.** It compares
+results inside one model's chunk, and the two readings of a sound are not always
+in the same model's: `Thunder` is YAMNet's at 0.74-0.89 while CED puts
+`Thunderstorm` at 0.000 and the aircraft classes at 0.15-0.38. ADS-B already
+resolves those, so the row is right even when its class name is not - which may
+be enough.
+
+**6. Carry the domain correction into search results.** Done for the list and
+the panel. `search.go` returns `datastore.DetectionRecord` rather than the API
+response type, so this means widening an upstream struct; weigh that against how
+often anyone reads a search result.
+
+**7. Is `DomainAlarm` really not diagnosable?** A siren has Doppler and a pass-by
 geometry exactly like a vehicle, but `Domain.Diagnosable()` returns false. Looks
 like an oversight rather than a decision.
-
-**6. Aircraft photos** from Planespotters, browser-fetched (their terms forbid
-proxying through our own API), with attribution. Now genuinely useful: the
-station produces registrations, and a photo keyed on hex code is one fetch away.
 
 **Then, in rough value order:**
 
 - **M8 enriched alerts** - carry diagnostics and identity through the existing
   alert engine.
-- **Threshold tuner UI** - its API (`/threshold-preview`) is done.
-- **An events-first view** - a new fork-owned route, zero upstream footprint,
-  grouped by domain with identity and diagnostics inline. This is where UI
-  polish belongs; see "do not rebuild the dashboard" below.
-- **M4** sub-classification heads, once M6 has a corpus. Note CED is an embedding
-  extractor by design, which is the answer to OPEN_DECISIONS item 3 - the
-  YAMNet build exposing only scores no longer blocks M4 if CED is used instead.
+- **Threshold tuner UI** - its API (`/threshold-preview`) is done, and the
+  operator has now had three thresholds set on their behalf.
 - **De-bird the UI copy** - 215 hardcoded "BirdNET-Go" strings across 130 files.
 
 ## Things to watch on the station
 
-- ~~**CED silence.**~~ **Answered 2026-09-20 21:15 and it was the opposite of
-  the worry.** `/api/v2/system/inference` carries a per-model feed of recent
+- ~~**CED silence.**~~ **Answered 2026-09-20 and it was the opposite of the
+  worry.** `/api/v2/system/inference` carries a per-model feed of recent
   above-threshold predictions, which is the only place the producing model is
   recoverable - `datastore.Note.Model` is `gorm:"-"` and never persisted. CED
-  was firing roughly every nine seconds and scoring *higher* than YAMNet on the
-  same sound (Vehicle 0.54 against 0.33), and the low-confidence Vehicle rows
-  being saved are CED's, not YAMNet's. Tell them apart by arithmetic if the feed
-  is unavailable: YAMNet quantises to 1/256, so its scores are exact multiples
-  of 0.00390625 and CED's are not.
-- **The VAD speech gate**, enabled by the operator at 0.35. Measured 2026-09-20:
-  baseline privacy discards are 1-3/min, and a burst to 7-16/min for four
-  minutes was real speech near the microphone, not the gate misfiring. If
-  detections thin out for a *sustained* stretch rather than minutes, this is the
-  first thing to check - a privacy hit discards the whole window for every model.
+  fires roughly every nine seconds, scores *higher* than YAMNet on the same
+  sound (Vehicle 0.54 against 0.33), and the low-confidence Vehicle rows being
+  saved are CED's. If that feed is unavailable, tell them apart by arithmetic:
+  YAMNet quantises to 1/256, so its scores are exact multiples of 0.00390625.
+- ~~**The collector's first captures.**~~ **Four clips, two aircraft types**
+  (A139 rescue helicopter, P28A), filed by ICAO type with WAV and JSON sidecar.
+  Working end to end.
 - **Whether OpenSky ever refills.** It did *not* reset at UTC midnight as
-  expected - the balance was still 188 at 10:11 AEST, an hour later. Something
-  other than a daily rollover governs it, and `credits_left` in the collector
-  heartbeat will show when it moves.
-- **The collector's first captures.** Running since 22:18 on 2026-09-20 and
-  reporting every poll (first three at info, then hourly). An empty corpus is
-  expected at night; an empty corpus after a day of daytime traffic is not.
-- **ADS-B credit spend, now with a fourth consumer.** Four things now query it: aircraft detections,
-  ambiguous `Vehicle`/`Engine`/`Thunder` labels, and corroboration candidates.
-  The five-second sky reuse bounds it and `creditfloor` is 200, but nobody has
-  watched a full day yet.
+  predicted - still 188 an hour later, and 190 after that. Something other than
+  a daily rollover governs it. `credits_left` is in the collector heartbeat, so
+  a day of logs will show when it moves and by how much. Until it does, ADS-B
+  runs entirely on the adsb.lol fallback.
+- **The adsb.lol limit is probabilistic.** Measured: seven requests in ten
+  answered at a ten-second interval, no Retry-After. A refusal falls back to a
+  dead-reckoned sky under thirty seconds old, so most are invisible - but if
+  identifications dry up, check for `passed over` lines naming *both* sources.
+- **The VAD speech gate**, enabled by the operator at 0.35. Baseline privacy
+  discards are 1-3/min; a burst to 7-16/min for four minutes was real speech,
+  not the gate misfiring. A *sustained* thinning of detections is the tell - a
+  privacy hit discards the whole window for every model.
+- **The music classes are new and untested in the field.** `Drum kit`, `Drum`
+  and `Cymbal` went live 2026-09-21 on a measurement, not on a day of running.
+  If drums start appearing constantly, or stop appearing while `Vehicle` rows
+  return at 0.8, that is where to look.
 
 ## Do not rebuild the dashboard
 
