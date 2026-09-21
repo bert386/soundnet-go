@@ -283,6 +283,9 @@ type detectionQueryParams struct {
 	// SOUNDNET: Category names one or more event domains, or "events" for all of
 	// them. See category_soundnet.go.
 	Category string
+	// SOUNDNET: Engine narrows a category to an engine class - jet, prop,
+	// helicopter, other, unidentified - from the aircraft ADS-B named.
+	Engine string
 	// Sorting
 	SortBy string
 	// Include additional data
@@ -325,6 +328,7 @@ func (c *Handler) parseDetectionQueryParams(ctx echo.Context) (*detectionQueryPa
 		Locked:     ctx.QueryParam("locked"),
 		// SOUNDNET: event-domain filter (aircraft, vehicle, alarm, ...).
 		Category: ctx.QueryParam("category"),
+		Engine:   ctx.QueryParam("engine"),
 		// Sorting
 		SortBy: ctx.QueryParam("sortBy"),
 		// Include weather data
@@ -347,6 +351,17 @@ func (c *Handler) parseDetectionQueryParams(ctx echo.Context) (*detectionQueryPa
 	if _, ok := expandCategory(params.Category); params.Category != "" && !ok {
 		return nil, echo.NewHTTPError(http.StatusBadRequest,
 			"unknown category; expected 'events' or one of the event domains")
+	}
+	// SOUNDNET: same reasoning - an ignored engine filter would show every
+	// aircraft and look like a jet list.
+	if params.Engine != "" {
+		if params.Category == "" {
+			return nil, echo.NewHTTPError(http.StatusBadRequest, "engine requires a category")
+		}
+		if !validEngine(params.Engine) {
+			return nil, echo.NewHTTPError(http.StatusBadRequest,
+				"unknown engine; expected jet, prop, helicopter, other or unidentified")
+		}
 	}
 
 	// Validate dates

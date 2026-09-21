@@ -123,6 +123,8 @@ export interface DetectionQueryParams {
   // SOUNDNET: event-domain filter - "events", or one or more domain ids
   // (aircraft, vehicle, alarm, ...) as a comma-separated list.
   category?: string;
+  // SOUNDNET: engine class within an aircraft category.
+  engine?: string;
 }
 
 export interface DetectionReviewRequest {

@@ -126,10 +126,10 @@ func (c *Handler) categoryDetections(params *detectionQueryParams) ([]DetectionR
 
 	// Annotated as a whole day rather than a page, which also keeps pass
 	// grouping from being cut at a page boundary.
-	all := filterByResolvedDomain(
+	all := filterByEngine(filterByResolvedDomain(
 		c.convertNotesToDetectionResponses(notes, params.IncludeWeather),
 		params.Category,
-	)
+	), params.Engine)
 	return pageOf(all, params.Offset, params.NumResults), int64(len(all)), nil
 }
 

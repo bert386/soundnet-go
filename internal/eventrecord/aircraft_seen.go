@@ -113,6 +113,50 @@ func (s *Store) AircraftSeen(from, to time.Time) ([]AircraftSighting, error) {
 	return out, nil
 }
 
+// HourlyType is how many identified detections of one aircraft type fell in
+// one station-local hour. TypeCode is empty when the lookup behind it found
+// nothing - the aircraft was identified, its type was not.
+type HourlyType struct {
+	Hour       int
+	TypeCode   string
+	Detections int
+}
+
+// HourlyAircraftTypes counts the day's identified detections by hour and type.
+//
+// The hour is the enrichment row's own timestamp, written as the detection is
+// saved, the same approximation HourlyDomainReassignments makes and for the same
+// reason: no portable join to the detections table exists.
+func (s *Store) HourlyAircraftTypes(from, to time.Time) ([]HourlyType, error) {
+	var rows []Enrichment
+	err := s.db.
+		Where("provider = ? AND created_at >= ? AND created_at <= ?", "adsb", from, to).
+		Find(&rows).Error
+	if err != nil {
+		return nil, fmt.Errorf("eventrecord: read hourly aircraft types: %w", err)
+	}
+
+	type key struct {
+		hour int
+		code string
+	}
+	counts := make(map[key]int)
+	for i := range rows {
+		var attrs map[string]any
+		if err := json.Unmarshal(rows[i].Payload, &attrs); err != nil {
+			continue
+		}
+		code, _ := attrs["type_code"].(string)
+		counts[key{hour: rows[i].CreatedAt.Local().Hour(), code: code}]++
+	}
+
+	out := make([]HourlyType, 0, len(counts))
+	for k, n := range counts {
+		out = append(out, HourlyType{Hour: k.hour, TypeCode: k.code, Detections: n})
+	}
+	return out, nil
+}
+
 // fill sets dst from the attribute when dst is still empty, so the first
 // provider to know something is not overwritten by a later one that does not.
 func fill(dst *string, attrs map[string]any, key string) {

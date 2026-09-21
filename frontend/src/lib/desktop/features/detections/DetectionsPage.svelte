@@ -107,6 +107,9 @@
       // SOUNDNET: event-domain filter. Passed straight through; the API rejects
       // an unknown value rather than silently returning everything.
       category: params.get('category') || undefined,
+      // SOUNDNET: engine class within an aircraft category - jet, prop,
+      // helicopter, other, unidentified. Set by the dashboard's aircraft grid.
+      engine: params.get('engine') || undefined,
     };
   }
 

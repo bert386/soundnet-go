@@ -4319,7 +4319,12 @@ export type TranslationKey =
   | 'soundnet.hourly.footnote'
   | 'soundnet.hourly.less'
   | 'soundnet.hourly.more'
-  | 'soundnet.hourly.heard'; // params: count;
+  | 'soundnet.hourly.heard' // params: count
+  | 'soundnet.hourly.engine.jet'
+  | 'soundnet.hourly.engine.prop'
+  | 'soundnet.hourly.engine.helicopter'
+  | 'soundnet.hourly.engine.other'
+  | 'soundnet.hourly.engine.unidentified';
 
 /**
  * Parameter types for translations that require parameters

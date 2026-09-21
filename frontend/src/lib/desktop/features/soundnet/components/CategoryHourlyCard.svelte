@@ -83,6 +83,17 @@
 
   let moves = $state<HourlyMove[]>([]);
 
+  interface HourlyEngine {
+    hour: number;
+    engine: string;
+    detections: number;
+  }
+
+  // Jet / prop / helicopter from ADS-B's type codes. Empty on a station with no
+  // identifications, in which case the aircraft grid keeps the classifier's rows.
+  let engines = $state<HourlyEngine[]>([]);
+  const ENGINE_ORDER = ['jet', 'prop', 'helicopter', 'other', 'unidentified'];
+
   $effect(() => {
     const day = date;
     if (!day) return;
@@ -90,14 +101,19 @@
     let current = true;
     fetch(`/api/v2/soundnet/overview?date=${encodeURIComponent(day)}`)
       .then(response => (response.ok ? response.json() : null))
-      .then((result: { hourlyMoves?: HourlyMove[] } | null) => {
-        if (current) moves = result?.hourlyMoves ?? [];
+      .then((result: { hourlyMoves?: HourlyMove[]; hourlyEngines?: HourlyEngine[] } | null) => {
+        if (!current) return;
+        moves = result?.hourlyMoves ?? [];
+        engines = result?.hourlyEngines ?? [];
       })
       .catch(() => {
         // Silent, and empty. SoundNet may be off, or this may be a stock
         // BirdNET-Go server; in either case the acoustic reading below is still
         // a true answer, just an uncorrected one.
-        if (current) moves = [];
+        if (current) {
+          moves = [];
+          engines = [];
+        }
       });
 
     return () => {
@@ -115,6 +131,8 @@
     label: string;
     /** The name this class is stored under, which is what the list filters on. */
     storageName?: string;
+    /** For an engine-class row: jet, prop, helicopter, other, unidentified. */
+    engine?: string;
     total: number;
     /** What the classifier said, before any identification moved anything. */
     heard: number;
@@ -222,6 +240,43 @@
       bump(target.movedFrom, move.from, moved);
     }
 
+    // The aircraft grid by engine class rather than by the classifier's
+    // Aircraft / Fixed-wing / Propeller, which record how the model guessed
+    // rather than what flew. Unidentified is the remainder of the concluded
+    // aircraft row, so the grid's rows always add up to the row above them.
+    const aircraft = byDomain.get('aircraft');
+    if (aircraft && engines.length > 0) {
+      const byEngine = new Map<string, Row>();
+      for (const engine of ENGINE_ORDER) {
+        const row = newRow(`engine:${engine}`, engineLabel(engine));
+        row.engine = engine;
+        byEngine.set(engine, row);
+      }
+      const identified = emptyHours();
+      for (const e of engines) {
+        if (!Number.isInteger(e.hour) || e.hour < 0 || e.hour >= HOURS) continue;
+        const row = byEngine.get(e.engine) ?? byEngine.get('other');
+        if (!row) continue;
+        row.hours[e.hour] += e.detections;
+        row.total += e.detections;
+        identified[e.hour] += e.detections;
+      }
+      const unidentified = byEngine.get('unidentified');
+      if (unidentified) {
+        for (let hour = 0; hour < HOURS; hour++) {
+          // `hour` is a loop counter bounded by HOURS over fixed-length locals.
+          /* eslint-disable security/detect-object-injection */
+          const rest = Math.max(0, aircraft.hours[hour] - identified[hour]);
+          unidentified.hours[hour] = rest;
+          /* eslint-enable security/detect-object-injection */
+          unidentified.total += rest;
+        }
+      }
+      aircraft.children = ENGINE_ORDER.map(e => byEngine.get(e)).filter(
+        (r): r is Row => r !== undefined && r.total > 0
+      );
+    }
+
     const out = [...byDomain.values()].filter(row => row.total > 0 || row.heard > 0);
     for (const domain of out) {
       domain.children.sort((a, b) => b.total - a.total);
@@ -262,10 +317,31 @@
   // Species is filtered on the stored name, not the display name. "Propeller,
   // airscrew" is stored as "propeller", and a link built from the label would
   // land on an empty list.
-  function listUrl(domain: string, opts: { hour?: number; storageName?: string } = {}): string {
+  // Written out rather than built from the engine name: a computed
+  // translation key cannot be checked, and a typo would render the raw key.
+  function engineLabel(engine: string): string {
+    switch (engine) {
+      case 'jet':
+        return t('soundnet.hourly.engine.jet');
+      case 'prop':
+        return t('soundnet.hourly.engine.prop');
+      case 'helicopter':
+        return t('soundnet.hourly.engine.helicopter');
+      case 'unidentified':
+        return t('soundnet.hourly.engine.unidentified');
+      default:
+        return t('soundnet.hourly.engine.other');
+    }
+  }
+
+  function listUrl(
+    domain: string,
+    opts: { hour?: number; storageName?: string; engine?: string } = {}
+  ): string {
     const query = new URLSearchParams({ queryType: 'all', category: domain, date });
     if (opts.hour !== undefined) query.set('hour', String(opts.hour));
     if (opts.storageName) query.set('species', opts.storageName);
+    if (opts.engine) query.set('engine', opts.engine);
     return `/ui/detections?${query.toString()}`;
   }
 
@@ -276,7 +352,9 @@
 
   function openCell(row: Row, domain: string, hour: number, count: number) {
     if (count <= 0 || domain === BIRDS) return;
-    navigation.navigate(listUrl(domain, { hour, storageName: row.storageName }));
+    navigation.navigate(
+      listUrl(domain, { hour, storageName: row.storageName, engine: row.engine })
+    );
   }
 
   function cellTitle(label: string, hour: number, count: number): string {

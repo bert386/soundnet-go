@@ -5890,7 +5890,14 @@
       "footnote": "Top grid: what the station concluded. Each category grid below: what the classifier heard.",
       "less": "Less",
       "more": "More",
-      "heard": "{count} heard"
+      "heard": "{count} heard",
+      "engine": {
+        "jet": "Jet",
+        "prop": "Prop",
+        "helicopter": "Helicopter",
+        "other": "Identified, type unknown",
+        "unidentified": "Not identified"
+      }
     }
   }
 }

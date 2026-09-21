@@ -28,6 +28,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 
+	"github.com/bert386/soundnet-go/internal/aircrafttype"
 	"github.com/bert386/soundnet-go/internal/eventclass"
 	"github.com/bert386/soundnet-go/internal/eventrecord"
 )
@@ -96,6 +97,51 @@ type soundNetHourlyMove struct {
 	Detections int    `json:"detections"`
 }
 
+// soundNetHourlyEngine is how many identified aircraft detections of one engine
+// class fell in one hour: jet, prop, helicopter, or "other" when the aircraft
+// was identified but its type was not, or is missing from the engine table.
+type soundNetHourlyEngine struct {
+	Hour       int    `json:"hour"`
+	Engine     string `json:"engine"`
+	Detections int    `json:"detections"`
+}
+
+// engineOther is the class for an identified aircraft whose type is unknown.
+const engineOther = "other"
+
+// engineClassOf maps a type code to what the microphone hears. Unknown types
+// are "other", never a guess: a jet counted as a prop is a wrong number an
+// operator cannot see is wrong.
+func engineClassOf(typeCode string) string {
+	if t, ok := aircrafttype.Lookup(typeCode); ok {
+		return string(t.Coarse)
+	}
+	return engineOther
+}
+
+// hourlyEngines folds per-type counts into per-engine-class counts.
+func hourlyEngines(types []eventrecord.HourlyType) []soundNetHourlyEngine {
+	type key struct {
+		hour   int
+		engine string
+	}
+	counts := make(map[key]int)
+	for _, t := range types {
+		counts[key{t.Hour, engineClassOf(t.TypeCode)}] += t.Detections
+	}
+	out := make([]soundNetHourlyEngine, 0, len(counts))
+	for k, n := range counts {
+		out = append(out, soundNetHourlyEngine{Hour: k.hour, Engine: k.engine, Detections: n})
+	}
+	sort.Slice(out, func(i, j int) bool {
+		if out[i].Hour != out[j].Hour {
+			return out[i].Hour < out[j].Hour
+		}
+		return out[i].Engine < out[j].Engine
+	})
+	return out
+}
+
 // soundNetOverviewResponse is the whole period at a glance.
 type soundNetOverviewResponse struct {
 	From string `json:"from"`
@@ -117,6 +163,12 @@ type soundNetOverviewResponse struct {
 	// filed the same detection under aircraft, which is worse than either
 	// answer on its own.
 	HourlyMoves []soundNetHourlyMove `json:"hourlyMoves,omitempty"`
+
+	// HourlyEngines splits the identified aircraft by engine class, so the
+	// day's aircraft grid can show jet, prop and helicopter rather than the
+	// classifier's Aircraft / Fixed-wing / Propeller, which is how the model
+	// guessed rather than what flew. Single day only, like HourlyMoves.
+	HourlyEngines []soundNetHourlyEngine `json:"hourlyEngines,omitempty"`
 }
 
 // GetSoundNetOverview handles GET /api/v2/soundnet/overview.
@@ -190,6 +242,7 @@ func (c *Controller) GetSoundNetOverview(ctx echo.Context) error {
 	if c.DS != nil {
 		var sightings []eventrecord.AircraftSighting
 		var moves, hourly []eventrecord.DomainMove
+		var types []eventrecord.HourlyType
 		if err := c.DS.Transaction(func(tx *gorm.DB) error {
 			store := eventrecord.NewStore(tx)
 			var rerr error
@@ -200,12 +253,18 @@ func (c *Controller) GetSoundNetOverview(ctx echo.Context) error {
 				return rerr
 			}
 			if singleDay {
-				hourly, rerr = store.HourlyDomainReassignments(from, to)
+				if hourly, rerr = store.HourlyDomainReassignments(from, to); rerr != nil {
+					return rerr
+				}
+				types, rerr = store.HourlyAircraftTypes(from, to)
 			}
 			return rerr
 		}); err == nil {
 			resp.Aircraft = sightings
 			applyDomainMoves(byDomain, moves)
+			if singleDay {
+				resp.HourlyEngines = hourlyEngines(types)
+			}
 			for _, move := range hourly {
 				resp.HourlyMoves = append(resp.HourlyMoves, soundNetHourlyMove{
 					Hour:       move.Hour,

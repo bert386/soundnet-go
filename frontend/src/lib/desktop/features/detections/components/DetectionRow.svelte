@@ -246,7 +246,14 @@
 <td class="text-sm">
   <div class="sp-species-container sp-layout-detections">
     <!-- Thumbnail -->
-    <div class="sp-thumbnail-wrapper">
+    <!--
+      SOUNDNET: `relative` makes this wrapper the anchor for the event icon's
+      absolute inset-0 below. Without it the icon escaped to the nearest
+      positioned ancestor - the whole table - and one giant car covered every
+      row of the vehicle list. Upstream never needed it: its own overlays sit
+      inside the button, which is positioned.
+    -->
+    <div class="sp-thumbnail-wrapper relative">
       <!--
         SOUNDNET: over the bird thumbnail rather than instead of it. The bird
         lookup below has loading, retry and failure states worth leaving alone,
