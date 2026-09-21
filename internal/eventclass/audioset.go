@@ -89,11 +89,20 @@ var audioSetClasses = []Class{
 	{"Rain", DomainWeather, false, 283},
 	{"Raindrop", DomainWeather, false, 284},
 	{"Rain on surface", DomainWeather, false, 285},
-	{"Wind", DomainWeather, false, 277},
-	// Wind noise on the microphone is a recording artefact rather than an event.
-	// Off by default, but worth keeping addressable: a run of it explains a gap
-	// in detections better than silence does.
-	{"Wind noise (microphone)", DomainWeather, false, 279},
+	// Wind, on by default since 2026-09-21. Not because wind is an event worth
+	// logging for its own sake, but because at the deployment station it is
+	// what "Thunder" and "Thunderstorm" turn out to be whenever no aircraft
+	// accounts for them: 73% of those rows clip the microphone, and CED, run
+	// offline on the same clips, put Wind first at 0.25-0.47. A class that is
+	// off is never emitted by either model - the emit mask is built from this
+	// flag - so the per-species threshold the operator approved could not fire
+	// until this changed. Recording it is what makes wind visible as wind
+	// rather than as a storm.
+	{"Wind", DomainWeather, true, 277},
+	// Wind noise on the microphone is a recording artefact rather than an
+	// event, and the more useful of the two here: a run of it explains a gap in
+	// detections better than silence does.
+	{"Wind noise (microphone)", DomainWeather, true, 279},
 
 	// --- Music --------------------------------------------------------------
 	//

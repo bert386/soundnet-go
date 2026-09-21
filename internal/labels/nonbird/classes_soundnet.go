@@ -84,6 +84,14 @@ var soundNetClasses = map[string]Category{
 	"rain_on_surface":         CategoryEnvironment,
 	"wind_noise_(microphone)": CategoryEnvironment,
 
+	// --- Added with the taxonomy, missed here --------------------------------
+	// Both went into internal/eventclass on 2026-09-20 without an entry in this
+	// table, so every detection of either was stored with the Aves taxonomic
+	// class - the "aircraft filed as a bird" failure this table exists to
+	// prevent. The coverage test caught it; nobody ran it until 2026-09-21.
+	"reversing_beeps": CategoryMechanical, // a vehicle's, like "truck" and "engine"
+	"caterwaul":       CategoryAnimal,     // a cat's, like "meow" and "purr"
+
 	// --- Unstructured ------------------------------------------------------
 	"noise": CategoryNoise,
 }

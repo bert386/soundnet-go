@@ -251,7 +251,15 @@ func (p *Processor) soundNetDiscardWith(
 	if item == nil {
 		return false, ""
 	}
-	normal := modelGlobalConfidenceThreshold(settings, item.BestModelID)
+	// The threshold this detection would have had to clear with no
+	// corroboration at all: per-species setting first, then the model's, then
+	// SoundNet's domain override - the same chain admission uses. It was the
+	// model's global threshold alone, so a per-species setting the operator
+	// approved (Wind 0.25, Car 0.2) was ignored here: a wind score of 0.33
+	// cleared its own bar, was then judged "quiet" against 0.7, and was
+	// discarded because nothing can confirm weather.
+	species := item.Detection.Result.Species
+	normal := p.storedConfidenceThreshold(settings, species.CommonName, species.ScientificName, item.BestModelID)
 	label := soundNetLabel(&item.Detection.Result)
 	candidate := soundNetNeedsCorroboration(settings, label, float32(item.Confidence), normal)
 	alone := soundNetNeedsSecondOpinion(settings, item, label)
