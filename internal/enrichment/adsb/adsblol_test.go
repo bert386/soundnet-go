@@ -425,3 +425,86 @@ func TestADSBLolIdentifiesItself(t *testing.T) {
 		t.Fatalf("user agent %q does not name the station", seen)
 	}
 }
+
+// Measured at the station: seven requests in ten succeed at a ten-second
+// interval, with no Retry-After to wait for. Failing the other three outright
+// loses an identification for no reason when a recent sky is in memory.
+func TestADSBLolServesARecentSkyWhenRefused(t *testing.T) {
+	t.Parallel()
+
+	var status int
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		if status == http.StatusTooManyRequests {
+			w.WriteHeader(status)
+			return
+		}
+		_, _ = w.Write([]byte(`{"ac":[{"hex":"7c617e","flight":"RSCU208","lat":-34.10,"lon":150.79,` +
+			`"alt_geom":800,"gs":140,"track":90}]}`))
+	}))
+	t.Cleanup(srv.Close)
+
+	c := &ADSBLolClient{HTTP: srv.Client(), BaseURL: srv.URL, StateTTL: 5 * time.Second}
+	now := time.Now()
+	c.SetClock(func() time.Time { return now })
+
+	fresh, err := c.StatesInBox(t.Context(), -34.3, 150.6, -33.9, 151.0)
+	if err != nil || len(fresh) != 1 {
+		t.Fatalf("first fetch: %v, %d states", err, len(fresh))
+	}
+
+	// Past the reuse window, and now refused.
+	now = now.Add(20 * time.Second)
+	status = http.StatusTooManyRequests
+
+	stale, err := c.StatesInBox(t.Context(), -34.3, 150.6, -33.9, 151.0)
+	if err != nil {
+		t.Fatalf("got %v, want the recent sky rather than a failure", err)
+	}
+	if len(stale) != 1 {
+		t.Fatalf("got %d states, want the cached one", len(stale))
+	}
+
+	// Dead reckoned, not replayed. Note the unit: gs is 140 *knots*, which is
+	// 72 m/s, so 20 seconds due east is 1.44 km - about 0.0156 degrees of
+	// longitude at this latitude. Writing this expectation in m/s first, and
+	// watching it fail by exactly half, is the same trap the conversion
+	// constants in the client exist to stop.
+	moved := stale[0].Longitude - fresh[0].Longitude
+	if moved < 0.014 || moved > 0.018 {
+		t.Fatalf("longitude moved by %.4f degrees, want about 0.0156 for 20s at 140 kt east", moved)
+	}
+	if stale[0].Latitude < fresh[0].Latitude-0.001 || stale[0].Latitude > fresh[0].Latitude+0.001 {
+		t.Errorf("latitude moved although the track is due east")
+	}
+}
+
+// Past the stale limit the assumption of constant track and speed stops being
+// fair, and a wrong position is worse than no answer.
+func TestADSBLolRefusesAnAncientSky(t *testing.T) {
+	t.Parallel()
+
+	var status int
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		if status == http.StatusTooManyRequests {
+			w.WriteHeader(status)
+			return
+		}
+		_, _ = w.Write([]byte(`{"ac":[{"hex":"7c617e","lat":-34.10,"lon":150.79,"alt_geom":800,` +
+			`"gs":140,"track":90}]}`))
+	}))
+	t.Cleanup(srv.Close)
+
+	c := &ADSBLolClient{HTTP: srv.Client(), BaseURL: srv.URL, StateTTL: 5 * time.Second}
+	now := time.Now()
+	c.SetClock(func() time.Time { return now })
+	if _, err := c.StatesInBox(t.Context(), -34.3, 150.6, -33.9, 151.0); err != nil {
+		t.Fatalf("first fetch: %v", err)
+	}
+
+	now = now.Add(MaxStaleAge + time.Second)
+	status = http.StatusTooManyRequests
+
+	if _, err := c.StatesInBox(t.Context(), -34.3, 150.6, -33.9, 151.0); !errors.Is(err, ErrCreditFloor) {
+		t.Fatalf("got %v, want a refusal rather than a position half a minute out", err)
+	}
+}

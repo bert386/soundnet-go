@@ -29,6 +29,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/bert386/soundnet-go/internal/enrichment"
 )
 
 // DefaultADSBLolBaseURL is the public endpoint.
@@ -80,6 +82,23 @@ type ADSBLolClient struct {
 	cachedAt     time.Time
 	now          func() time.Time
 }
+
+// MaxStaleAge is how old a cached sky may be and still stand in for one the
+// service refused.
+//
+// adsb.lol rate limits probabilistically rather than by a quota: measured at
+// the station, seven requests in ten succeeded at a ten-second interval, with
+// no Retry-After to wait for. Failing those three outright would lose an
+// identification for no reason, when a sky from twenty seconds ago is sitting
+// in memory.
+//
+// Thirty seconds because the states are dead reckoned forward to now before
+// being returned, and constant track and speed stop being a fair assumption
+// somewhere past that. It is the same assumption, over the same sort of
+// interval, that the acoustic-lag correction already makes in the other
+// direction - and LagIsCredible caps that at twenty seconds for the same
+// reason.
+const MaxStaleAge = 30 * time.Second
 
 // DefaultADSBLolStateTTL is the default reuse window.
 //
@@ -135,6 +154,43 @@ func (c *ADSBLolClient) cachedFor(box [4]float64) ([]State, bool) {
 	}
 	out := make([]State, len(c.cachedStates))
 	copy(out, c.cachedStates)
+	return out, true
+}
+
+// staleFor returns a cached sky older than the reuse window but young enough to
+// stand in, with every aircraft advanced along its track to now.
+//
+// Returned only to a caller that has just been refused a fresh one. Dead
+// reckoning rather than the stored positions: at 180 m/s an aircraft covers
+// five kilometres in thirty seconds, which is most of the match radius, so
+// serving the stored position would not be stale data - it would be wrong data.
+func (c *ADSBLolClient) staleFor(box [4]float64) ([]State, bool) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	if c.cachedAt.IsZero() || c.cachedBox != box || len(c.cachedStates) == 0 {
+		return nil, false
+	}
+	age := c.clock().Sub(c.cachedAt)
+	if age <= 0 || age > MaxStaleAge {
+		return nil, false
+	}
+
+	out := make([]State, 0, len(c.cachedStates))
+	for i := range c.cachedStates {
+		s := c.cachedStates[i]
+		if s.HasPosition && s.VelocityMS > 0 {
+			moved := enrichment.Project(enrichment.Position{
+				Latitude:      s.Latitude,
+				Longitude:     s.Longitude,
+				AltitudeM:     s.AltitudeM(),
+				GroundSpeedMS: s.VelocityMS,
+				TrackDeg:      s.TrackDeg,
+			}, age)
+			s.Latitude, s.Longitude = moved.Latitude, moved.Longitude
+		}
+		out = append(out, s)
+	}
 	return out, true
 }
 
@@ -227,6 +283,12 @@ func (c *ADSBLolClient) StatesInBox(ctx context.Context, latMin, lonMin, latMax,
 	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode == http.StatusTooManyRequests {
+		// A recent sky is better than none, and costs them nothing. Retrying
+		// instead would be the one thing a service that has just refused you is
+		// entitled not to expect.
+		if states, ok := c.staleFor(box); ok {
+			return states, nil
+		}
 		// Their limit is dynamic and undocumented, so this is the only way it
 		// announces itself. Reported as the same condition OpenSky reports, so
 		// a caller chaining the two does not need to know whose limit it was.

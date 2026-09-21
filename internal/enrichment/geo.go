@@ -72,22 +72,47 @@ func AcousticLag(s Station, p Position) time.Duration {
 // accurate over the few seconds involved because aircraft do not manoeuvre
 // sharply at cruise.
 func BackProject(p Position, d time.Duration) Position {
-	if p.GroundSpeedMS <= 0 || d <= 0 {
+	if d <= 0 {
 		return p
 	}
-	dist := p.GroundSpeedMS * d.Seconds()
+	return moveAlongTrack(p, -p.GroundSpeedMS*d.Seconds())
+}
+
+// Project advances a position along its own track by d.
+//
+// The mirror of BackProject, and needed for the same reason in the other
+// direction: a position that was reported some time ago is not where the
+// aircraft is now. It is used when a state source refuses a fresh sky and a
+// recent one has to stand in - dead reckoning a 30-second-old report is a
+// smaller error than pretending the aircraft has not moved, which at 180 m/s
+// would place it five kilometres from where it is.
+//
+// Same limits as the lag correction it mirrors: constant track and speed, which
+// holds for level cruise and not for a turn.
+func Project(p Position, d time.Duration) Position {
+	if d <= 0 {
+		return p
+	}
+	return moveAlongTrack(p, p.GroundSpeedMS*d.Seconds())
+}
+
+// moveAlongTrack shifts a position by dist metres along its track, or against
+// it when dist is negative.
+func moveAlongTrack(p Position, dist float64) Position {
+	if p.GroundSpeedMS <= 0 || dist == 0 {
+		return p
+	}
 	bearing := p.TrackDeg * math.Pi / 180
 
-	// Move backwards along the track: north/east components of the reverse
-	// bearing, converted to degrees of latitude and longitude.
-	dNorth := -dist * math.Cos(bearing)
-	dEast := -dist * math.Sin(bearing)
+	// North and east components of the bearing, converted to degrees.
+	dNorth := dist * math.Cos(bearing)
+	dEast := dist * math.Sin(bearing)
 
 	latRad := p.Latitude * math.Pi / 180
 	out := p
 	out.Latitude = p.Latitude + (dNorth/earthRadiusM)*180/math.Pi
 	// Longitude degrees shrink with latitude; without the cosine term an
-	// aircraft at high latitude would be rewound far too far east or west.
+	// aircraft at high latitude would be moved far too far east or west.
 	cosLat := math.Cos(latRad)
 	if math.Abs(cosLat) > 1e-9 {
 		out.Longitude = p.Longitude + (dEast/(earthRadiusM*cosLat))*180/math.Pi
