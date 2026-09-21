@@ -143,6 +143,21 @@ var audioSetClasses = []Class{
 	// Upstream already treats dog barks specially (there is a dog-bark filter),
 	// so a dog is a real event rather than something to discard.
 	{"Dog", DomainBiological, true, 69},
+
+	// Cats. Added because the station is already recording them: BirdNET's own
+	// label set carries Purr and Meow, upstream categorises them as animal
+	// sounds, and the taxonomy did not know them - so they reached the species
+	// page as species, with a bird silhouette and a count of one.
+	//
+	// Only the unambiguously non-bird animal labels are mapped. Upstream's
+	// animal category also holds "crow", "chirp_and_tweet" and "gull_and_seagull",
+	// and claiming those as events would mark real bird detections as
+	// non-birds - the opposite mistake, and a worse one, because the species
+	// list is what this station was built on.
+	{"Cat", DomainBiological, true, 76},
+	{"Purr", DomainBiological, true, 77},
+	{"Meow", DomainBiological, true, 78},
+	{"Caterwaul", DomainBiological, false, 80},
 	// Noise is the model declining to commit. Mapped so it resolves to a known
 	// domain, disabled so it does not bury real events.
 	{"Noise", DomainOther, false, 507},
