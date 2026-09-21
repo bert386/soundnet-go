@@ -125,15 +125,22 @@ func soundNetNeedsSecondOpinion(settings *conf.Settings, item *PendingDetection,
 		// map: the best model is then the only model.
 		return item.BestModelID != "" && isDistrusted(item.BestModelID)
 	}
+	// A distrusted model has to be among those that heard it. Without this, a
+	// detection only CED heard, weakly, fell through the loop and was discarded
+	// in YAMNet's name - caught on the station's first live run, a CED Cat at
+	// 0.32 logged as "only a model needing a second opinion heard it". CED's own
+	// weak detections are CED's thresholds' business, not this rule's.
+	heardByDistrusted := false
 	for model, contribution := range item.ModelContributions {
 		if isDistrusted(model) {
+			heardByDistrusted = true
 			continue
 		}
 		if float32(contribution.MaxConfidence) >= soundNetAgreementThreshold(settings, label, model) {
 			return false
 		}
 	}
-	return true
+	return heardByDistrusted
 }
 
 // soundNetAgreementThreshold is the bar a model's score must clear for that model

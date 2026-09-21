@@ -163,3 +163,19 @@ func TestSecondOpinionMatchesModelNamesCaseInsensitively(t *testing.T) {
 	s.SoundNet.Enrichment.RequireSecondOpinion = []string{" yamnet "}
 	assert.True(t, soundNetNeedsSecondOpinion(s, pending("cat", 0.97, "YAMNet"), "cat"))
 }
+
+// Caught live: a Cat only CED heard, at 0.32, was discarded in YAMNet's name.
+// The rule is about the distrusted model; a detection it never heard is not its
+// business, however weak.
+func TestSecondOpinionNeverActsOnADetectionNoDistrustedModelHeard(t *testing.T) {
+	t.Parallel()
+	s := secondOpinionSettings()
+	cedOnly := pendingWith("cat", map[string]float64{"CED": 0.32}, "CED")
+	assert.False(t, soundNetNeedsSecondOpinion(s, cedOnly, "cat"))
+
+	p := &Processor{}
+	never := func(string, time.Time, float32) bool { return false }
+	discard, why := p.soundNetDiscardWith(cedOnly, s, never)
+	assert.NotContains(t, why, "second opinion", "must not be blamed on YAMNet")
+	_ = discard
+}
