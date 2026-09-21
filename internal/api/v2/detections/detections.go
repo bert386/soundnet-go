@@ -198,6 +198,16 @@ type DetectionResponse struct {
 	// event, and the transponder proves it. The ID is the first detection's, so
 	// a client can group on it without being told how grouping works.
 	PassID uint `json:"passId,omitempty"`
+
+	// SOUNDNET: the aircraft an authority named for this detection, absent for
+	// every row nothing identified - which is most of them, including most rows
+	// inside a pass that was identified.
+	//
+	// Carried on the row rather than fetched per card: the photograph is looked
+	// up in the browser from the hex code, and without it a card would have to
+	// ask our API which aircraft this was before it could ask Planespotters what
+	// it looks like.
+	Aircraft *DetectionAircraft `json:"aircraft,omitempty"`
 }
 
 // SourceInfo describes the audio source of a detection.
@@ -724,6 +734,21 @@ func (c *Handler) stripSourceForUnauthenticated(ctx echo.Context, detections []D
 	for i := range detections {
 		detections[i].Source = nil
 	}
+}
+
+// DetectionAircraft is one identified aircraft, as much of it as the lookups
+// knew.
+//
+// SOUNDNET. Hex is the only field the aircraft itself broadcast; the rest come
+// from metadata lookups that are best-effort, so any of them may be empty while
+// the aircraft is still correctly identified.
+type DetectionAircraft struct {
+	Hex          string `json:"hex"`
+	Registration string `json:"registration,omitempty"`
+	TypeCode     string `json:"typeCode,omitempty"`
+	TypeName     string `json:"typeName,omitempty"`
+	Operator     string `json:"operator,omitempty"`
+	Callsign     string `json:"callsign,omitempty"`
 }
 
 // convertNotesToDetectionResponses converts datastore notes to API detection responses

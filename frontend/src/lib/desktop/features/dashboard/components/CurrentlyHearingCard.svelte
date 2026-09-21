@@ -20,6 +20,8 @@ Props:
   import { buildAppUrl } from '$lib/utils/urlHelpers';
   import { handleBirdImageError } from '$lib/desktop/components/ui/image-utils';
   import { localizeSpeciesName } from '$lib/utils/speciesDisplay';
+  import { ensureEventTaxonomy, eventDomainFor } from '$lib/stores/eventTaxonomy.svelte';
+  import EventThumbnail from '$lib/desktop/features/soundnet/components/EventThumbnail.svelte';
   import { settingsStore } from '$lib/stores/settings';
 
   interface Props {
@@ -28,6 +30,12 @@ Props:
   }
 
   let { detections = [], className = '' }: Props = $props();
+
+  // SOUNDNET: a live detection has no identity yet - the enrichment runs after
+  // the row is saved - so this banner can show the family but never the
+  // aeroplane. An icon that says "aircraft" is the honest answer here; a
+  // photograph would be a guess about which one.
+  ensureEventTaxonomy();
 
   // How long terminal (approved/rejected) detections remain visible (ms)
   const TERMINAL_RETENTION_MS = 3000;
@@ -198,6 +206,7 @@ Props:
              server-provided common name, then the scientific name. Keeps the
              "currently hearing" card consistent with the rest of the dashboard. -->
         {@const displayName = localizeSpeciesName(detection.scientificName, detection.species)}
+        {@const eventDomain = eventDomainFor(detection.scientificName, detection.species)}
         <div
           class="flex items-center gap-2 rounded-lg px-3 py-2 transition-colors duration-300
             {detection.status === 'approved'
@@ -208,7 +217,11 @@ Props:
           transition:fade={{ duration: 200 }}
         >
           <!-- Thumbnail -->
-          {#if detection.thumbnail}
+          {#if eventDomain}
+            <div class="size-8 shrink-0 overflow-hidden rounded">
+              <EventThumbnail domain={eventDomain} alt={displayName} />
+            </div>
+          {:else if detection.thumbnail}
             <!-- The thumbnail URL is now emitted unconditionally, so this <img> is
                  always rendered and a species with no cached image would otherwise
                  show the browser's broken-image icon where the initials badge used to

@@ -582,8 +582,15 @@ Performance Optimizations:
         >
           <LogoBadge size="md" variant={logoVariant} />
           {#if !isCollapsed}
+            <!--
+              SOUNDNET: the application's own name, from the backend's branding
+              package rather than typed into the markup. Upstream already
+              resolves it (env var, then ldflags, then the built-in default) so
+              a fork can rebrand without editing source; this was the one place
+              in the chrome that ignored it.
+            -->
             <span class="text-xl font-bold tracking-tight text-[var(--color-base-content)]"
-              >BirdNET-Go</span
+              >{appState.projectLinks.name}</span
             >
           {/if}
         </button>

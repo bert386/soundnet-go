@@ -25,6 +25,20 @@ type EnrichmentSummary struct {
 	// identity are the same source heard twice, which is the only signal that
 	// can contradict timing when grouping a pass - and when it does, it wins.
 	Identity string
+
+	// What the provider knew about the thing it named, for a list that wants to
+	// show the aircraft rather than only group by it. ADS-B specific, like
+	// Identity itself: a lightning provider would carry different fields, and
+	// the honest way to add one is another struct, not more optional strings.
+	//
+	// Any of these may be empty. The metadata lookup behind a registration is
+	// best-effort and a military or newly registered aircraft often has none,
+	// which is an ordinary state rather than a failure.
+	Registration string
+	TypeCode     string
+	TypeName     string
+	Operator     string
+	Callsign     string
 }
 
 // EnrichmentSummaries reads both facts for a page of detections in one query.
@@ -58,6 +72,11 @@ func (s *Store) EnrichmentSummaries(detectionIDs []uint) (map[uint]EnrichmentSum
 		if identity, ok := attrs[identityKey].(string); ok && identity != "" {
 			summary.Identity = identity
 		}
+		fill(&summary.Registration, attrs, "registration")
+		fill(&summary.TypeCode, attrs, "type_code")
+		fill(&summary.TypeName, attrs, "type_name")
+		fill(&summary.Operator, attrs, "operator")
+		fill(&summary.Callsign, attrs, "callsign")
 		out[rows[i].DetectionID] = summary
 	}
 	return out, nil

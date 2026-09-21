@@ -161,7 +161,7 @@ interface AppState {
  * fork's configured links take over for the entire authenticated UI.
  */
 const DEFAULT_PROJECT_LINKS: ProjectLinks = {
-  name: 'BirdNET-Go',
+  name: 'SoundNet',
   repoUrl: 'https://github.com/tphakala/birdnet-go',
   issuesUrl: 'https://github.com/tphakala/birdnet-go/issues',
   newIssueUrl: 'https://github.com/tphakala/birdnet-go/issues/new',

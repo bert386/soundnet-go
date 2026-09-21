@@ -180,6 +180,7 @@ export type TranslationKey =
   | 'common.actionsColumn'
   | 'common.closeModal'
   | 'common.hoursShort'
+  | 'common.dismiss'
   | 'pageTitle.settings'
   | 'pageTitle.pageNotFound'
   | 'pageTitle.serverError'
@@ -818,6 +819,10 @@ export type TranslationKey =
   | 'detections.errors.loadFailed' // params: status
   | 'detections.errors.noIdProvided'
   | 'detections.errors.fetchFailed'
+  | 'detections.resolvedDomain' // params: domain
+  | 'detections.resolvedDomainHint'
+  | 'detections.pass.expand' // params: count
+  | 'detections.pass.collapse'
   | 'species.rarity.title'
   | 'species.rarity.score'
   | 'species.rarity.basedOnLocation' // params: latitude, longitude
@@ -4185,7 +4190,133 @@ export type TranslationKey =
   | 'health.detail.pattern'
   | 'health.detail.patternNone'
   | 'health.detail.patternTransient'
-  | 'health.detail.patternSustained';
+  | 'health.detail.patternSustained'
+  | 'soundnet.title'
+  | 'soundnet.loading'
+  | 'soundnet.loadFailed' // params: error
+  | 'soundnet.domain' // params: domain
+  | 'soundnet.domainResolved' // params: classified, resolved
+  | 'soundnet.domainResolvedHint'
+  | 'soundnet.domainAmbiguous' // params: domains
+  | 'soundnet.computeTimeHint'
+  | 'soundnet.proximity.near'
+  | 'soundnet.proximity.mid'
+  | 'soundnet.proximity.far'
+  | 'soundnet.proximity.unknown'
+  | 'soundnet.level.heading'
+  | 'soundnet.level.proximity'
+  | 'soundnet.level.tilt'
+  | 'soundnet.level.peak'
+  | 'soundnet.level.rms'
+  | 'soundnet.level.relativeOnly'
+  | 'soundnet.level.calibrated' // params: metres
+  | 'soundnet.onsets.heading'
+  | 'soundnet.onsets.interval' // params: seconds
+  | 'soundnet.onsets.regular'
+  | 'soundnet.onsets.single'
+  | 'soundnet.doppler.heading'
+  | 'soundnet.doppler.speed'
+  | 'soundnet.doppler.cpa'
+  | 'soundnet.doppler.fit'
+  | 'soundnet.doppler.weakFit'
+  | 'soundnet.envelope.heading'
+  | 'soundnet.envelope.duration' // params: seconds
+  | 'soundnet.impulse.heading'
+  | 'soundnet.impulse.crest'
+  | 'soundnet.impulse.rise'
+  | 'soundnet.impulse.centroid'
+  | 'soundnet.impulse.lowConfidence'
+  | 'soundnet.aircraft.heading'
+  | 'soundnet.aircraft.registration'
+  | 'soundnet.aircraft.type'
+  | 'soundnet.aircraft.operator'
+  | 'soundnet.aircraft.route'
+  | 'soundnet.aircraft.altitude'
+  | 'soundnet.aircraft.provenance' // params: lag, confidence, source
+  | 'soundnet.aircraft.noMatch'
+  | 'soundnet.review.title'
+  | 'soundnet.review.progress' // params: remaining, reviewed
+  | 'soundnet.review.shortcuts'
+  | 'soundnet.review.loading'
+  | 'soundnet.review.failed' // params: error
+  | 'soundnet.review.empty'
+  | 'soundnet.review.emptyHint'
+  | 'soundnet.review.reload'
+  | 'soundnet.review.confidence' // params: percent
+  | 'soundnet.review.confirm'
+  | 'soundnet.review.falsePositive'
+  | 'soundnet.review.correct'
+  | 'soundnet.review.skip'
+  | 'soundnet.review.correctVsReject'
+  | 'soundnet.review.correctionLabel'
+  | 'soundnet.review.correctionPlaceholder'
+  | 'soundnet.review.saveCorrection'
+  | 'soundnet.review.correctionHint'
+  | 'soundnet.export.title'
+  | 'soundnet.export.loading'
+  | 'soundnet.export.failed' // params: error
+  | 'soundnet.export.total'
+  | 'soundnet.export.corrected'
+  | 'soundnet.export.correctedHint'
+  | 'soundnet.export.confirmed'
+  | 'soundnet.export.thinHeading' // params: count
+  | 'soundnet.export.label'
+  | 'soundnet.export.examples'
+  | 'soundnet.export.download'
+  | 'soundnet.export.manifestNote'
+  | 'soundnet.export.empty'
+  | 'soundnet.export.emptyHint'
+  | 'soundnet.categories.label'
+  | 'soundnet.categories.all'
+  | 'soundnet.categories.events'
+  | 'soundnet.categories.aircraft'
+  | 'soundnet.categories.vehicle'
+  | 'soundnet.categories.impulse'
+  | 'soundnet.categories.weather'
+  | 'soundnet.categories.tool'
+  | 'soundnet.categories.alarm'
+  | 'soundnet.categories.rail'
+  | 'soundnet.categories.watercraft'
+  | 'soundnet.events.title'
+  | 'soundnet.events.intro'
+  | 'soundnet.events.browse'
+  | 'soundnet.events.reviewHeading'
+  | 'soundnet.events.reviewIntro'
+  | 'soundnet.events.exportHeading'
+  | 'soundnet.events.exportIntro'
+  | 'soundnet.events.reviewLoading'
+  | 'soundnet.events.reviewLoadFailed' // params: error
+  | 'soundnet.events.reviewEmpty'
+  | 'soundnet.events.reviewCount' // params: count
+  | 'soundnet.overview.period'
+  | 'soundnet.overview.days' // params: count
+  | 'soundnet.overview.loading'
+  | 'soundnet.overview.loadFailed' // params: error
+  | 'soundnet.overview.empty'
+  | 'soundnet.overview.events'
+  | 'soundnet.overview.categories'
+  | 'soundnet.overview.aircraftIdentified'
+  | 'soundnet.overview.birds'
+  | 'soundnet.overview.detections' // params: count
+  | 'soundnet.overview.browse'
+  | 'soundnet.overview.aircraftHeading'
+  | 'soundnet.overview.aircraftMore' // params: count
+  | 'soundnet.overview.identifiedAs' // params: count, domain
+  | 'soundnet.overview.heardAs' // params: count, domain
+  | 'soundnet.overview.heardHeading' // params: count
+  | 'soundnet.overview.ambiguousWith' // params: domains
+  | 'soundnet.aircraftCard.detections' // params: count
+  | 'soundnet.aircraftCard.track'
+  | 'soundnet.aircraftCard.registry'
+  | 'soundnet.aircraftCard.photoCredit' // params: photographer
+  | 'soundnet.counts.speciesAndEvents' // params: species, events
+  | 'soundnet.counts.eventTypes'
+  | 'soundnet.hourly.title'
+  | 'soundnet.hourly.intro'
+  | 'soundnet.hourly.category'
+  | 'soundnet.hourly.total'
+  | 'soundnet.hourly.birds'
+  | 'soundnet.hourly.footnote'; // params: date;
 
 /**
  * Parameter types for translations that require parameters
@@ -4363,6 +4494,8 @@ export type TranslationParams = {
   'detections.aria.thumbnailLoading': { species: string | number };
   'detections.aria.thumbnailLoaded': { species: string | number };
   'detections.errors.loadFailed': { status: string | number };
+  'detections.resolvedDomain': { domain: string | number };
+  'detections.pass.expand': { count: string | number };
   'species.rarity.basedOnLocation': { latitude: string | number; longitude: string | number };
   'spectrogram.gain.level': { value: string | number };
   'system.systemInfo.temperatureValue': { temp: string | number };
@@ -4633,6 +4766,37 @@ export type TranslationParams = {
   'analysis.gallery.preview.dialogNotice': { build: string | number };
   'analysis.gallery.optimize.bannerTitle': { count: string | number };
   'analysis.gallery.optimize.fromTo': { from: string | number; to: string | number };
+  'soundnet.loadFailed': { error: string | number };
+  'soundnet.domain': { domain: string | number };
+  'soundnet.domainResolved': { classified: string | number; resolved: string | number };
+  'soundnet.domainAmbiguous': { domains: string | number };
+  'soundnet.level.calibrated': { metres: string | number };
+  'soundnet.onsets.interval': { seconds: string | number };
+  'soundnet.envelope.duration': { seconds: string | number };
+  'soundnet.aircraft.provenance': {
+    lag: string | number;
+    confidence: string | number;
+    source: string | number;
+  };
+  'soundnet.review.progress': { remaining: string | number; reviewed: string | number };
+  'soundnet.review.failed': { error: string | number };
+  'soundnet.review.confidence': { percent: string | number };
+  'soundnet.export.failed': { error: string | number };
+  'soundnet.export.thinHeading': { count: string | number };
+  'soundnet.events.reviewLoadFailed': { error: string | number };
+  'soundnet.events.reviewCount': { count: string | number };
+  'soundnet.overview.days': { count: string | number };
+  'soundnet.overview.loadFailed': { error: string | number };
+  'soundnet.overview.detections': { count: string | number };
+  'soundnet.overview.aircraftMore': { count: string | number };
+  'soundnet.overview.identifiedAs': { count: string | number; domain: string | number };
+  'soundnet.overview.heardAs': { count: string | number; domain: string | number };
+  'soundnet.overview.heardHeading': { count: string | number };
+  'soundnet.overview.ambiguousWith': { domains: string | number };
+  'soundnet.aircraftCard.detections': { count: string | number };
+  'soundnet.aircraftCard.photoCredit': { photographer: string | number };
+  'soundnet.counts.speciesAndEvents': { species: string | number; events: string | number };
+  'soundnet.hourly.footnote': { date: string | number };
 };
 
 /**

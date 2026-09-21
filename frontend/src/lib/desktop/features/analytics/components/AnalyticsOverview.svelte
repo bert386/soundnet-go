@@ -25,6 +25,7 @@
   import type { SourceInfo } from '$lib/types/detection.types';
 
   import StatCard from './ui/StatCard.svelte';
+  import { ensureEventTaxonomy, resolveEventClass } from '$lib/stores/eventTaxonomy.svelte';
   import BarChart from './charts/d3/BarChart.svelte';
   import LineChart from './charts/d3/LineChart.svelte';
   import NewSpeciesTimelineChart from './charts/d3/NewSpeciesTimelineChart.svelte';
@@ -141,6 +142,22 @@
     mostCommonCount: 0,
   });
 
+  // SOUNDNET: the list this page counts is not only species. On this station
+  // it holds Vehicle, Thunderstorm, Propeller and Purr alongside the birds, and
+  // reporting all of it as "45 species" is the most misleading number on the
+  // screen - a number does not look wrong the way a name does, which is why it
+  // outlived the naming fix.
+  //
+  // Derived rather than counted once, because the taxonomy arrives over the
+  // network after this data does. Until it lands every entry counts as a
+  // species, which is exactly what this page showed before.
+  let summaryNames = $state<Array<{ scientific: string; common: string }>>([]);
+  const eventTypeCount = $derived(
+    summaryNames.filter(n => resolveEventClass(n.scientific, n.common) !== null).length
+  );
+  const speciesCount = $derived(summaryNames.length - eventTypeCount);
+  ensureEventTaxonomy();
+
   // Data arrays
   let recentDetections = $state<Detection[]>([]);
 
@@ -251,6 +268,7 @@
       mostCommonCount: 0,
     };
     recentDetections = [];
+    summaryNames = [];
     chartData = { species: [], timeOfDay: [], trend: null, newSpecies: [] };
 
     logger.debug('Loading overview analytics', { startDate, endDate });
@@ -311,6 +329,11 @@
           mostCommonScientific = species.scientific_name || '';
         }
       });
+
+      summaryNames = speciesArray.map(species => ({
+        scientific: species.scientific_name ?? '',
+        common: species.common_name ?? '',
+      }));
 
       summary = {
         totalDetections,
@@ -461,7 +484,7 @@
   {/if}
 
   <!-- Summary Stats Cards -->
-  <div class="grid gap-4 summary-cards-grid">
+  <div class="grid gap-4 summary-cards-grid" class:has-events={eventTypeCount > 0}>
     <!-- Total Detections Card -->
     <StatCard
       title={t('analytics.stats.totalDetections')}
@@ -503,7 +526,7 @@
     <!-- Unique Species Card -->
     <StatCard
       title={t('analytics.stats.uniqueSpecies')}
-      value={formatNumber(summary.uniqueSpecies)}
+      value={formatNumber(speciesCount)}
       subtitle={periodLabel}
       iconClassName="bg-[var(--color-secondary)]/20"
       {isLoading}
@@ -524,6 +547,21 @@
     </StatCard>
 
     <!-- Average Confidence Card -->
+    <!--
+      SOUNDNET: the events, counted apart from the birds rather than inside
+      them. Absent on a station that only hears birds, so the inherited
+      four-card row is unchanged for one.
+    -->
+    {#if eventTypeCount > 0}
+      <StatCard
+        title={t('soundnet.counts.eventTypes')}
+        value={formatNumber(eventTypeCount)}
+        subtitle={periodLabel}
+        iconClassName="bg-[var(--color-accent)]/20"
+        {isLoading}
+      />
+    {/if}
+
     <StatCard
       title={t('analytics.stats.avgConfidence')}
       value={formatPercentage(summary.avgConfidence)}
@@ -872,6 +910,16 @@
   @media (min-width: 1024px) {
     .summary-cards-grid {
       grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  /*
+    SOUNDNET: a fifth card, and only when there is a fifth card. A station that
+    hears only birds keeps the inherited four-column row exactly as it was.
+  */
+  @media (min-width: 1024px) {
+    .summary-cards-grid.has-events {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
     }
   }
 

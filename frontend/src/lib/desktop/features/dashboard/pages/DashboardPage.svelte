@@ -81,6 +81,7 @@ Performance Optimizations:
   import VideoEmbedCard from '$lib/desktop/features/dashboard/components/VideoEmbedCard.svelte';
   import MiniSpectrogram from '$lib/desktop/features/dashboard/components/MiniSpectrogram.svelte';
   import DashboardEditMode from '$lib/desktop/features/dashboard/components/DashboardEditMode.svelte';
+  import CategoryHourlyCard from '$lib/desktop/features/soundnet/components/CategoryHourlyCard.svelte';
   import DailySummaryConfigForm from '$lib/desktop/features/dashboard/components/DailySummaryConfigForm.svelte';
   import {
     Image,
@@ -1350,6 +1351,13 @@ Performance Optimizations:
 </script>
 
 <div class="col-span-12">
+  <!--
+    SOUNDNET: the day by hour, with the birds as one row instead of forty.
+    Reads the same daily summary the species table below already fetched, so it
+    costs no request and cannot disagree with it.
+  -->
+  <CategoryHourlyCard data={dailySummary} date={selectedDate} />
+
   <DashboardEditMode
     layout={currentLayout}
     editMode={isEditing}

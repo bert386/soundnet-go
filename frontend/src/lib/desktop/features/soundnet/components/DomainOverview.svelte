@@ -11,6 +11,12 @@
   shows the vehicle classes. The detections list is one more click away, already
   filtered, rather than reimplemented here.
 
+  Each domain carries two numbers, because on this station they differ sharply.
+  The headline is what the station concluded, after ADS-B moved the detections
+  it could identify; the class list underneath is what the classifier heard, and
+  is left exactly as the classifier left it. An operator tuning a threshold
+  needs the second, and an operator asking what flew over needs the first.
+
   Class names come from the taxonomy, never the stored form. The stored names
   are truncated on the way in - "and_airscrew", "car_(siren)" - which is what
   the species page shows an operator today.
@@ -42,11 +48,20 @@
     count: number;
     maxConfidence?: number;
     lastHeard?: string;
+    ambiguousWith?: string[];
+  }
+
+  interface DomainMove {
+    domain: string;
+    detections: number;
   }
 
   interface DomainSummary {
     domain: string;
     detections: number;
+    heard: number;
+    identifiedAs?: DomainMove[];
+    identifiedFrom?: DomainMove[];
     classes: ClassCount[];
     diagnosable: boolean;
     enrichable: boolean;
@@ -208,11 +223,50 @@
               <span class="text-2xl font-semibold tabular-nums">{domain.detections}</span>
             </button>
 
+            <!--
+              The two halves of every correction, each shown on the card it
+              changes. Without them the weather card simply reads lower than the
+              classifier's own count and there is nothing on screen to say why.
+            -->
+            {#if domain.identifiedAs?.length}
+              {#each domain.identifiedAs as move (move.domain)}
+                <p class="text-xs opacity-70 flex items-center gap-1">
+                  <Plane class="h-3 w-3" aria-hidden="true" />
+                  {t('soundnet.overview.identifiedAs', {
+                    count: move.detections,
+                    domain: move.domain,
+                  })}
+                </p>
+              {/each}
+            {/if}
+            {#if domain.identifiedFrom?.length}
+              {#each domain.identifiedFrom as move (move.domain)}
+                <p class="text-xs opacity-70">
+                  {t('soundnet.overview.heardAs', {
+                    count: move.detections,
+                    domain: move.domain,
+                  })}
+                </p>
+              {/each}
+            {/if}
+
             {#if opened === domain.domain}
-              <ul class="mt-1 space-y-1 border-t border-base-200 pt-2">
+              <p class="text-xs opacity-50 mt-1 border-t border-base-200 pt-2">
+                {t('soundnet.overview.heardHeading', { count: domain.heard })}
+              </p>
+              <ul class="space-y-1">
                 {#each domain.classes as klass (klass.label)}
                   <li class="flex items-center gap-2 text-sm">
-                    <span class="flex-1 truncate">{klass.label}</span>
+                    <span class="flex-1 truncate">
+                      {klass.label}
+                      {#if klass.ambiguousWith?.length}
+                        <span class="text-xs opacity-50">
+                          {t('soundnet.overview.ambiguousWith', {
+                            domains: klass.ambiguousWith.join(', '),
+                          })}
+                        </span>
+                      {/if}
+                    </span>
                     {#if klass.maxConfidence}
                       <span class="font-mono text-xs opacity-50">
                         {(klass.maxConfidence * 100).toFixed(0)}%

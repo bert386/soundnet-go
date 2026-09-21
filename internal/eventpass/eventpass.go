@@ -24,6 +24,7 @@
 package eventpass
 
 import (
+	"slices"
 	"sort"
 	"time"
 )
@@ -54,16 +55,20 @@ type Detection struct {
 	// different domains by their class names; grouping on those would scatter
 	// one aeroplane into three passes, which is the problem rather than the
 	// fix. They are one pass because ADS-B resolved all three to aircraft.
-	//
-	// A detection nothing resolved keeps its own domain and will not join an
-	// aircraft pass. That is deliberate: a `Vehicle` row nobody identified may
-	// genuinely be a car, and quietly folding it into the aeroplane beside it
-	// would invent a fact from proximity alone.
 	Domain string
 
 	// Identity is what an authority named, empty when nothing did. An ICAO hex
 	// code, a lightning strike id, whatever the provider is authoritative about.
 	Identity string
+
+	// Candidates are the domains this detection's class could belong to - the
+	// taxonomy's own ambiguity table, its own domain included. It is what lets
+	// an unidentified `Thunderstorm` join the aeroplane it was recorded beside,
+	// and what stops a `Purr` from doing the same.
+	//
+	// Empty means "settled", and a caller that does not supply it gets exactly
+	// the grouping this package did before the field existed.
+	Candidates []string
 }
 
 // Pass is one source heard once.
@@ -71,6 +76,11 @@ type Pass struct {
 	// ID is the first detection's ID, so a pass is named by something that
 	// already exists and stays stable as later detections join it.
 	ID uint
+
+	// Domain is the family the pass belongs to. Not simply the first
+	// detection's: a pass that absorbed a Thunderstorm keeps the domain the
+	// authority settled it under, and the absorbed row keeps its own class.
+	Domain string
 
 	// Identity is the one identity the pass's detections agree on, empty if
 	// none of them was identified.
@@ -83,11 +93,16 @@ type Pass struct {
 
 // Group sorts detections into passes.
 //
-// The rule is time proximity within a domain, split by identity: detections
-// close together in one domain are the same pass unless an authority says they
-// are two different things. Identity splits rather than joins, because it is
-// the only signal that can contradict the timing - and when it does, it is
-// right.
+// Two phases. First, time proximity within a domain, split by identity:
+// detections close together in one domain are the same pass unless an authority
+// says they are two different things. Identity splits rather than joins,
+// because it is the only signal that can contradict the timing - and when it
+// does, it is right.
+//
+// Then the passes an authority named absorb the unidentified detections lying
+// inside them whose class the taxonomy already admits cannot tell the two
+// domains apart. That second phase is what stops one flight appearing three
+// times, once under aircraft, once under vehicle and once under weather.
 //
 // Detections need not arrive sorted. The returned passes are ordered by start
 // time, and each pass's detections by their own.
@@ -99,30 +114,160 @@ func Group(detections []Detection, gap time.Duration) []Pass {
 		gap = DefaultGap
 	}
 
+	passes := groupWithinDomains(detections, gap)
+	passes = absorbAmbiguous(passes, gap)
+
+	sort.SliceStable(passes, func(i, j int) bool { return passes[i].Start.Before(passes[j].Start) })
+	return passes
+}
+
+// groupWithinDomains is the original rule: proximity inside one domain.
+func groupWithinDomains(detections []Detection, gap time.Duration) []Pass {
 	byDomain := make(map[string][]Detection)
 	for _, d := range detections {
 		byDomain[d.Domain] = append(byDomain[d.Domain], d)
 	}
 
 	var passes []Pass
-	for _, group := range byDomain {
+	for domain, group := range byDomain {
 		sort.SliceStable(group, func(i, j int) bool { return group[i].At.Before(group[j].At) })
 
 		var run []Detection
 		for _, d := range group {
 			if len(run) > 0 && (d.At.Sub(run[len(run)-1].At) > gap || splitsOnIdentity(run, d)) {
-				passes = append(passes, newPass(run))
+				passes = append(passes, newPass(run, domain))
 				run = nil
 			}
 			run = append(run, d)
 		}
 		if len(run) > 0 {
-			passes = append(passes, newPass(run))
+			passes = append(passes, newPass(run, domain))
 		}
 	}
-
-	sort.SliceStable(passes, func(i, j int) bool { return passes[i].Start.Before(passes[j].Start) })
 	return passes
+}
+
+// absorbAmbiguous folds unidentified detections into the identified pass they
+// were heard inside.
+//
+// Three conditions, all required, and each one is doing work:
+//
+//   - The receiving pass was named by an authority. Proximity between two
+//     things nobody identified is not evidence of anything; ADS-B saying an
+//     aeroplane was overhead at that second is.
+//   - The moving detection was not itself identified. A row an authority named
+//     already knows what it is, and moving it would overrule the authority with
+//     a guess about timing.
+//   - The taxonomy lists the receiving pass's domain among the moving class's
+//     candidates. `Thunder` and `Vehicle` are ambiguous with aircraft and this
+//     is exactly the confusion the ambiguity table was written for - at this
+//     station every one of fifty reviewed Thunder detections was an aeroplane.
+//     `Purr` is not ambiguous with anything, so a cat heard during a flypast
+//     stays a cat.
+//
+// Windows are measured against the pass as phase one left it and are not
+// widened as detections join, so absorbing cannot chain outward from a pass
+// into a sound half a minute past its far end.
+func absorbAmbiguous(passes []Pass, gap time.Duration) []Pass {
+	anchors := make([]int, 0, len(passes))
+	for i := range passes {
+		if passes[i].Identity != "" {
+			anchors = append(anchors, i)
+		}
+	}
+	if len(anchors) == 0 {
+		return passes
+	}
+
+	// Windows captured before anything moves, for the reason above.
+	windows := make(map[int][2]time.Time, len(anchors))
+	for _, i := range anchors {
+		windows[i] = [2]time.Time{passes[i].Start, passes[i].End}
+	}
+
+	moved := false
+	for i := range passes {
+		if passes[i].Identity != "" {
+			// An identified pass is settled. It gives nothing away, and the
+			// authority that named it is not overruled by a neighbour.
+			continue
+		}
+		kept := make([]Detection, 0, len(passes[i].Detections))
+		for _, d := range passes[i].Detections {
+			target := nearestAnchor(passes, anchors, windows, d, gap)
+			if target < 0 {
+				kept = append(kept, d)
+				continue
+			}
+			passes[target].Detections = append(passes[target].Detections, d)
+			moved = true
+		}
+		passes[i].Detections = kept
+	}
+	if !moved {
+		return passes
+	}
+
+	out := make([]Pass, 0, len(passes))
+	for i := range passes {
+		if len(passes[i].Detections) == 0 {
+			// A pass that gave up every detection it had is not an empty pass,
+			// it is one that turned out to be part of another.
+			continue
+		}
+		sort.SliceStable(passes[i].Detections, func(a, b int) bool {
+			return passes[i].Detections[a].At.Before(passes[i].Detections[b].At)
+		})
+		out = append(out, newPass(passes[i].Detections, passes[i].Domain))
+	}
+	return out
+}
+
+// nearestAnchor picks the identified pass this detection belongs to, or -1.
+//
+// Nearest in time rather than first found: two aircraft can pass within a
+// minute of each other, and the ambiguous row between them belongs to whichever
+// was closer to it, not to whichever the map happened to yield first.
+func nearestAnchor(
+	passes []Pass,
+	anchors []int,
+	windows map[int][2]time.Time,
+	d Detection,
+	gap time.Duration,
+) int {
+	if d.Identity != "" || len(d.Candidates) == 0 {
+		return -1
+	}
+
+	best := -1
+	var bestDistance time.Duration
+	for _, i := range anchors {
+		if !slices.Contains(d.Candidates, passes[i].Domain) {
+			continue
+		}
+		window := windows[i]
+		distance := distanceToWindow(window[0], window[1], d.At)
+		if distance > gap {
+			continue
+		}
+		if best < 0 || distance < bestDistance {
+			best, bestDistance = i, distance
+		}
+	}
+	return best
+}
+
+// distanceToWindow is how far outside [start, end] a moment falls, zero when it
+// falls inside.
+func distanceToWindow(start, end, at time.Time) time.Duration {
+	switch {
+	case at.Before(start):
+		return start.Sub(at)
+	case at.After(end):
+		return at.Sub(end)
+	default:
+		return 0
+	}
 }
 
 // splitsOnIdentity reports whether this detection names something different
@@ -144,9 +289,10 @@ func splitsOnIdentity(run []Detection, next Detection) bool {
 	return false
 }
 
-func newPass(run []Detection) Pass {
+func newPass(run []Detection, domain string) Pass {
 	p := Pass{
 		ID:         run[0].ID,
+		Domain:     domain,
 		Detections: run,
 		Start:      run[0].At,
 		End:        run[len(run)-1].At,

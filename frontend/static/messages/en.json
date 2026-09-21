@@ -201,7 +201,7 @@
     "dismiss": "Dismiss"
   },
   "pageTitle": {
-    "settings": "Settings - BirdNET-Go",
+    "settings": "Settings - SoundNet",
     "pageNotFound": "404 - Page Not Found",
     "serverError": "500 - Internal Server Error",
     "componentError": "Component Load Error",
@@ -256,13 +256,13 @@
     }
   },
   "about": {
-    "title": "BirdNET-Go",
+    "title": "SoundNet",
     "subtitle": "A modern interface for real-time bird sound detection and classification",
-    "logoAlt": "BirdNET-Go Logo",
+    "logoAlt": "SoundNet Logo",
     "overview": "Overview",
-    "overviewText": "BirdNET-Go is a Go-based implementation for real-time bird sound detection and classification, built upon the foundation of the BirdNET project. This application provides a user-friendly interface for continuous bird sound monitoring and analysis.",
+    "overviewText": "SoundNet is an acoustic event detector built on BirdNET-Go, the Go-based implementation of real-time bird sound detection and classification. It keeps everything BirdNET-Go does for birds and adds the rest of what a microphone hears - aircraft, road vehicles, weather and alarms - with an external identification step for the ones a public authority can name.",
     "birdnetProject": "BirdNET Project",
-    "birdnetDescription": "BirdNET-Go would not be possible without the groundbreaking work of the BirdNET project. The artificial intelligence model powering BirdNET-Go's detection capabilities is the result of the BirdNET project's innovative research and development.",
+    "birdnetDescription": "SoundNet would not be possible without the groundbreaking work of the BirdNET project. The artificial intelligence model powering SoundNet's detection capabilities is the result of the BirdNET project's innovative research and development.",
     "developedBy": "Developed by",
     "developersText": "The K. Lisa Yang Center for Conservation Bioacoustics at the Cornell Lab of Ornithology in collaboration with Chemnitz University of Technology:",
     "visitBirdnetAnalyzer": "Visit BirdNET-Analyzer Project",
@@ -280,7 +280,7 @@
     "documentation": "Documentation improvements",
     "additionalCredits": "Additional Credits",
     "birdnetPiProject": "BirdNET-Pi Project",
-    "birdnetPiDescription": "Special thanks to Patrick McGuire for his inspiring work on BirdNET-Pi, which has influenced the development of BirdNET-Go. BirdNET-Pi demonstrates the potential of bird sound detection on embedded devices and has set a high standard for community-driven development.",
+    "birdnetPiDescription": "Special thanks to Patrick McGuire for his inspiring work on BirdNET-Pi, which has influenced the development of SoundNet. BirdNET-Pi demonstrates the potential of bird sound detection on embedded devices and has set a high standard for community-driven development.",
     "visitBirdnetPi": "Visit BirdNET-Pi Project",
     "labelTranslations": "BirdNET Label Translations",
     "labelTranslationsBy": "Provided by Patrick Levin for the BirdNET-Pi project by Patrick McGuire",
@@ -296,7 +296,7 @@
     "licenseDescription": "This license allows others to remix, adapt, and build upon this work non-commercially, as long as appropriate credit is given and new creations are licensed under identical terms.",
     "dependencyLicenses": "Dependency Licenses",
     "taxonomyDataTitle": "Taxonomy Data",
-    "taxonomyDataIntro": "BirdNET-Go includes embedded bird taxonomy data derived from the eBird/Clements Checklist, providing fast local genus and family lookups.",
+    "taxonomyDataIntro": "SoundNet includes embedded bird taxonomy data derived from the eBird/Clements Checklist, providing fast local genus and family lookups.",
     "source": "Source",
     "ebirdApiV2": "eBird API v2",
     "copyright": "Copyright",
@@ -306,7 +306,7 @@
     "ebirdOrg": "eBird.org",
     "learnEbirdTaxonomy": "Learn about eBird Taxonomy",
     "avicommonsTitle": "Bird Thumbnails",
-    "avicommonsDescription": "BirdNET-Go uses curated bird images from Avicommons, a library of hand-picked, cropped, and oriented bird photos licensed under Creative Commons licenses.",
+    "avicommonsDescription": "SoundNet uses curated bird images from Avicommons, a library of hand-picked, cropped, and oriented bird photos licensed under Creative Commons licenses.",
     "githubStarPrompt": "If you find BirdNET-Go valuable, please consider starring the project on GitHub. Stars help others discover this project and support its continued development.",
     "viewOnGithub": "View Project on GitHub",
     "visitGithubAriaLabel": "Visit BirdNET-Go GitHub repository",
@@ -378,11 +378,11 @@
     },
     "content": {
       "startup": {
-        "title": "BirdNET-Go Started",
+        "title": "SoundNet Started",
         "message": "Application started successfully (v{version})"
       },
       "shutdown": {
-        "title": "BirdNET-Go Shutting Down",
+        "title": "SoundNet Shutting Down",
         "message": "Application is shutting down gracefully"
       },
       "detection": {
@@ -441,7 +441,7 @@
         "cancelledTitle": "Database Migration Cancelled",
         "cancelledMessage": "Database migration has been cancelled. You can start a new migration at any time from the Database settings.",
         "completedTitle": "Database Migration Completed",
-        "completedMessage": "Migration completed. Please restart BirdNET-Go to switch to the new database.",
+        "completedMessage": "Migration completed. Please restart SoundNet to switch to the new database.",
         "errorTitle": "Database Migration Error",
         "errorMessage": "Migration paused due to errors. Check logs and try resuming."
       },
@@ -1258,10 +1258,10 @@
         "mountDescription": "Your BirdNET-Pi database should be on the external media mount.",
         "mountRoot": "Mount root",
         "nativeTitle": "External media mount required",
-        "nativeDescription": "BirdNET-Pi import requires an external media mount, which is only available when BirdNET-Go runs in a container. Native (non-containerized) installs cannot use this import feature.",
-        "nativeHowTo": "To import from BirdNET-Pi, run BirdNET-Go in a container with the BirdNET-Pi data directory mounted as the external media volume.",
+        "nativeDescription": "BirdNET-Pi import requires an external media mount, which is only available when SoundNet runs in a container. Native (non-containerized) installs cannot use this import feature.",
+        "nativeHowTo": "To import from BirdNET-Pi, run SoundNet in a container with the BirdNET-Pi data directory mounted as the external media volume.",
         "missingTitle": "External media mount not found",
-        "missingDescription": "BirdNET-Go is running in a container but the external media mount is not accessible. Follow the steps below to set it up.",
+        "missingDescription": "SoundNet is running in a container but the external media mount is not accessible. Follow the steps below to set it up.",
         "setupStepsLabel": "Setup steps",
         "recheckButton": "Re-check",
         "recheckHint": "After completing the setup steps, click Re-check to continue."
@@ -1275,30 +1275,30 @@
         "kindLocal": "On this device",
         "kindRemovable": "Removable drive",
         "kindNetwork": "Network location",
-        "unreadableTitle": "Found, but BirdNET-Go can't read it",
+        "unreadableTitle": "Found, but SoundNet can't read it",
         "unreadableOwner": "This data belongs to another user ({owner}).",
         "manualEntryLink": "Don't see it? Enter the location manually",
         "manualEntryLabel": "BirdNET-Pi database location",
         "manualValidating": "Checking...",
         "manualValid": "Found {count} detections.",
         "manualNotFound": "We couldn't find a file there.",
-        "manualUnreadable": "Found it, but BirdNET-Go can't read it yet.",
+        "manualUnreadable": "Found it, but SoundNet can't read it yet.",
         "manualInvalid": "That file isn't a BirdNET-Pi database.",
         "zeroTitle": "We couldn't find it automatically",
         "zeroDescription": "Connect the drive that holds your BirdNET-Pi data, then check again.",
         "checkAgainButton": "Check again",
         "showCommandsLabel": "Show commands",
-        "containerUnreadableHint": "BirdNET-Go (running as UID {uid}) can't read this file. Fix the permissions on the host so that UID {uid} can read it, then check again.",
+        "containerUnreadableHint": "SoundNet (running as UID {uid}) can't read this file. Fix the permissions on the host so that UID {uid} can read it, then check again.",
         "elevation": {
           "copying": "Copying your data...",
-          "passwordTitle": "BirdNET-Go needs permission to read this data",
-          "passwordDescription": "Enter the administrator password for this device to let BirdNET-Go copy the data.",
+          "passwordTitle": "SoundNet needs permission to read this data",
+          "passwordDescription": "Enter the administrator password for this device to let SoundNet copy the data.",
           "passwordLabel": "Administrator password",
           "passwordRequiredReason": "Enter the administrator password to continue",
           "httpWarning": "This page is not using HTTPS. The administrator password will be sent over your local network unencrypted. Only continue on a network you trust.",
           "submitButton": "Copy and continue",
           "fallbackTitle": "Run this command to grant access",
-          "fallbackDescription": "BirdNET-Go can't elevate automatically. Run the command below, then click Check again.",
+          "fallbackDescription": "SoundNet can't elevate automatically. Run the command below, then click Check again.",
           "disabledNote": "In-app elevation is turned off. Use the command below to grant access.",
           "failed": "That didn't work. Check the password and try again, or use the command below."
         }
@@ -1518,9 +1518,9 @@
       "migration": {
         "title": "Database Migration",
         "description": "Migrate from legacy schema to normalized v2 schema",
-        "requiredNote": "Database migration is required for upcoming BirdNET-Go features that rely on the new normalized database schema. New features will not be available until migration is complete.",
+        "requiredNote": "Database migration is required for upcoming SoundNet features that rely on the new normalized database schema. New features will not be available until migration is complete.",
         "completedTitle": "Migration Complete",
-        "completedNote": "Your database has been successfully migrated to the new schema. Please restart BirdNET-Go to switch to the new database. Note: The new database is smaller because it stores data more efficiently - this is expected and all your data is preserved.",
+        "completedNote": "Your database has been successfully migrated to the new schema. Please restart SoundNet to switch to the new database. Note: The new database is smaller because it stores data more efficiently - this is expected and all your data is preserved.",
         "starting": "Starting migration...",
         "status": {
           "idle": "Ready to Start",
@@ -1771,8 +1771,8 @@
       "gpuReachable": "Reachable",
       "gpuNotReachable": "Not reachable",
       "gpuReasonRenderNodeUnavailable": "No GPU device node is visible to the server. In Docker, map /dev/dri into the container; on a native install, check that the graphics driver is loaded.",
-      "gpuReasonRenderNodePermission": "The GPU device node cannot be opened. Either the account BirdNET-Go runs as needs access to the device's group, usually 'render', or the container was given the device with -v instead of --device, which does not grant access to it.",
-      "gpuReasonNoRuntime": "BirdNET-Go only accelerates inference on Intel graphics today, so this card will not be used.",
+      "gpuReasonRenderNodePermission": "The GPU device node cannot be opened. Either the account SoundNet runs as needs access to the device's group, usually 'render', or the container was given the device with -v instead of --device, which does not grant access to it.",
+      "gpuReasonNoRuntime": "SoundNet only accelerates inference on Intel graphics today, so this card will not be used.",
       "gpuReasonUnknown": "This GPU cannot be used for inference on this build.",
       "stock": "Stock",
       "custom": "Custom",
@@ -2251,7 +2251,7 @@
     }
   },
   "settings": {
-    "title": "Settings - BirdNET-Go",
+    "title": "Settings - SoundNet",
     "loading": "Loading settings...",
     "sections": {
       "analysis": "Analysis",
@@ -2333,7 +2333,7 @@
           "title": "Dynamic Threshold",
           "description": "Automatically adjust detection sensitivity based on prior observations",
           "enable": {
-            "label": "Enable Dynamic Threshold (BirdNET-Go specific feature)",
+            "label": "Enable Dynamic Threshold (SoundNet specific feature)",
             "helpText": "Enables dynamic confidence threshold feature for more adaptive bird call detection."
           },
           "trigger": {
@@ -2672,7 +2672,7 @@
       "sections": {
         "telemetry": {
           "title": "Error Tracking & Telemetry",
-          "description": "Optional error tracking to help improve BirdNET-Go reliability and performance"
+          "description": "Optional error tracking to help improve SoundNet reliability and performance"
         },
         "diagnostics": {
           "title": "Support & Diagnostics",
@@ -2684,7 +2684,7 @@
         "privacyPoints": {
           "noPersonalData": "No personal data is collected",
           "anonymousData": "All telemetry data is anonymous",
-          "helpImprove": "Telemetry data helps developers identify and fix issues in BirdNET-Go"
+          "helpImprove": "Telemetry data helps developers identify and fix issues in SoundNet"
         },
         "enableTracking": "Enable Error Tracking (Opt-in)"
       },
@@ -2842,7 +2842,7 @@
       },
       "systemInfo": {
         "howToView": "How to view notifications:",
-        "technicalDetails": "Technical details about notifications in BirdNET-Go:"
+        "technicalDetails": "Technical details about notifications in SoundNet:"
       },
       "privacy": {
         "title": "Privacy Notice for External Webhooks",
@@ -3251,14 +3251,14 @@
         "homeAssistant": {
           "title": "Home Assistant Auto-Discovery",
           "enable": "Enable Home Assistant MQTT Discovery",
-          "description": "When enabled, BirdNET-Go automatically registers devices and sensors with Home Assistant through MQTT discovery protocol. Devices will appear in Home Assistant's device registry without manual YAML configuration.",
+          "description": "When enabled, SoundNet automatically registers devices and sensors with Home Assistant through MQTT discovery protocol. Devices will appear in Home Assistant's device registry without manual YAML configuration.",
           "discoveryPrefix": {
             "label": "Discovery Prefix",
             "helpText": "The MQTT topic prefix for Home Assistant discovery messages. Default is 'homeassistant'. Only change this if you've configured a custom discovery prefix in Home Assistant."
           },
           "deviceName": {
             "label": "Device Name",
-            "helpText": "The base name for devices as they appear in Home Assistant. Each audio source will have its own device linked to this main BirdNET-Go device."
+            "helpText": "The base name for devices as they appear in Home Assistant. Each audio source will have its own device linked to this main SoundNet device."
           },
           "sensorsNote": "<strong>Sensors Created:</strong> For each audio source, Home Assistant will receive: Last Species, Confidence, Scientific Name, and Sound Level (if enabled). The bridge device includes online/offline availability status.",
           "discovery": {
@@ -3283,7 +3283,7 @@
       },
       "observability": {
         "title": "Observability",
-        "description": "Monitor BirdNET-Go's performance and bird detection metrics through Prometheus-compatible endpoint",
+        "description": "Monitor SoundNet's performance and bird detection metrics through Prometheus-compatible endpoint",
         "enable": "Enable Observability Integration",
         "disabled": "Observability integration is not enabled",
         "listenAddress": {
@@ -3452,7 +3452,7 @@
       },
       "noSources": {
         "warning": "No Audio Sources Configured",
-        "description": "BirdNET-Go needs an audio input to detect birds. Please configure at least one source in the Sound Card or Streams tab."
+        "description": "SoundNet needs an audio input to detect birds. Please configure at least one source in the Sound Card or Streams tab."
       },
       "soundCards": {
         "summary": "{count} sound card source(s)",
@@ -4130,7 +4130,7 @@
           },
           "fellBack": {
             "title": "Using the built-in range filter",
-            "description": "The configured geomodel range filter could not be loaded, so BirdNET-Go fell back to the built-in range filter. Filtering still works, but check Settings to restore the geomodel."
+            "description": "The configured geomodel range filter could not be loaded, so SoundNet fell back to the built-in range filter. Filtering still works, but check Settings to restore the geomodel."
           },
           "mappedZero": {
             "title": "Range filter matched no species",
@@ -4672,7 +4672,7 @@
       },
       "appearance": {
         "title": "Appearance",
-        "description": "Customize the look and feel of your BirdNET-Go interface"
+        "description": "Customize the look and feel of your SoundNet interface"
       },
       "language": {
         "title": "Language & Regional",
@@ -4690,14 +4690,14 @@
         "defaultGainUnit": "dB"
       }
     },
-    "restartRequired": "Some changes require a server restart to take effect. Please restart BirdNET-Go."
+    "restartRequired": "Some changes require a server restart to take effect. Please restart SoundNet."
   },
   "auth": {
     "login": "Login",
     "logout": "Logout",
     "openLoginModal": "Open login modal",
     "loginTitle": "Sign in",
-    "loginSubtitle": "Access your BirdNET-Go dashboard",
+    "loginSubtitle": "Access your SoundNet dashboard",
     "password": "Password",
     "passwordPlaceholder": "Enter your password",
     "enterPassword": "Enter your password",
@@ -4882,7 +4882,7 @@
       "streamError": "Error starting stream",
       "streamTitle": "Bird Audio Stream - {source}",
       "streamTitleDefault": "Bird Audio Stream",
-      "streamArtist": "BirdNET-Go",
+      "streamArtist": "SoundNet",
       "streamAlbum": "Live Stream",
       "playbackError": "Playback error: {details}",
       "audibleBats": {
@@ -5192,9 +5192,9 @@
     "steps": {
       "welcome": {
         "title": "Welcome",
-        "heading": "Welcome to BirdNET-Go!",
-        "description": "BirdNET-Go is an open-source bird sound identification system that listens to audio from your microphone or stream and identifies bird species in real time.",
-        "credit": "Powered by the BirdNET model developed by the K. Lisa Yang Center for Conservation Bioacoustics at the Cornell Lab of Ornithology and Chemnitz University of Technology. BirdNET-Go is an independent community project, not affiliated with or endorsed by the BirdNET team.",
+        "heading": "Welcome to SoundNet!",
+        "description": "SoundNet is an open-source bird sound identification system that listens to audio from your microphone or stream and identifies bird species in real time.",
+        "credit": "Powered by the BirdNET model developed by the K. Lisa Yang Center for Conservation Bioacoustics at the Cornell Lab of Ornithology and Chemnitz University of Technology. SoundNet is an independent community project, not affiliated with or endorsed by the BirdNET team.",
         "learnMore": "Learn more about BirdNET",
         "cta": "Let's set up your bird monitoring station."
       },
@@ -5254,11 +5254,11 @@
         "birdweatherIdLabel": "BirdWeather Station ID",
         "birdweatherIdPlaceholder": "Enter your BirdWeather station ID",
         "errorReportingLabel": "Send anonymous error reports",
-        "errorReportingHelp": "Help improve BirdNET-Go by sending anonymous error reports when something goes wrong"
+        "errorReportingHelp": "Help improve SoundNet by sending anonymous error reports when something goes wrong"
       },
       "responsibleUse": {
-        "title": "Using BirdNET-Go Responsibly",
-        "intro": "BirdNET-Go is a powerful tool that enhances your birding experience through AI-assisted identification. To ensure the best outcomes for both birding and conservation:",
+        "title": "Using SoundNet Responsibly",
+        "intro": "SoundNet is a powerful tool that enhances your birding experience through AI-assisted identification. To ensure the best outcomes for both birding and conservation:",
         "point1": "Review and verify detections before sharing observations",
         "point2": "Use the confidence scores as a guide, not absolute truth",
         "point3": "Cross-reference with field guides and local expertise",
@@ -5621,7 +5621,7 @@
       },
       "step2": {
         "title": "Your installation method",
-        "description": "How you installed BirdNET-Go: install.sh script, Docker Compose, manual build, or other."
+        "description": "How you installed SoundNet: install.sh script, Docker Compose, manual build, or other."
       },
       "step3": {
         "title": "System information",
@@ -5690,7 +5690,7 @@
       "fetchFailed": "Failed to load diagnostics"
     },
     "export": {
-      "reportTitle": "BirdNET-Go System Health Report",
+      "reportTitle": "SoundNet System Health Report",
       "statusLabel": "Status",
       "timeLabel": "Time",
       "durationLabel": "Duration",
@@ -5864,7 +5864,12 @@
       "birds": "Bird detections",
       "detections": "{{count}} detections",
       "browse": "Browse these detections",
-      "aircraftHeading": "Aircraft identified in this period"
+      "aircraftHeading": "Aircraft identified in this period",
+      "aircraftMore": "{{count}} more on the events page",
+      "identifiedAs": "{{count}} identified as {{domain}}",
+      "heardAs": "{{count}} heard as {{domain}}",
+      "heardHeading": "Heard as ({{count}} detections)",
+      "ambiguousWith": "· could be {{domains}}"
     },
     "aircraftCard": {
       "detections": "{{count}} detections",
@@ -5873,7 +5878,16 @@
       "photoCredit": "Photo: {{photographer}} / Planespotters.net"
     },
     "counts": {
-      "speciesAndEvents": "{{species}} species · {{events}} event types"
+      "speciesAndEvents": "{{species}} species · {{events}} event types",
+      "eventTypes": "Event types"
+    },
+    "hourly": {
+      "title": "The day by category",
+      "intro": "Every hour of the day, grouped by what made the sound. Open a category for its classes.",
+      "category": "Category",
+      "total": "Total",
+      "birds": "Birds",
+      "footnote": "Birds are one row here; the species table below breaks them out. {{date}}"
     }
   }
 }

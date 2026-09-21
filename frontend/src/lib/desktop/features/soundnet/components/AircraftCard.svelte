@@ -6,16 +6,20 @@
   most of why the reporting reads as bird software with other things bolted on.
   An aeroplane has a photograph too, and a track anyone can look at.
 
-  The photograph is fetched in the browser, not proxied through our own API.
-  Planespotters' terms ask for that, and for attribution and a link back, which
-  is why the photographer's name is shown rather than just the picture. A
-  failure is silent and leaves the card without an image: a missing photo is an
-  ordinary state, since military, private and newly registered aircraft are
-  often absent.
+  The photograph and the outside links come from lib/soundnet/aircraftPhoto,
+  which holds the terms this station has to keep to and caches a hex code across
+  every card on the page. See that module for why it is fetched in the browser
+  rather than proxied.
 -->
 <script lang="ts">
   import { t } from '$lib/i18n';
   import { Plane, ExternalLink, Ruler, Clock } from '@lucide/svelte';
+  import {
+    aircraftPhoto,
+    flightPathUrl,
+    aircraftRecordUrl,
+    type AircraftPhoto,
+  } from '../aircraftPhoto';
 
   interface Sighting {
     hex: string;
@@ -37,37 +41,22 @@
 
   let { aircraft }: Props = $props();
 
-  interface Photo {
-    src: string;
-    link: string;
-    photographer: string;
-  }
-
-  let photo = $state<Photo | null>(null);
+  let photo = $state<AircraftPhoto | null>(null);
 
   $effect(() => {
     const hex = aircraft.hex;
     if (!hex) return;
     photo = null;
 
-    // Their API, from the browser, by the identifier the aircraft broadcast.
-    fetch(`https://api.planespotters.net/pub/photos/hex/${encodeURIComponent(hex)}`)
-      .then(r => (r.ok ? r.json() : null))
-      .then((data: { photos?: Array<Record<string, any>> } | null) => {
-        const first = data?.photos?.[0];
-        const thumb = first?.thumbnail_large ?? first?.thumbnail;
-        if (first && thumb?.src) {
-          photo = {
-            src: thumb.src,
-            link: first.link ?? '',
-            photographer: first.photographer ?? '',
-          };
-        }
-      })
-      .catch(() => {
-        // Silent: no photograph is an ordinary outcome, not a fault worth
-        // reporting to someone reading a list of aircraft.
-      });
+    let current = true;
+    aircraftPhoto(hex).then(found => {
+      // A card that has moved on to another aircraft must not be overwritten by
+      // a reply about the previous one.
+      if (current) photo = found;
+    });
+    return () => {
+      current = false;
+    };
   });
 
   const title = $derived(aircraft.registration || aircraft.callsign || aircraft.hex);
@@ -75,14 +64,8 @@
     [aircraft.typeName || aircraft.typeCode, aircraft.operator].filter(Boolean).join(' · ')
   );
 
-  // The hex code is what the aircraft broadcast, so it is the identifier that
-  // always resolves. Registration is a lookup and may be absent.
-  const trackUrl = $derived(`https://globe.adsb.lol/?icao=${encodeURIComponent(aircraft.hex)}`);
-  const registryUrl = $derived(
-    aircraft.registration
-      ? `https://www.flightradar24.com/data/aircraft/${encodeURIComponent(aircraft.registration.toLowerCase())}`
-      : ''
-  );
+  const trackUrl = $derived(flightPathUrl(aircraft.hex));
+  const registryUrl = $derived(aircraftRecordUrl(aircraft.registration));
 
   function when(iso: string): string {
     const d = new Date(iso);

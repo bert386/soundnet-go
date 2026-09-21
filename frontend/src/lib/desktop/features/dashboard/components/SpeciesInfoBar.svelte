@@ -17,6 +17,10 @@
   import { t } from '$lib/i18n';
   import { buildAppUrl } from '$lib/utils/urlHelpers';
   import { localizeSpeciesName } from '$lib/utils/speciesDisplay';
+  import { ensureEventTaxonomy, eventDomainFor } from '$lib/stores/eventTaxonomy.svelte';
+  import EventThumbnail from '$lib/desktop/features/soundnet/components/EventThumbnail.svelte';
+  import { flightPathUrl } from '$lib/desktop/features/soundnet/aircraftPhoto';
+  import { ExternalLink } from '@lucide/svelte';
 
   interface Props {
     detection: Detection;
@@ -53,18 +57,50 @@
   const displayName = $derived(
     localizeSpeciesName(detection.scientificName, detection.commonName, detection.eventDisplayName)
   );
+
+  // SOUNDNET: which family this row belongs to, or null for a bird. The
+  // authority's answer wins where there is one - a Thunderstorm that ADS-B
+  // placed under an aircraft gets the aeroplane's picture, not a storm cloud.
+  ensureEventTaxonomy();
+  const eventDomain = $derived(
+    detection.resolvedDomain ??
+      eventDomainFor(detection.scientificName, detection.commonName) ??
+      null
+  );
+  const aircraft = $derived(detection.aircraft ?? null);
+  const aircraftLine = $derived(
+    aircraft
+      ? [
+          aircraft.registration || aircraft.callsign || aircraft.hex,
+          aircraft.typeName || aircraft.typeCode,
+          aircraft.operator,
+        ]
+          .filter(Boolean)
+          .join(' · ')
+      : ''
+  );
 </script>
 
 <div class={cn('species-info-bar', className)}>
   <!-- Species Thumbnail -->
   <div class="species-thumbnail">
-    <img
-      src={thumbnailUrl}
-      alt={displayName}
-      class="thumbnail-image"
-      loading="lazy"
-      onerror={handleBirdImageError}
-    />
+    {#if eventDomain}
+      <!--
+        SOUNDNET: a photograph of the aeroplane when one was identified, the
+        family's icon otherwise. The bird lookup below resolves "vehicle" and
+        "thunderstorm" to nothing and falls back to a grey silhouette, which is
+        what an operator has been scrolling past.
+      -->
+      <EventThumbnail domain={eventDomain} {aircraft} alt={displayName} />
+    {:else}
+      <img
+        src={thumbnailUrl}
+        alt={displayName}
+        class="thumbnail-image"
+        loading="lazy"
+        onerror={handleBirdImageError}
+      />
+    {/if}
   </div>
 
   <!-- Species Info (flex-1) -->
@@ -105,8 +141,26 @@
       {/if}
     </div>
 
-    <!-- Scientific name -->
-    <div class="scientific-name">{detection.scientificName}</div>
+    <!-- Scientific name, or the aircraft when one was identified: a
+         registration and an operator say more about this row than the word
+         "thunderstorm" it was recorded under. -->
+    {#if aircraftLine}
+      <div class="scientific-name flex items-center gap-1">
+        <span class="truncate">{aircraftLine}</span>
+        <a
+          href={flightPathUrl(aircraft?.hex ?? '')}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="shrink-0 hover:underline"
+          aria-label={t('soundnet.aircraftCard.track')}
+          onclick={event => event.stopPropagation()}
+        >
+          <ExternalLink class="size-3" aria-hidden="true" />
+        </a>
+      </div>
+    {:else}
+      <div class="scientific-name">{detection.scientificName}</div>
+    {/if}
   </div>
 
   <!-- Time Info (right-aligned) -->

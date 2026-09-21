@@ -61,8 +61,8 @@
 
       switch (sortColumn) {
         case 'name': {
-          const nameA = a.name === 'main' ? 'BirdNET-Go' : a.name;
-          const nameB = b.name === 'main' ? 'BirdNET-Go' : b.name;
+          const nameA = a.name === 'main' ? 'SoundNet' : a.name;
+          const nameB = b.name === 'main' ? 'SoundNet' : b.name;
           comparison = nameA.localeCompare(nameB);
           break;
         }
@@ -132,7 +132,7 @@
   let processDisplayNames = $derived(
     processes.reduce(
       (acc, process) => {
-        acc[process.pid] = process.name === 'main' ? 'BirdNET-Go' : process.name;
+        acc[process.pid] = process.name === 'main' ? 'SoundNet' : process.name;
         return acc;
       },
       {} as Record<number, string>

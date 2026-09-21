@@ -20,6 +20,7 @@
   import {
     Activity,
     ArrowRight,
+    ExternalLink,
     Gauge,
     Plane,
     Ruler,
@@ -27,6 +28,12 @@
     TriangleAlert,
     Waves,
   } from '@lucide/svelte';
+  import {
+    aircraftPhoto,
+    flightPathUrl,
+    aircraftRecordUrl,
+    type AircraftPhoto,
+  } from '../aircraftPhoto';
 
   const logger = loggers.ui;
 
@@ -198,6 +205,29 @@
   function round(value: number, places = 1): string {
     return value.toFixed(places);
   }
+
+  // The photograph and the links the events page has had all along. This is
+  // where an operator actually asks "what was that?", so it is where they were
+  // most missed. See lib/soundnet/aircraftPhoto for why the image is fetched in
+  // the browser rather than proxied.
+  let photo = $state<AircraftPhoto | null>(null);
+
+  $effect(() => {
+    const hex = attr('hex');
+    photo = null;
+    if (!hex) return;
+
+    let current = true;
+    aircraftPhoto(hex).then(found => {
+      if (current) photo = found;
+    });
+    return () => {
+      current = false;
+    };
+  });
+
+  const trackUrl = $derived(flightPathUrl(attr('hex') ?? ''));
+  const registryUrl = $derived(aircraftRecordUrl(attr('registration') ?? undefined));
 </script>
 
 <div class="card bg-base-100 shadow-sm">
@@ -389,9 +419,38 @@
             <Plane class="h-3.5 w-3.5" aria-hidden="true" />
             {t('soundnet.aircraft.heading')}
           </h4>
-          <p class="text-lg font-semibold mt-1">
-            {attr('flight_iata') ?? attr('callsign') ?? attr('hex')}
-          </p>
+          <div class="flex items-start gap-3 mt-1">
+            {#if photo}
+              <a href={photo.link} target="_blank" rel="noopener noreferrer" class="shrink-0">
+                <img
+                  src={photo.src}
+                  alt={attr('registration') ?? attr('hex') ?? ''}
+                  class="h-20 w-32 object-cover rounded"
+                  loading="lazy"
+                />
+              </a>
+            {/if}
+            <div>
+              <p class="text-lg font-semibold">
+                {attr('flight_iata') ?? attr('callsign') ?? attr('hex')}
+              </p>
+              {#if photo && photo.photographer}
+                <!-- Attribution is a condition of using the photograph. -->
+                <p class="text-[10px] opacity-50">
+                  <a
+                    href={photo.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="hover:underline"
+                  >
+                    {t('soundnet.aircraftCard.photoCredit', {
+                      photographer: photo.photographer,
+                    })}
+                  </a>
+                </p>
+              {/if}
+            </div>
+          </div>
           <dl class="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-2 text-sm">
             {#if attr('registration')}
               <div>
@@ -430,6 +489,31 @@
             The lag is what ties this audio to that aircraft. Showing it lets an
             operator sanity-check a surprising match instead of taking it on faith.
           -->
+          <div class="flex flex-wrap items-center gap-2 mt-2">
+            {#if attr('hex')}
+              <a
+                href={trackUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="btn btn-xs btn-outline gap-1"
+              >
+                {t('soundnet.aircraftCard.track')}
+                <ExternalLink class="h-3 w-3" aria-hidden="true" />
+              </a>
+            {/if}
+            {#if registryUrl}
+              <a
+                href={registryUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="btn btn-xs btn-ghost gap-1"
+              >
+                {t('soundnet.aircraftCard.registry')}
+                <ExternalLink class="h-3 w-3" aria-hidden="true" />
+              </a>
+            {/if}
+          </div>
+
           <p class="text-xs opacity-60 mt-2">
             {t('soundnet.aircraft.provenance', {
               lag: round(aircraft.lagCorrectionMs / 1000, 1),

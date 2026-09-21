@@ -32,6 +32,17 @@ export interface Detection {
   // SOUNDNET: the pass this detection belongs to. One aeroplane makes three to
   // six rows over half a minute under different class names; they share this.
   passId?: number;
+
+  // SOUNDNET: the aircraft an authority named for this detection. Absent for
+  // every bird and for every event nothing identified, which is most of them.
+  aircraft?: {
+    hex: string;
+    registration?: string;
+    typeCode?: string;
+    typeName?: string;
+    operator?: string;
+    callsign?: string;
+  };
   confidence: number;
   modelType?: string; // AI model type (e.g. 'bird', 'bat'); drives the spectrogram frequency range
   verified: 'correct' | 'false_positive' | 'unverified';

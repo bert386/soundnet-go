@@ -79,6 +79,24 @@ func (c *Handler) annotateSoundNet(detections []DetectionResponse) {
 		}
 		summary := summaries[id]
 
+		// The aircraft itself, on every row it was named on. Rows inside the
+		// same pass that nobody identified stay bare: the pass says they belong
+		// together, and claiming the registration for all of them would turn a
+		// grouping into an assertion about each sound.
+		if summary.Identity != "" {
+			aircraft := &DetectionAircraft{
+				Hex:          summary.Identity,
+				Registration: summary.Registration,
+				TypeCode:     summary.TypeCode,
+				TypeName:     summary.TypeName,
+				Operator:     summary.Operator,
+				Callsign:     summary.Callsign,
+			}
+			for _, pos := range positions {
+				detections[pos].Aircraft = aircraft
+			}
+		}
+
 		// The resolved domain when an authority gave one, the class's own
 		// otherwise. Grouping on the class name alone would scatter one
 		// aeroplane across three domains, which is the problem, not the fix.
@@ -98,6 +116,7 @@ func (c *Handler) annotateSoundNet(detections []DetectionResponse) {
 		}
 		grouping = append(grouping, eventpass.Detection{
 			ID: id, At: at, Domain: domain, Identity: summary.Identity,
+			Candidates: candidateDomains(class),
 		})
 	}
 
@@ -116,6 +135,22 @@ func (c *Handler) annotateSoundNet(detections []DetectionResponse) {
 			detections[pos].PassID = passID
 		}
 	}
+}
+
+// candidateDomains is the taxonomy's ambiguity table in the form the grouping
+// wants: every domain this class could belong to, its own first.
+//
+// It is what lets an unidentified Thunderstorm join the aeroplane it was
+// recorded beside. Without it the same flight appears three times in the list -
+// once under aircraft, once under vehicle and once under weather - which is
+// what an operator reported seeing for QF642.
+func candidateDomains(class eventclass.Class) []string {
+	candidates := class.CandidateDomains()
+	out := make([]string, 0, len(candidates))
+	for _, domain := range candidates {
+		out = append(out, string(domain))
+	}
+	return out
 }
 
 // detectionTime recovers when a detection was heard.
