@@ -1594,7 +1594,7 @@ Performance Optimizations:
         />
       {:else if element.type === 'new-species-highlights'}
         <NewSpeciesHighlightsCard
-          data={dailySummary}
+          data={birdSummary}
           {selectedDate}
           {showThumbnails}
           isToday={isViewingToday}

@@ -51,7 +51,7 @@ var audioSetClasses = []Class{
 	{"Race car, auto racing", DomainVehicle, false, 309},
 	{"Truck", DomainVehicle, true, 310},
 	{"Air brake", DomainVehicle, false, 311},
-	{"Bus", DomainVehicle, false, 315},
+	{"Bus", DomainVehicle, true, 315},
 	{"Motorcycle", DomainVehicle, true, 320},
 	{"Traffic noise, roadway noise", DomainVehicle, false, 321},
 	// Reversing beeps carry further than the machine making them and are

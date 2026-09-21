@@ -36,6 +36,38 @@
     PER_VISITOR_SPECIES_LOCALE_ENABLED,
   } from '$lib/stores/speciesDictionary.svelte';
   import { localizeSpeciesName } from '$lib/utils/speciesDisplay';
+  import { ensureEventTaxonomy, eventDomainFor } from '$lib/stores/eventTaxonomy.svelte';
+  import EventThumbnail from '$lib/desktop/features/soundnet/components/EventThumbnail.svelte';
+
+  // SOUNDNET: search rows get the same picture as the detections list.
+  ensureEventTaxonomy();
+
+  function eventDomainOf(result: {
+    resolvedDomain?: string;
+    scientificName: string;
+    commonName: string;
+  }): string | null {
+    return (
+      result.resolvedDomain ?? eventDomainFor(result.scientificName, result.commonName) ?? null
+    );
+  }
+
+  function aircraftLineOf(result: {
+    aircraft?: {
+      hex: string;
+      registration?: string;
+      typeName?: string;
+      typeCode?: string;
+      operator?: string;
+      callsign?: string;
+    };
+  }): string {
+    const a = result.aircraft;
+    if (!a) return '';
+    return [a.registration || a.callsign || a.hex, a.typeName || a.typeCode, a.operator]
+      .filter(Boolean)
+      .join(' · ');
+  }
 
   // SPINNER CONTROL: Set to false to disable loading spinners (reduces flickering)
   // Change back to true to re-enable spinners for testing
@@ -68,6 +100,16 @@
     scientificName: string;
     // SOUNDNET: the taxonomy's name for a non-bird event class, absent for birds.
     eventDisplayName?: string;
+    // SOUNDNET: the authority's domain and aircraft, when there are any.
+    resolvedDomain?: string;
+    aircraft?: {
+      hex: string;
+      registration?: string;
+      typeCode?: string;
+      typeName?: string;
+      operator?: string;
+      callsign?: string;
+    };
     confidence: number;
     verified: string;
     locked: boolean;
@@ -911,28 +953,39 @@
                         <!-- loading="lazy": Defer loading until image enters viewport -->
                         <!-- decoding="async": Decode image off-main-thread to prevent UI blocking -->
                         <!-- fetchpriority="low": Lower network priority for species thumbnails -->
-                        <img
-                          src={buildAppUrl(
-                            `/api/v2/media/species-image?name=${encodeURIComponent(result.scientificName)}`
-                          )}
-                          alt={displayName || t('search.detailsPanel.unknownSpecies')}
-                          class="w-full h-full object-cover"
-                          onload={e => {
-                            (e.currentTarget as HTMLImageElement).classList.remove('p-2');
-                          }}
-                          onerror={e => {
-                            (e.currentTarget as HTMLImageElement).classList.add('p-2');
-                            handleBirdImageError(e);
-                          }}
-                          loading="lazy"
-                          decoding="async"
-                          fetchpriority="low"
-                        />
+                        {#if eventDomainOf(result)}
+                          <EventThumbnail
+                            domain={eventDomainOf(result) ?? ''}
+                            aircraft={result.aircraft ?? null}
+                            alt={displayName}
+                          />
+                        {:else}
+                          <img
+                            src={buildAppUrl(
+                              `/api/v2/media/species-image?name=${encodeURIComponent(result.scientificName)}`
+                            )}
+                            alt={displayName || t('search.detailsPanel.unknownSpecies')}
+                            class="w-full h-full object-cover"
+                            onload={e => {
+                              (e.currentTarget as HTMLImageElement).classList.remove('p-2');
+                            }}
+                            onerror={e => {
+                              (e.currentTarget as HTMLImageElement).classList.add('p-2');
+                              handleBirdImageError(e);
+                            }}
+                            loading="lazy"
+                            decoding="async"
+                            fetchpriority="low"
+                          />
+                        {/if}
                       </div>
                       <div>
                         <div class="font-bold">
                           {displayName || t('search.detailsPanel.unknownSpecies')}
                         </div>
+                        {#if aircraftLineOf(result)}
+                          <div class="text-xs opacity-70">{aircraftLineOf(result)}</div>
+                        {/if}
                         <div class="text-xs opacity-50">{result.scientificName || ''}</div>
                       </div>
                     </div>
@@ -1120,23 +1173,31 @@
                               aria-controls="expanded-row-{result.id}"
                               title={t('search.detailsPanel.clickToCollapse')}
                             >
-                              <img
-                                src={buildAppUrl(
-                                  `/api/v2/media/species-image?name=${encodeURIComponent(result.scientificName)}`
-                                )}
-                                alt={displayName || t('search.detailsPanel.unknownSpecies')}
-                                class="w-full h-full object-cover"
-                                onload={e => {
-                                  (e.currentTarget as HTMLImageElement).classList.remove('p-2');
-                                }}
-                                onerror={e => {
-                                  (e.currentTarget as HTMLImageElement).classList.add('p-2');
-                                  handleBirdImageError(e);
-                                }}
-                                loading="lazy"
-                                decoding="async"
-                                fetchpriority="low"
-                              />
+                              {#if eventDomainOf(result)}
+                                <EventThumbnail
+                                  domain={eventDomainOf(result) ?? ''}
+                                  aircraft={result.aircraft ?? null}
+                                  alt={displayName}
+                                />
+                              {:else}
+                                <img
+                                  src={buildAppUrl(
+                                    `/api/v2/media/species-image?name=${encodeURIComponent(result.scientificName)}`
+                                  )}
+                                  alt={displayName || t('search.detailsPanel.unknownSpecies')}
+                                  class="w-full h-full object-cover"
+                                  onload={e => {
+                                    (e.currentTarget as HTMLImageElement).classList.remove('p-2');
+                                  }}
+                                  onerror={e => {
+                                    (e.currentTarget as HTMLImageElement).classList.add('p-2');
+                                    handleBirdImageError(e);
+                                  }}
+                                  loading="lazy"
+                                  decoding="async"
+                                  fetchpriority="low"
+                                />
+                              {/if}
                             </div>
                           </div>
 
@@ -1196,17 +1257,25 @@
                     <div
                       class="w-12 h-9 rounded-md overflow-hidden bg-[var(--color-base-200)] shrink-0"
                     >
-                      <img
-                        src={buildAppUrl(
-                          `/api/v2/media/species-image?name=${encodeURIComponent(result.scientificName)}`
-                        )}
-                        alt={displayName || t('search.detailsPanel.unknownSpecies')}
-                        class="w-full h-full object-cover"
-                        onerror={handleBirdImageError}
-                        loading="lazy"
-                        decoding="async"
-                        fetchpriority="low"
-                      />
+                      {#if eventDomainOf(result)}
+                        <EventThumbnail
+                          domain={eventDomainOf(result) ?? ''}
+                          aircraft={result.aircraft ?? null}
+                          alt={displayName}
+                        />
+                      {:else}
+                        <img
+                          src={buildAppUrl(
+                            `/api/v2/media/species-image?name=${encodeURIComponent(result.scientificName)}`
+                          )}
+                          alt={displayName || t('search.detailsPanel.unknownSpecies')}
+                          class="w-full h-full object-cover"
+                          onerror={handleBirdImageError}
+                          loading="lazy"
+                          decoding="async"
+                          fetchpriority="low"
+                        />
+                      {/if}
                     </div>
                     <div class="min-w-0">
                       <div class="font-semibold leading-tight truncate">

@@ -208,6 +208,23 @@ type DetectionRecord struct {
 	// bird. Populated by the API layer, which owns the taxonomy; the datastore
 	// never sets it. Additive, so CommonName stays the exclude-list key.
 	EventDisplayName string `json:"eventDisplayName,omitempty"`
+
+	// SOUNDNET: the domain an authority settled this detection under when it
+	// differs from the class, and the aircraft it named. Populated by the API
+	// layer from SoundNet's own tables; the datastore never sets either.
+	ResolvedDomain string         `json:"resolvedDomain,omitempty"`
+	Aircraft       *EventAircraft `json:"aircraft,omitempty"`
+}
+
+// EventAircraft is an aircraft an authority named for a detection. SOUNDNET.
+// Hex is what the aircraft broadcast; the rest are best-effort lookups.
+type EventAircraft struct {
+	Hex          string `json:"hex"`
+	Registration string `json:"registration,omitempty"`
+	TypeCode     string `json:"typeCode,omitempty"`
+	TypeName     string `json:"typeName,omitempty"`
+	Operator     string `json:"operator,omitempty"`
+	Callsign     string `json:"callsign,omitempty"`
 }
 
 // DynamicThreshold represents a persisted dynamic threshold for a species

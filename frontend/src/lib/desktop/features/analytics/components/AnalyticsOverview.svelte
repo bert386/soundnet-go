@@ -178,8 +178,12 @@
   // Derived chart inputs built from the reactive chartData via pure transforms.
   // Species distribution: sorted desc by count, mapped to labelled bars with
   // per-species colors from the D3 theme palette (applied inside BarChart).
+  // SOUNDNET: the species chart charts species. Vehicle out-counted every bird
+  // on the station and took the top bar in a chart of birds; events have their
+  // own category card now.
   const speciesBars = $derived(
     [...(chartData.species ?? [])]
+      .filter(s => resolveEventClass(s.scientific_name, s.common_name) === null)
       .sort((a, b) => b.count - a.count)
       .map(s => ({ label: localizeSpeciesName(s.scientific_name, s.common_name), value: s.count }))
   );

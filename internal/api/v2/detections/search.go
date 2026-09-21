@@ -293,6 +293,7 @@ func (c *Handler) buildSearchResponse(req *SearchRequest, results []datastore.De
 	for i := range results {
 		results[i].EventDisplayName = eventclass.DisplayNameFor(results[i].ScientificName, results[i].CommonName)
 	}
+	c.annotateSearchResults(results)
 
 	return SearchResponse{
 		Results:     results,

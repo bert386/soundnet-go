@@ -223,7 +223,17 @@ func soundNetCandidateThreshold(settings *conf.Settings, scientificName, commonN
 // and the acoustic lag correction wants the time the sound was heard, which the
 // pending item already carries.
 func (p *Processor) soundNetDiscardUncorroborated(item *PendingDetection, settings *conf.Settings) (discard bool, reason string) {
-	return p.soundNetDiscardWith(item, settings, soundNetCorroborates)
+	var corroborate corroborateFunc = soundNetCorroborates
+	if soundNetRejectsClipped(settings) {
+		// Only consulted when an authority would otherwise be asked, so the
+		// audio is read back for candidates, not for every detection.
+		corroborate = rejectingClipped(
+			func() (bool, bool) { return p.soundNetClipped(item) },
+			corroborate,
+			p.logClipRejection(item),
+		)
+	}
+	return p.soundNetDiscardWith(item, settings, corroborate)
 }
 
 // soundNetDiscardWith is soundNetDiscardUncorroborated with the lookup injected.

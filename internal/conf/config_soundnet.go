@@ -111,6 +111,15 @@ type EnrichmentSettings struct {
 	// before. Empty, the default, changes nothing.
 	RequireSecondOpinion []string `yaml:"requiresecondopinion" json:"requireSecondOpinion" mapstructure:"requiresecondopinion"`
 
+	// RejectClipped refuses to confirm a detection whose audio reached digital
+	// full scale. Measured at the deployment station, 2 of 108 detections the
+	// classifier called an aircraft had clipped - none of the 20 within 2 km -
+	// against 39 of 167 rescued from Thunder, which is wind on the capsule. A
+	// sound that overloads the microphone is not the airliner that happened to
+	// be four kilometres up. Off by default: it is only right for a microphone
+	// whose gain leaves genuine sources well short of full scale.
+	RejectClipped bool `yaml:"rejectclipped" json:"rejectClipped" mapstructure:"rejectclipped"`
+
 	ADSB ADSBSettings `yaml:"adsb" json:"adsb" mapstructure:"adsb"`
 }
 
@@ -342,6 +351,7 @@ func setSoundNetDefaults() {
 	viper.SetDefault("soundnet.diagnostics.referencesplat1m", d.Diagnostics.ReferenceSPLAt1m)
 	viper.SetDefault("soundnet.enrichment.enabled", d.Enrichment.Enabled)
 	viper.SetDefault("soundnet.enrichment.requiresecondopinion", d.Enrichment.RequireSecondOpinion)
+	viper.SetDefault("soundnet.enrichment.rejectclipped", d.Enrichment.RejectClipped)
 	viper.SetDefault("soundnet.enrichment.adsb.enabled", d.Enrichment.ADSB.Enabled)
 	viper.SetDefault("soundnet.enrichment.adsb.credentialspath", d.Enrichment.ADSB.CredentialsPath)
 	viper.SetDefault("soundnet.enrichment.adsb.searchradiusm", d.Enrichment.ADSB.SearchRadiusM)
