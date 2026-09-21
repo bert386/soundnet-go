@@ -11,6 +11,11 @@
   import OfflineBanner from '$lib/desktop/components/ui/OfflineBanner.svelte';
   import RestartBanner from '$lib/desktop/components/ui/RestartBanner.svelte';
   import { fetchRestartStatus } from '$lib/stores/restart.svelte';
+  // SOUNDNET: the event taxonomy, so every page that shows a detection name
+  // can turn a stored "and_airscrew" into "Propeller, airscrew". Fetched
+  // once here rather than from the display helper, because a pure formatting
+  // function that makes a network request on import is a surprise.
+  import { ensureEventTaxonomy } from '$lib/stores/eventTaxonomy.svelte';
 
   interface Props {
     title?: string;
@@ -49,6 +54,7 @@
 
   // Initialize stores on mount
   onMount(() => {
+    ensureEventTaxonomy();
     // Initialize auth state (CSRF is now handled by appState in App.svelte)
     authStore.init(securityEnabled, accessAllowed);
 

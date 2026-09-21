@@ -5871,6 +5871,9 @@
       "track": "Flight path",
       "registry": "Aircraft record",
       "photoCredit": "Photo: {{photographer}} / Planespotters.net"
+    },
+    "counts": {
+      "speciesAndEvents": "{{species}} species · {{events}} event types"
     }
   }
 }

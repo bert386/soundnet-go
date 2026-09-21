@@ -283,6 +283,18 @@ func (c *Controller) GetSoundNetTaxonomy(ctx echo.Context) error {
 		DefaultEnabled bool   `json:"defaultEnabled"`
 		AudioSetIndex  int    `json:"audioSetIndex"`
 
+		// RawLabel and StorageName are the other two forms of the same name,
+		// emitted so a client can look a stored detection up without parsing.
+		//
+		// A detection arrives split at the first underscore - "propeller" and
+		// "and_airscrew" - and neither half is a name worth showing. Rebuilding
+		// the label from them means knowing which of two different splitters
+		// produced them, which this project has already got wrong once, in a
+		// place where being wrong is silent. So the forms are computed here, by
+		// the functions that define them, and the client does a lookup.
+		RawLabel    string `json:"rawLabel"`
+		StorageName string `json:"storageName"`
+
 		// CandidateDomains is set only where the class's domain is a best reading
 		// rather than a settled fact, so the taxonomy view shows which few labels
 		// those are instead of leaving it to the source.
@@ -309,6 +321,8 @@ func (c *Controller) GetSoundNetTaxonomy(ctx echo.Context) error {
 				Domain:         string(cl.Domain),
 				DefaultEnabled: cl.DefaultEnabled,
 				AudioSetIndex:  cl.AudioSetIndex,
+				RawLabel:       eventclass.RawLabel(cl.Label),
+				StorageName:    eventclass.StorageName(cl.Label),
 			}
 			if candidates := cl.CandidateDomains(); len(candidates) > 1 {
 				for _, cd := range candidates {

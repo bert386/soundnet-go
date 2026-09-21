@@ -7,6 +7,10 @@
   import { getStoredValue, setStoredValue } from '$lib/utils/storage';
   import { buildAppUrl } from '$lib/utils/urlHelpers';
   import { localizeSpeciesName } from '$lib/utils/speciesDisplay';
+  // SOUNDNET: what made the sound, so a Cessna is not given a bird
+  // silhouette in a list headed "45 species".
+  import { eventDomainFor } from '$lib/stores/eventTaxonomy.svelte';
+  import EventIcon from '$lib/desktop/features/soundnet/components/EventIcon.svelte';
   import { handleBirdImageError } from '$lib/desktop/components/ui/image-utils';
   import { onMount, onDestroy } from 'svelte';
   import SortableHeader from '$lib/desktop/components/ui/SortableHeader.svelte';
@@ -652,6 +656,7 @@
                   species.scientific_name,
                   species.common_name
                 )}
+                {@const domain = eventDomainFor(species.scientific_name, species.common_name)}
                 <tr
                   class={index % 2 === 0
                     ? 'bg-[var(--color-base-100)]'
@@ -660,8 +665,13 @@
                   <td>
                     <div class="flex items-center gap-3">
                       <div class="avatar">
-                        <div class="mask mask-squircle w-12 h-12 bg-[var(--color-base-300)]">
-                          {#if species.thumbnail_url}
+                        <div
+                          class="mask mask-squircle w-12 h-12 bg-[var(--color-base-300)] flex items-center justify-center"
+                        >
+                          {#if domain}
+                            <!-- Not a bird: the silhouette would be a lie. -->
+                            <EventIcon {domain} size="h-6 w-6" />
+                          {:else if species.thumbnail_url}
                             <img
                               src={species.thumbnail_url}
                               alt={displayName}
@@ -675,7 +685,11 @@
                         <div class="font-bold">
                           {displayName}
                         </div>
-                        <div class="text-sm opacity-50 italic">{species.scientific_name}</div>
+                        {#if domain}
+                          <div class="text-sm opacity-50 capitalize">{domain}</div>
+                        {:else}
+                          <div class="text-sm opacity-50 italic">{species.scientific_name}</div>
+                        {/if}
                       </div>
                     </div>
                   </td>
