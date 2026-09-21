@@ -1,0 +1,35 @@
+# ICAO type designator -> engine class, for the aircraft this station has heard.
+#
+# engine: jet | turboprop | piston | helicopter    (ICAO Doc 8643 engine type)
+# coarse: jet | prop | helicopter                  (what M4 is trained to hear)
+#
+# Turboprop and piston share "prop" because the propeller's blade-pass tone is
+# what the microphone hears; the difference between them is in the airframe,
+# not the sound class the operator asked for. Extend this as new types appear:
+# a type missing here is reported by the backfill script, never guessed.
+type,engine,coarse,name
+A139,helicopter,helicopter,AgustaWestland AW139
+A21N,jet,jet,Airbus A321neo
+A320,jet,jet,Airbus A320
+A321,jet,jet,Airbus A321
+A332,jet,jet,Airbus A330-200
+A333,jet,jet,Airbus A330-300
+A359,jet,jet,Airbus A350-900
+A388,jet,jet,Airbus A380-800
+B38M,jet,jet,Boeing 737 MAX 8
+B737,jet,jet,Boeing 737-700
+B738,jet,jet,Boeing 737-800
+B77W,jet,jet,Boeing 777-300ER
+B788,jet,jet,Boeing 787-8
+B789,jet,jet,Boeing 787-9
+BCS3,jet,jet,Airbus A220-300
+C152,piston,prop,Cessna 152
+C208,turboprop,prop,Cessna 208 Caravan
+DA40,piston,prop,Diamond DA40 Star
+DH8D,turboprop,prop,De Havilland Canada Dash 8-400
+LEG2,jet,jet,Embraer Legacy 500
+P28A,piston,prop,Piper PA-28 Cherokee
+P68,piston,prop,Partenavia P.68
+PC24,jet,jet,Pilatus PC-24
+RV7,piston,prop,Van's RV-7
+SF34,turboprop,prop,Saab 340
