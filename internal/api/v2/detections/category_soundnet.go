@@ -99,6 +99,55 @@ func requestedDomains(category string) map[string]struct{} {
 	return out
 }
 
+// categoryScanLimit bounds how many rows a category request reads before it
+// filters and pages them. The detections page always sends a date, and a busy
+// day at the deployment station is around 700 event rows, so this is several
+// days of headroom; a request that reaches it gets a total that is a lower
+// bound rather than a page that silently stops.
+const categoryScanLimit = 2000
+
+// categoryDetections answers a category request: read the day, filter it on
+// the resolved domain, then page it.
+//
+// Paging has to come last. The first version filtered the page the database had
+// already cut, so page one of "aircraft at 11:00" read "1 to 14 of 176", held
+// two flights, and the next page started at 26 - with the dashboard cell that
+// linked there saying 130. Every number on the screen disagreed with every
+// other one. Filtering first makes the total exact and the pages full.
+func (c *Handler) categoryDetections(params *detectionQueryParams) ([]DetectionResponse, int64, error) {
+	wide := *params
+	wide.NumResults = categoryScanLimit
+	wide.Offset = 0
+
+	notes, _, err := c.getDetectionsByQueryType(&wide)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	// Annotated as a whole day rather than a page, which also keeps pass
+	// grouping from being cut at a page boundary.
+	all := filterByResolvedDomain(
+		c.convertNotesToDetectionResponses(notes, params.IncludeWeather),
+		params.Category,
+	)
+	return pageOf(all, params.Offset, params.NumResults), int64(len(all)), nil
+}
+
+// pageOf returns one page of an already-filtered list.
+func pageOf(all []DetectionResponse, offset, limit int) []DetectionResponse {
+	if offset < 0 {
+		offset = 0
+	}
+	if offset >= len(all) {
+		return []DetectionResponse{}
+	}
+	end := len(all)
+	if limit > 0 && offset+limit < end {
+		end = offset + limit
+	}
+	return all[offset:end]
+}
+
 // filterByResolvedDomain keeps only the detections that actually belong to the
 // requested domains, judged by what an authority settled rather than by the
 // class name.
@@ -109,9 +158,8 @@ func requestedDomains(category string) map[string]struct{} {
 // is called, so there is no join to write. The page is annotated first and
 // filtered second.
 //
-// The consequence, stated plainly because it is visible: the total reported
-// beside the list is the count the database returned for the widened query, so
-// it is an upper bound. The rows are right; the total can read high.
+// It runs over the whole day before paging - see categoryDetections - so the
+// total beside the list is exact.
 func filterByResolvedDomain(detections []DetectionResponse, category string) []DetectionResponse {
 	if category == "" {
 		return detections

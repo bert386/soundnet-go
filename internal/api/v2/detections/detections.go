@@ -607,6 +607,23 @@ func (c *Handler) GetDetections(ctx echo.Context) error {
 		logger.String("ip", ctx.RealIP()),
 	)
 
+	// SOUNDNET: a category request is filtered on the resolved domain before it
+	// is paged, so it takes its own path. See categoryDetections.
+	if params.Category != "" {
+		detections, total, err := c.categoryDetections(params)
+		if err != nil {
+			c.LogErrorIfEnabled("Failed to retrieve detections",
+				logger.String("category", params.Category),
+				logger.Error(err),
+				logger.String("path", ctx.Request().URL.Path),
+			)
+			return c.HandleError(ctx, err, "Failed to retrieve detections", http.StatusInternalServerError)
+		}
+		c.stripSourceForUnauthenticated(ctx, detections)
+		return ctx.JSON(http.StatusOK,
+			c.createPaginatedResponse(detections, total, params.NumResults, params.Offset))
+	}
+
 	// Get notes based on query type
 	notes, totalResults, err := c.getDetectionsByQueryType(params)
 	if err != nil {
@@ -621,13 +638,6 @@ func (c *Handler) GetDetections(ctx echo.Context) error {
 
 	// Convert notes to response format
 	detections := c.convertNotesToDetectionResponses(notes, params.IncludeWeather)
-
-	// SOUNDNET: the second half of the category filter. The first half widened
-	// the query to the classes this domain is ambiguous with; this drops the
-	// rows an authority settled somewhere else, so the weather list stops
-	// showing the aeroplanes it recorded as thunder.
-	detections = filterByResolvedDomain(detections, params.Category)
-
 	c.stripSourceForUnauthenticated(ctx, detections)
 
 	// Create paginated response

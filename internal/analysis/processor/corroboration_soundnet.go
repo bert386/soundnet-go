@@ -26,6 +26,7 @@ package processor
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"github.com/bert386/soundnet-go/internal/conf"
@@ -79,6 +80,72 @@ func soundNetNeedsCorroboration(settings *conf.Settings, label string, confidenc
 	}
 	class, _ := eventclass.Resolve(label)
 	return class.Enrichable()
+}
+
+// soundNetNeedsSecondOpinion reports whether every model that heard this
+// detection is one the operator has said not to trust on its own.
+//
+// Only event classes are affected. A bird, or the speech label the privacy
+// filter keys on, does not resolve in the event taxonomy and passes straight
+// through - this must never be able to weaken the privacy filter or lose a bird.
+//
+// Agreement is read from the pending detection's per-model contributions, which
+// merge every model's hits for the same label on the same source. A trusted
+// model agrees only if its own best score would have been recorded on its own.
+//
+// Merely contributing is not enough, and the first version made exactly that
+// mistake. For a class an authority can confirm, the admission bar is lowered to
+// the corroboration floor, so CED's Thunderstorm at 0.2 on a windy clip is
+// admitted as a candidate - and was then counted as agreeing with YAMNet's 0.92.
+// The wind the rule exists for would have sailed through on a score CED itself
+// would never have recorded.
+func soundNetNeedsSecondOpinion(settings *conf.Settings, item *PendingDetection, label string) bool {
+	if settings == nil || !settings.SoundNet.Enabled || item == nil {
+		return false
+	}
+	distrusted := settings.SoundNet.Enrichment.RequireSecondOpinion
+	if len(distrusted) == 0 {
+		return false
+	}
+	if _, found := eventclass.Resolve(label); !found {
+		return false
+	}
+
+	isDistrusted := func(model string) bool {
+		for _, d := range distrusted {
+			if strings.EqualFold(strings.TrimSpace(d), model) {
+				return true
+			}
+		}
+		return false
+	}
+
+	if len(item.ModelContributions) == 0 {
+		// Older pending entries, or a single-model path that never filled the
+		// map: the best model is then the only model.
+		return item.BestModelID != "" && isDistrusted(item.BestModelID)
+	}
+	for model, contribution := range item.ModelContributions {
+		if isDistrusted(model) {
+			continue
+		}
+		if float32(contribution.MaxConfidence) >= soundNetAgreementThreshold(settings, label, model) {
+			return false
+		}
+	}
+	return true
+}
+
+// soundNetAgreementThreshold is the bar a model's score must clear for that model
+// to have recorded this label by itself: the per-species setting if there is
+// one, otherwise the model's threshold with SoundNet's domain and model
+// overrides applied. Deliberately not the corroboration floor.
+func soundNetAgreementThreshold(settings *conf.Settings, label, model string) float32 {
+	if cfg, ok := lookupSpeciesConfig(settings.Realtime.Species.Config, label, label); ok {
+		return float32(cfg.Threshold)
+	}
+	return soundNetThresholdOverride(settings, label, label, model,
+		modelGlobalConfidenceThreshold(settings, model))
 }
 
 // soundNetCorroborates asks the authorities and reports whether to keep the
@@ -169,11 +236,41 @@ func (p *Processor) soundNetDiscardWith(
 	}
 	normal := modelGlobalConfidenceThreshold(settings, item.BestModelID)
 	label := soundNetLabel(&item.Detection.Result)
-	if !soundNetNeedsCorroboration(settings, label, float32(item.Confidence), normal) {
+	candidate := soundNetNeedsCorroboration(settings, label, float32(item.Confidence), normal)
+	alone := soundNetNeedsSecondOpinion(settings, item, label)
+	if !candidate && !alone {
 		return false, ""
 	}
+
+	// Heard only by a model the operator does not trust alone, in a class no
+	// authority can speak for: nothing can vouch for it, so there is nothing to
+	// ask. This is the cockatoo recorded as Cat 0.97.
+	if alone {
+		if class, found := eventclass.Resolve(label); found && !class.Enrichable() {
+			GetLogger().Info("soundnet: discarded, only a model needing a second opinion heard it",
+				logger.String("label", label),
+				logger.Float64("confidence", item.Confidence),
+				logger.String("model", item.BestModelID),
+				logger.String("source", p.getDisplayNameForSource(item.Source)),
+				logger.String("operation", "soundnet_second_opinion"))
+			return true, "only a model needing a second opinion heard this"
+		}
+	}
+
 	if corroborate(label, item.FirstDetected, float32(item.Confidence)) {
 		return false, ""
+	}
+	if alone {
+		// Logged at info, unlike the ordinary candidate discard: these are
+		// detections that would have been recorded before this rule existed,
+		// so an operator wondering where their thunder went needs to see it.
+		GetLogger().Info("soundnet: discarded, only a model needing a second opinion heard it and no authority confirmed it",
+			logger.String("label", label),
+			logger.Float64("confidence", item.Confidence),
+			logger.String("model", item.BestModelID),
+			logger.String("source", p.getDisplayNameForSource(item.Source)),
+			logger.String("operation", "soundnet_second_opinion"))
+		return true, "only a model needing a second opinion heard this, and no authority confirmed it"
 	}
 	GetLogger().Debug("soundnet: candidate discarded, nothing corroborated it",
 		logger.String("label", label),

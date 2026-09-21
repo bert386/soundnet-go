@@ -89,6 +89,28 @@ type EnrichmentSettings struct {
 	// ADS-B client reuses a fetched sky for five seconds.
 	CorroborationThreshold float64 `yaml:"corroborationthreshold" json:"corroborationThreshold" mapstructure:"corroborationthreshold"`
 
+	// RequireSecondOpinion names models ("YAMNet") whose non-bird labels are
+	// not to be trusted on their own. A detection that only such a model heard
+	// is kept only if another model heard it too or an authority confirms it;
+	// otherwise it is discarded at flush, however confident it was.
+	//
+	// It exists because of the operator's own reviews. Every Thunder detection
+	// reviewed at the deployment station was an aircraft or wind, every Cat was
+	// a crow or a cockatoo, and in both cases the confident label came from
+	// YAMNet while CED, offline on the same clips, did not agree. A threshold
+	// cannot fix that - YAMNet's wrong answers score 0.92 to 0.97 - but a
+	// second opinion can.
+	//
+	// It deliberately rides the corroboration path rather than dropping the
+	// labels outright: YAMNet's Thunder and Vehicle are also how most aircraft
+	// at the station reach ADS-B, and an authority that finds one overhead
+	// keeps the detection as an aircraft.
+	//
+	// Birds and speech are untouched - only classes in the event taxonomy are
+	// affected, so the privacy filter's human detection behaves exactly as
+	// before. Empty, the default, changes nothing.
+	RequireSecondOpinion []string `yaml:"requiresecondopinion" json:"requireSecondOpinion" mapstructure:"requiresecondopinion"`
+
 	ADSB ADSBSettings `yaml:"adsb" json:"adsb" mapstructure:"adsb"`
 }
 
@@ -319,6 +341,7 @@ func setSoundNetDefaults() {
 	viper.SetDefault("soundnet.diagnostics.calibratedmic", d.Diagnostics.CalibratedMic)
 	viper.SetDefault("soundnet.diagnostics.referencesplat1m", d.Diagnostics.ReferenceSPLAt1m)
 	viper.SetDefault("soundnet.enrichment.enabled", d.Enrichment.Enabled)
+	viper.SetDefault("soundnet.enrichment.requiresecondopinion", d.Enrichment.RequireSecondOpinion)
 	viper.SetDefault("soundnet.enrichment.adsb.enabled", d.Enrichment.ADSB.Enabled)
 	viper.SetDefault("soundnet.enrichment.adsb.credentialspath", d.Enrichment.ADSB.CredentialsPath)
 	viper.SetDefault("soundnet.enrichment.adsb.searchradiusm", d.Enrichment.ADSB.SearchRadiusM)
