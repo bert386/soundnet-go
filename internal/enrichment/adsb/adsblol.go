@@ -27,6 +27,7 @@ import (
 	"math"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -49,18 +50,102 @@ const (
 	maxRadiusNM = 250
 )
 
+// userAgent identifies this station to the service.
+//
+// Not decoration. Their documentation asks for responsible use and says a 4xx
+// means you are doing something wrong, and Go's default "Go-http-client/2.0"
+// tells an operator nothing about who is calling or why. Saying so is the least
+// a free service is owed.
+const userAgent = "SoundNet/1.0 (BirdNET-Go fork; acoustic event station)"
+
 // ADSBLolClient reads aircraft states from adsb.lol.
 type ADSBLolClient struct {
 	HTTP    *http.Client
 	BaseURL string
+
+	// StateTTL is how long a fetched sky is reused for. Zero uses the default,
+	// negative disables reuse.
+	//
+	// This exists because leaving it out broke the fallback within minutes of
+	// it going live. The reuse window on the OpenSky client is inside that
+	// client, so the backup inherited none of it and took every enrichment
+	// query raw - several a second during a busy pass - and adsb.lol rate
+	// limited the station immediately, entirely fairly. A single curl had
+	// worked perfectly, which is exactly why one curl is not a test.
+	StateTTL time.Duration
+
+	mu           sync.Mutex
+	cachedStates []State
+	cachedBox    [4]float64
+	cachedAt     time.Time
+	now          func() time.Time
 }
+
+// DefaultADSBLolStateTTL is the default reuse window.
+//
+// Longer than OpenSky's five seconds on purpose. There the window is the
+// service's own update interval, so reusing within it cannot return anything a
+// fresh call would not. Here it is a courtesy to an unmetered service: ten
+// seconds bounds the station to six requests a minute however loud the sky
+// gets, and an aircraft's position ten seconds stale is well inside what the
+// acoustic-lag correction already back-projects through.
+const DefaultADSBLolStateTTL = 10 * time.Second
 
 // NewADSBLolClient returns a client against the public endpoint.
 func NewADSBLolClient() *ADSBLolClient {
 	return &ADSBLolClient{
-		HTTP:    &http.Client{Timeout: 15 * time.Second},
-		BaseURL: DefaultADSBLolBaseURL,
+		HTTP:     &http.Client{Timeout: 15 * time.Second},
+		BaseURL:  DefaultADSBLolBaseURL,
+		StateTTL: DefaultADSBLolStateTTL,
 	}
+}
+
+// SetClock replaces the time source, so the reuse window can be exercised
+// without sleeping.
+func (c *ADSBLolClient) SetClock(now func() time.Time) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.now = now
+}
+
+func (c *ADSBLolClient) clock() time.Time {
+	if c.now != nil {
+		return c.now()
+	}
+	return time.Now()
+}
+
+// cachedFor returns a still-valid cached sky for this box, if there is one.
+func (c *ADSBLolClient) cachedFor(box [4]float64) ([]State, bool) {
+	ttl := c.StateTTL
+	switch {
+	case ttl < 0:
+		return nil, false
+	case ttl == 0:
+		ttl = DefaultADSBLolStateTTL
+	}
+
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if c.cachedAt.IsZero() || c.cachedBox != box {
+		return nil, false
+	}
+	if c.clock().Sub(c.cachedAt) >= ttl {
+		return nil, false
+	}
+	out := make([]State, len(c.cachedStates))
+	copy(out, c.cachedStates)
+	return out, true
+}
+
+// cache stores a freshly fetched sky.
+func (c *ADSBLolClient) cache(box [4]float64, states []State) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.cachedBox = box
+	c.cachedAt = c.clock()
+	c.cachedStates = make([]State, len(states))
+	copy(c.cachedStates, states)
 }
 
 // adsbLolSourceName is what adsb.lol is called in logs and stored provenance.
@@ -109,6 +194,11 @@ type adsbLolResponse struct {
 // answer identical in shape to OpenSky's, which is what lets either of them
 // stand in for the other without the provider knowing which it got.
 func (c *ADSBLolClient) StatesInBox(ctx context.Context, latMin, lonMin, latMax, lonMax float64) ([]State, error) {
+	box := [4]float64{latMin, lonMin, latMax, lonMax}
+	if states, ok := c.cachedFor(box); ok {
+		return states, nil
+	}
+
 	centreLat := (latMin + latMax) / 2
 	centreLon := (lonMin + lonMax) / 2
 	radius := coveringRadiusNM(latMin, lonMin, latMax, lonMax)
@@ -124,6 +214,7 @@ func (c *ADSBLolClient) StatesInBox(ctx context.Context, latMin, lonMin, latMax,
 		return nil, fmt.Errorf("adsb.lol: build request: %w", err)
 	}
 	req.Header.Set("Accept", "application/json")
+	req.Header.Set("User-Agent", userAgent)
 
 	client := c.HTTP
 	if client == nil {
@@ -160,6 +251,7 @@ func (c *ADSBLolClient) StatesInBox(ctx context.Context, latMin, lonMin, latMax,
 		}
 		out = append(out, state)
 	}
+	c.cache(box, out)
 	return out, nil
 }
 

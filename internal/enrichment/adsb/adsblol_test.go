@@ -9,6 +9,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/bert386/soundnet-go/internal/enrichment"
 )
@@ -344,3 +345,83 @@ func TestFallbackReportsThePrimaryBalanceWhileItLasts(t *testing.T) {
 // package so it can reach the unexported radius helper, which means it cannot
 // share the external package's station variable.
 var radiusStation = enrichment.Station{Latitude: -34.11159, Longitude: 150.79226, ElevationM: 140}
+
+// The omission that broke the fallback within minutes of it going live. The
+// reuse window lives inside the OpenSky client, so the backup inherited none of
+// it, took every enrichment query raw - several a second during a busy pass -
+// and was rate limited immediately, entirely fairly.
+func TestADSBLolReusesAFetchedSky(t *testing.T) {
+	t.Parallel()
+
+	var requests int
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		requests++
+		_, _ = w.Write([]byte(`{"ac":[]}`))
+	}))
+	t.Cleanup(srv.Close)
+
+	c := &ADSBLolClient{HTTP: srv.Client(), BaseURL: srv.URL, StateTTL: 10 * time.Second}
+	now := time.Now()
+	c.SetClock(func() time.Time { return now })
+
+	for range 5 {
+		if _, err := c.StatesInBox(t.Context(), -34.2, 150.7, -34.0, 150.9); err != nil {
+			t.Fatalf("StatesInBox: %v", err)
+		}
+	}
+	if requests != 1 {
+		t.Fatalf("made %d requests for five queries inside the window, want 1", requests)
+	}
+
+	now = now.Add(11 * time.Second)
+	if _, err := c.StatesInBox(t.Context(), -34.2, 150.7, -34.0, 150.9); err != nil {
+		t.Fatalf("StatesInBox after the window: %v", err)
+	}
+	if requests != 2 {
+		t.Fatalf("made %d requests, want a fresh one once the window passed", requests)
+	}
+}
+
+// A different box is a different question and must not be answered from the
+// cache.
+func TestADSBLolDoesNotReuseAcrossBoxes(t *testing.T) {
+	t.Parallel()
+
+	var requests int
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		requests++
+		_, _ = w.Write([]byte(`{"ac":[]}`))
+	}))
+	t.Cleanup(srv.Close)
+
+	c := &ADSBLolClient{HTTP: srv.Client(), BaseURL: srv.URL, StateTTL: 10 * time.Second}
+	now := time.Now()
+	c.SetClock(func() time.Time { return now })
+
+	_, _ = c.StatesInBox(t.Context(), -34.2, 150.7, -34.0, 150.9)
+	_, _ = c.StatesInBox(t.Context(), -35.2, 151.7, -35.0, 151.9)
+	if requests != 2 {
+		t.Fatalf("made %d requests for two different boxes, want 2", requests)
+	}
+}
+
+// Their documentation asks for responsible use. Go's default user agent says
+// nothing about who is calling or why.
+func TestADSBLolIdentifiesItself(t *testing.T) {
+	t.Parallel()
+
+	var seen string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		seen = r.Header.Get("User-Agent")
+		_, _ = w.Write([]byte(`{"ac":[]}`))
+	}))
+	t.Cleanup(srv.Close)
+
+	c := &ADSBLolClient{HTTP: srv.Client(), BaseURL: srv.URL, StateTTL: -1}
+	if _, err := c.StatesInBox(t.Context(), -34.2, 150.7, -34.0, 150.9); err != nil {
+		t.Fatalf("StatesInBox: %v", err)
+	}
+	if !strings.Contains(seen, "SoundNet") {
+		t.Fatalf("user agent %q does not name the station", seen)
+	}
+}
