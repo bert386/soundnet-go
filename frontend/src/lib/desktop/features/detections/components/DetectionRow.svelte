@@ -41,6 +41,10 @@
   import { navigation } from '$lib/stores/navigation.svelte';
   import { buildAppUrl } from '$lib/utils/urlHelpers';
   import { localizeSpeciesName } from '$lib/utils/speciesDisplay';
+  import { ensureEventTaxonomy, eventDomainFor } from '$lib/stores/eventTaxonomy.svelte';
+  import EventThumbnail from '$lib/desktop/features/soundnet/components/EventThumbnail.svelte';
+  import { flightPathUrl } from '$lib/desktop/features/soundnet/aircraftPhoto';
+  import { ExternalLink } from '@lucide/svelte';
 
   const logger = loggers.ui;
 
@@ -101,6 +105,28 @@
   // the server-provided common name, then the scientific name.
   const displayName = $derived(
     localizeSpeciesName(detection.scientificName, detection.commonName, detection.eventDisplayName)
+  );
+
+  // SOUNDNET: the family this row belongs to, and the aircraft if one was
+  // named. The authority's answer wins where there is one: a Thunderstorm that
+  // ADS-B placed under an aircraft gets the aeroplane's photograph.
+  ensureEventTaxonomy();
+  const eventDomain = $derived(
+    detection.resolvedDomain ??
+      eventDomainFor(detection.scientificName, detection.commonName) ??
+      null
+  );
+  const aircraft = $derived(detection.aircraft ?? null);
+  const aircraftLine = $derived(
+    aircraft
+      ? [
+          aircraft.registration || aircraft.callsign || aircraft.hex,
+          aircraft.typeName || aircraft.typeCode,
+          aircraft.operator,
+        ]
+          .filter(Boolean)
+          .join(' · ')
+      : ''
   );
 
   // Thumbnail loading with delayed spinner and URL failure tracking
@@ -221,6 +247,18 @@
   <div class="sp-species-container sp-layout-detections">
     <!-- Thumbnail -->
     <div class="sp-thumbnail-wrapper">
+      <!--
+        SOUNDNET: over the bird thumbnail rather than instead of it. The bird
+        lookup below has loading, retry and failure states worth leaving alone,
+        and an aeroplane needs none of them - it has a photograph or it has an
+        icon. Pointer events pass through, so the thumbnail still opens the
+        detection.
+      -->
+      {#if eventDomain}
+        <div class="absolute inset-0 z-10 overflow-hidden rounded-md pointer-events-none">
+          <EventThumbnail domain={eventDomain} {aircraft} alt={displayName} />
+        </div>
+      {/if}
       <button class="sp-thumbnail-button" onclick={handleDetailsClick} tabindex="0">
         <!-- Screen reader announcement for loading state -->
         <span class="sr-only" role="status" aria-live="polite">
@@ -316,6 +354,25 @@
           >
             {t('detections.resolvedDomain', { domain: detection.resolvedDomain })}
           </span>
+        {/if}
+        <!--
+          SOUNDNET: the aircraft itself. A registration and an operator say more
+          about this row than the word "thunderstorm" it was recorded under.
+        -->
+        {#if aircraftLine}
+          <div class="flex items-center gap-1 text-xs opacity-70 mt-0.5">
+            <span class="truncate">{aircraftLine}</span>
+            <a
+              href={flightPathUrl(aircraft?.hex ?? '')}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="shrink-0 hover:underline"
+              aria-label={t('soundnet.aircraftCard.track')}
+              onclick={e => e.stopPropagation()}
+            >
+              <ExternalLink class="size-3" aria-hidden="true" />
+            </a>
+          </div>
         {/if}
       </div>
     </div>

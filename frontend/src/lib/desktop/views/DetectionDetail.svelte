@@ -28,6 +28,8 @@
   import { buildAppUrl, getCurrentPathWithQuery } from '$lib/utils/urlHelpers';
   import { loggers } from '$lib/utils/logger';
   import { localizeSpeciesName } from '$lib/utils/speciesDisplay';
+  import { ensureEventTaxonomy, eventDomainFor } from '$lib/stores/eventTaxonomy.svelte';
+  import EventThumbnail from '$lib/desktop/features/soundnet/components/EventThumbnail.svelte';
   import SourceBadge from '$lib/desktop/features/dashboard/components/SourceBadge.svelte';
   // SOUNDNET: acoustic diagnostics and externally resolved identity.
   import SoundNetPanel from '$lib/desktop/features/soundnet/components/SoundNetPanel.svelte';
@@ -86,6 +88,7 @@
   type ReviewCardComponent =
     typeof import('$lib/desktop/components/review/ReviewCard.svelte').default;
 
+  ensureEventTaxonomy();
   const logger = loggers.ui;
 
   // Constants
@@ -512,6 +515,13 @@
     det.commonName,
     det.eventDisplayName
   )}
+  <!--
+    SOUNDNET: the family this detection belongs to, or null for a bird. The hero
+    image is a bird photograph looked up by scientific name, and for a vehicle
+    or a cockatoo-mistaken-for-a-cat that lookup returns the grey silhouette.
+  -->
+  {@const eventDomain =
+    det.resolvedDomain ?? eventDomainFor(det.scientificName, det.commonName) ?? null}
   <section class="detection-hero-grid" aria-labelledby="species-heading">
     <!-- Identity Card -->
     <div class="hero-card hero-identity-card">
@@ -519,15 +529,23 @@
       <div class="hero-identity-row">
         <!-- Species thumbnail with credit overlay -->
         <div class="hero-thumbnail">
-          <img
-            src={buildAppUrl(
-              `/api/v2/media/species-image?name=${encodeURIComponent(det.scientificName)}`
-            )}
-            alt={displayName}
-            class="w-full h-full object-contain"
-            onerror={handleBirdImageError}
-            loading="eager"
-          />
+          {#if eventDomain}
+            <EventThumbnail
+              domain={eventDomain}
+              aircraft={det.aircraft ?? null}
+              alt={displayName}
+            />
+          {:else}
+            <img
+              src={buildAppUrl(
+                `/api/v2/media/species-image?name=${encodeURIComponent(det.scientificName)}`
+              )}
+              alt={displayName}
+              class="w-full h-full object-contain"
+              onerror={handleBirdImageError}
+              loading="eager"
+            />
+          {/if}
           {#if imageAttribution?.authorName}
             <div
               class="thumbnail-credit"

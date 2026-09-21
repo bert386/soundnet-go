@@ -113,6 +113,8 @@
   interface Row {
     key: string;
     label: string;
+    /** The name this class is stored under, which is what the list filters on. */
+    storageName?: string;
     total: number;
     /** What the classifier said, before any identification moved anything. */
     heard: number;
@@ -127,10 +129,11 @@
     return new Array<number>(HOURS).fill(0);
   }
 
-  function newRow(key: string, label: string): Row {
+  function newRow(key: string, label: string, storageName?: string): Row {
     return {
       key,
       label,
+      storageName,
       total: 0,
       heard: 0,
       hours: emptyHours(),
@@ -183,7 +186,7 @@
       // than listed twice.
       let child = domain.children.find(c => c.key === klass.label);
       if (!child) {
-        child = newRow(klass.label, klass.label);
+        child = newRow(klass.label, klass.label, klass.storageName);
         domain.children.push(child);
       }
       child.total += entry.count;
@@ -249,9 +252,31 @@
     return ICONS.get(key) ?? Zap;
   }
 
+  // Every cell is a link into the list, filtered to exactly what it counts.
+  //
+  // The parameters were checked against the running station rather than read
+  // off the handler: `category`, `date`, `hour` and `species` do compose, which
+  // was not obvious - `hour` is the hourly handler's parameter and `category`
+  // forces the advanced path.
+  //
+  // Species is filtered on the stored name, not the display name. "Propeller,
+  // airscrew" is stored as "propeller", and a link built from the label would
+  // land on an empty list.
+  function listUrl(domain: string, opts: { hour?: number; storageName?: string } = {}): string {
+    const query = new URLSearchParams({ queryType: 'all', category: domain, date });
+    if (opts.hour !== undefined) query.set('hour', String(opts.hour));
+    if (opts.storageName) query.set('species', opts.storageName);
+    return `/ui/detections?${query.toString()}`;
+  }
+
   function browse(key: string) {
     if (key === BIRDS) return;
-    navigation.navigate(`/ui/detections?category=${encodeURIComponent(key)}`);
+    navigation.navigate(listUrl(key));
+  }
+
+  function openCell(row: Row, domain: string, hour: number, count: number) {
+    if (count <= 0 || domain === BIRDS) return;
+    navigation.navigate(listUrl(domain, { hour, storageName: row.storageName }));
   }
 
   function cellTitle(label: string, hour: number, count: number): string {
@@ -281,7 +306,7 @@
   </div>
 {/snippet}
 
-{#snippet heatRow(row: Row, clickable: boolean)}
+{#snippet heatRow(row: Row, clickable: boolean, domain: string)}
   <div class="hourly-row">
     <div class="label-col">
       {#if clickable}
@@ -300,12 +325,23 @@
     </div>
     <div class="hourly-grid">
       {#each row.hours as count, hour (hour)}
-        <div
-          class="heat-cell heatmap-color-{intensity(count)}"
-          title={cellTitle(row.label, hour, count)}
-        >
-          {count || ''}
-        </div>
+        {#if count > 0 && domain !== BIRDS}
+          <button
+            type="button"
+            class="heat-cell heatmap-color-{intensity(count)}"
+            title={cellTitle(row.label, hour, count)}
+            onclick={() => openCell(row, domain, hour, count)}
+          >
+            {count}
+          </button>
+        {:else}
+          <div
+            class="heat-cell heatmap-color-{intensity(count)}"
+            title={cellTitle(row.label, hour, count)}
+          >
+            {count || ''}
+          </div>
+        {/if}
       {/each}
     </div>
   </div>
@@ -322,7 +358,7 @@
       <div class="grid-block">
         {@render hourHeader()}
         {#each rows as row (row.key)}
-          {@render heatRow(row, true)}
+          {@render heatRow(row, true, row.key)}
         {/each}
       </div>
 
@@ -345,7 +381,7 @@
           </h3>
           {@render hourHeader()}
           {#each family.children as child (child.key)}
-            {@render heatRow(child, false)}
+            {@render heatRow(child, false, family.key)}
           {/each}
         </div>
       {/each}
@@ -461,6 +497,15 @@
     font-family: ui-monospace, monospace;
     font-size: 0.625rem;
     opacity: 0.5;
+  }
+
+  button.heat-cell {
+    cursor: pointer;
+  }
+
+  button.heat-cell:hover {
+    outline: 2px solid var(--color-base-content);
+    outline-offset: -2px;
   }
 
   .heat-cell {

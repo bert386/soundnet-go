@@ -1029,10 +1029,10 @@
       "noIdProvided": "No detection ID provided.",
       "fetchFailed": "Failed to fetch detections"
     },
-    "resolvedDomain": "identified as {{domain}}",
+    "resolvedDomain": "identified as {domain}",
     "resolvedDomainHint": "The class name describes the sound. An external source identified what was actually there, and it belongs to a different category - open the detection for the details.",
     "pass": {
-      "expand": "+{{count}} more from this pass",
+      "expand": "+{count} more from this pass",
       "collapse": "show as one pass"
     }
   },
@@ -5735,11 +5735,11 @@
   "soundnet": {
     "title": "Acoustic analysis",
     "loading": "Analysing…",
-    "loadFailed": "Could not load acoustic analysis: {{error}}",
-    "domain": "Event type: {{domain}}",
-    "domainResolved": "Heard as {{classified}}, identified as {{resolved}}. The class name describes the sound; the identification names what was actually there.",
+    "loadFailed": "Could not load acoustic analysis: {error}",
+    "domain": "Event type: {domain}",
+    "domainResolved": "Heard as {classified}, identified as {resolved}. The class name describes the sound; the identification names what was actually there.",
     "domainResolvedHint": "The acoustic label could not tell these apart. An external source placed a real source overhead at the time of the recording.",
-    "domainAmbiguous": "This class does not settle what made the sound. It could also be: {{domains}}.",
+    "domainAmbiguous": "This class does not settle what made the sound. It could also be: {domains}.",
     "computeTimeHint": "Time spent measuring this clip",
     "proximity": {
       "near": "Near",
@@ -5754,11 +5754,11 @@
       "peak": "Peak",
       "rms": "Average",
       "relativeOnly": "Distance is relative, not measured in metres. Absolute distance needs a calibrated microphone and a known source level.",
-      "calibrated": "Estimated {{metres}} m, using the configured microphone calibration."
+      "calibrated": "Estimated {metres} m, using the configured microphone calibration."
     },
     "onsets": {
       "heading": "Separate sounds counted",
-      "interval": "About {{seconds}} s apart",
+      "interval": "About {seconds} s apart",
       "regular": "evenly spaced, suggesting a machine",
       "single": "A single sound"
     },
@@ -5771,7 +5771,7 @@
     },
     "envelope": {
       "heading": "Duration",
-      "duration": "{{seconds}} s from onset to decay"
+      "duration": "{seconds} s from onset to decay"
     },
     "impulse": {
       "heading": "Impulse shape",
@@ -5787,19 +5787,19 @@
       "operator": "Operator",
       "route": "Route",
       "altitude": "Altitude",
-      "provenance": "Matched by rewinding {{lag}} s of sound travel · {{confidence}}% confidence · source {{source}}",
+      "provenance": "Matched by rewinding {lag} s of sound travel · {confidence}% confidence · source {source}",
       "noMatch": "No aircraft was close enough to account for this sound."
     },
     "review": {
       "title": "Review queue",
-      "progress": "{{remaining}} left · {{reviewed}} reviewed this session",
+      "progress": "{remaining} left · {reviewed} reviewed this session",
       "shortcuts": "C confirm · F false positive · E correct · S skip",
       "loading": "Loading unreviewed detections…",
-      "failed": "Could not save that review: {{error}}. Nothing was recorded, so try again.",
+      "failed": "Could not save that review: {error}. Nothing was recorded, so try again.",
       "empty": "Nothing left to review",
       "emptyHint": "Every detection has been confirmed, corrected or rejected.",
       "reload": "Check again",
-      "confidence": "{{percent}}% confidence",
+      "confidence": "{percent}% confidence",
       "confirm": "Confirm",
       "falsePositive": "Not this",
       "correct": "Correct it",
@@ -5813,12 +5813,12 @@
     "export": {
       "title": "Training data",
       "loading": "Counting reviewed examples…",
-      "failed": "Could not load the training export: {{error}}",
+      "failed": "Could not load the training export: {error}",
       "total": "Examples",
       "corrected": "Corrected",
       "correctedHint": "cases the model got wrong",
       "confirmed": "Confirmed",
-      "thinHeading": "These classes have fewer than {{count}} examples and will not train usefully yet",
+      "thinHeading": "These classes have fewer than {count} examples and will not train usefully yet",
       "label": "Class",
       "examples": "Examples",
       "download": "Download manifest",
@@ -5848,37 +5848,37 @@
       "exportHeading": "Training export",
       "exportIntro": "Turn confirmed and corrected detections into a labelled dataset.",
       "reviewLoading": "Finding detections to review...",
-      "reviewLoadFailed": "Could not load detections to review: {{error}}",
+      "reviewLoadFailed": "Could not load detections to review: {error}",
       "reviewEmpty": "Nothing waiting. Every recent event has been reviewed.",
-      "reviewCount": "{{count}} waiting, most recent first"
+      "reviewCount": "{count} waiting, most recent first"
     },
     "overview": {
       "period": "Period:",
-      "days": "{{count}} days",
+      "days": "{count} days",
       "loading": "Summarising what the station heard...",
-      "loadFailed": "Could not load the overview: {{error}}",
+      "loadFailed": "Could not load the overview: {error}",
       "empty": "No non-bird detections in this period.",
       "events": "Events",
       "categories": "Categories",
       "aircraftIdentified": "Aircraft identified",
       "birds": "Bird detections",
-      "detections": "{{count}} detections",
+      "detections": "{count} detections",
       "browse": "Browse these detections",
       "aircraftHeading": "Aircraft identified in this period",
-      "aircraftMore": "{{count}} more on the events page",
-      "identifiedAs": "{{count}} identified as {{domain}}",
-      "heardAs": "{{count}} heard as {{domain}}",
-      "heardHeading": "Heard as ({{count}} detections)",
-      "ambiguousWith": "· could be {{domains}}"
+      "aircraftMore": "{count} more on the events page",
+      "identifiedAs": "{count} identified as {domain}",
+      "heardAs": "{count} heard as {domain}",
+      "heardHeading": "Heard as ({count} detections)",
+      "ambiguousWith": "· could be {domains}"
     },
     "aircraftCard": {
-      "detections": "{{count}} detections",
+      "detections": "{count} detections",
       "track": "Flight path",
       "registry": "Aircraft record",
-      "photoCredit": "Photo: {{photographer}} / Planespotters.net"
+      "photoCredit": "Photo: {photographer} / Planespotters.net"
     },
     "counts": {
-      "speciesAndEvents": "{{species}} species · {{events}} event types",
+      "speciesAndEvents": "{species} species · {events} event types",
       "eventTypes": "Event types"
     },
     "hourly": {
@@ -5890,7 +5890,7 @@
       "footnote": "Top grid: what the station concluded. Each category grid below: what the classifier heard.",
       "less": "Less",
       "more": "More",
-      "heard": "{{count}} heard"
+      "heard": "{count} heard"
     }
   }
 }
