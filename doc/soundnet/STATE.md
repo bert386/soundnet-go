@@ -13,7 +13,7 @@ ENVIRONMENT.md (machines, toolchain, operational gotchas), GROUND_TRUTH.md
 | Authoritative repo | `/root/soundnet-go` inside WSL2 Ubuntu |
 | Windows access | `\\wsl.localhost\Ubuntu\root\soundnet-go` |
 | Push relay | `C:\Users\arnol\Projects\SoundNet\git\soundnet-go` (see ENVIRONMENT.md - pushes fail from WSL) |
-| Branch | `m1-m2-taxonomy-and-records`, 105 commits ahead of `main`. **Push from the Windows relay** (ENVIRONMENT.md): `git fetch "//wsl.localhost/Ubuntu/root/soundnet-go" m1-m2-taxonomy-and-records` then `git push origin FETCH_HEAD:refs/heads/m1-m2-taxonomy-and-records`. Whether origin has the latest was not verifiable from here |
+| Branch | `m1-m2-taxonomy-and-records`, about 100 commits ahead of `main` (98 on local main, 105 on origin/main at the time of writing). **Push from the Windows relay** (ENVIRONMENT.md): `git fetch "//wsl.localhost/Ubuntu/root/soundnet-go" m1-m2-taxonomy-and-records` then `git push origin FETCH_HEAD:refs/heads/m1-m2-taxonomy-and-records`. Whether origin has the latest was not verifiable from here |
 | `main` | M0 only |
 | Model mirror | https://github.com/bert386/soundnet-models |
 | Deployment | `pi@192.168.3.89` (`birdpi`), web UI on :8080 |
