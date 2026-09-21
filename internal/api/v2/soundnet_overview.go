@@ -84,6 +84,18 @@ type soundNetDomainSummary struct {
 	LastHeard   string               `json:"lastHeard,omitempty"`
 }
 
+// soundNetHourlyMove is one domain correction, and the hour it fell in.
+//
+// Sent only for a single day, because that is the only period an hour means
+// anything over: bucketing a month into twenty-four hours would add every
+// Tuesday's aircraft to every Wednesday's.
+type soundNetHourlyMove struct {
+	Hour       int    `json:"hour"`
+	From       string `json:"from"`
+	To         string `json:"to"`
+	Detections int    `json:"detections"`
+}
+
 // soundNetOverviewResponse is the whole period at a glance.
 type soundNetOverviewResponse struct {
 	From string `json:"from"`
@@ -98,6 +110,13 @@ type soundNetOverviewResponse struct {
 	// BirdDetections is reported rather than hidden, so the events can be read
 	// in proportion to everything else the station heard.
 	BirdDetections int `json:"birdDetections"`
+
+	// HourlyMoves lets an hour-by-hour view apply the same correction the
+	// domain totals above already carry. Without it the dashboard's day view
+	// would file an identified aeroplane under weather while the card beside it
+	// filed the same detection under aircraft, which is worse than either
+	// answer on its own.
+	HourlyMoves []soundNetHourlyMove `json:"hourlyMoves,omitempty"`
 }
 
 // GetSoundNetOverview handles GET /api/v2/soundnet/overview.
@@ -115,10 +134,12 @@ func (c *Controller) GetSoundNetOverview(ctx echo.Context) error {
 	// yesterday means the station's yesterday, not UTC's, and this station is
 	// ten hours from it. A date that will not parse is ignored rather than
 	// refused - the period it falls back to is still a true answer.
+	singleDay := false
 	if raw := ctx.QueryParam("date"); raw != "" {
 		if day, err := time.ParseInLocation(time.DateOnly, raw, time.Local); err == nil {
 			from = day
 			to = day.AddDate(0, 0, 1).Add(-time.Nanosecond)
+			singleDay = true
 		}
 	}
 
@@ -168,18 +189,31 @@ func (c *Controller) GetSoundNetOverview(ctx echo.Context) error {
 	// overview: the acoustic reading on its own is still worth showing.
 	if c.DS != nil {
 		var sightings []eventrecord.AircraftSighting
-		var moves []eventrecord.DomainMove
+		var moves, hourly []eventrecord.DomainMove
 		if err := c.DS.Transaction(func(tx *gorm.DB) error {
 			store := eventrecord.NewStore(tx)
 			var rerr error
 			if sightings, rerr = store.AircraftSeen(from, to); rerr != nil {
 				return rerr
 			}
-			moves, rerr = store.DomainReassignments(from, to)
+			if moves, rerr = store.DomainReassignments(from, to); rerr != nil {
+				return rerr
+			}
+			if singleDay {
+				hourly, rerr = store.HourlyDomainReassignments(from, to)
+			}
 			return rerr
 		}); err == nil {
 			resp.Aircraft = sightings
 			applyDomainMoves(byDomain, moves)
+			for _, move := range hourly {
+				resp.HourlyMoves = append(resp.HourlyMoves, soundNetHourlyMove{
+					Hour:       move.Hour,
+					From:       move.From,
+					To:         move.To,
+					Detections: move.Detections,
+				})
+			}
 		}
 	}
 

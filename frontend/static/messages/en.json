@@ -5883,11 +5883,14 @@
     },
     "hourly": {
       "title": "The day by category",
-      "intro": "Every hour of the day, grouped by what made the sound. Open a category for its classes.",
+      "intro": "Every hour of the day, grouped by what made the sound, then one grid per category.",
       "category": "Category",
       "total": "Total",
       "birds": "Birds",
-      "footnote": "Birds are one row here; the species table below breaks them out. {{date}}"
+      "footnote": "Top grid: what the station concluded. Each category grid below: what the classifier heard.",
+      "less": "Less",
+      "more": "More",
+      "heard": "{{count}} heard"
     }
   }
 }

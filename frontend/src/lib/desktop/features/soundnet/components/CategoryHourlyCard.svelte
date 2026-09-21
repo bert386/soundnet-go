@@ -8,14 +8,27 @@
   dawn chorus here, morning traffic there, the 06:40 flight every weekday - is
   in that table and unreadable.
 
-  So this collapses the birds into one row and gives every event family its own,
-  with the classes underneath when a row is opened. Aircraft opens to Aircraft,
-  Fixed-wing, Propeller and Helicopter; vehicles to Car, Truck and the rest.
+  So: one row per family at the top, the birds collapsed into a single row, and
+  then a grid of its own for each family showing the classes inside it.
 
-  It reads the same daily summary the species table already fetched and groups
-  it in the browser, so it costs no extra request and cannot disagree with the
-  table above it. The grouping is the taxonomy's, looked up rather than rebuilt:
-  see lib/stores/eventTaxonomy.
+  The top grid reports what the station concluded, not what the classifier
+  heard. ADS-B identifies an aeroplane on a great many rows recorded as
+  `Thunderstorm` or `Vehicle`, and the overview endpoint already rebases its
+  totals on that; an hour-by-hour view that did not would file the same
+  detection under weather while the card beside it filed it under aircraft. So
+  this asks for the same corrections split by hour and applies them. The family
+  grids below stay exactly as the classifier left them, because that is the
+  other half of the question and an operator tuning a threshold needs it.
+
+  It deliberately looks like the summary it sits above. The heatmap colour
+  classes are upstream's and are declared `:global`, so the cells here are the
+  same cells; only the custom properties they read have to be repeated, because
+  upstream defines those on its own card and Svelte scopes them to it. If that
+  palette ever changes, change it here too - the class names will not warn you,
+  they will just render the old colours.
+
+  The counts come from the daily summary the species table already fetched, so
+  the only request this adds is the one for the corrections.
 -->
 <script lang="ts">
   import { t } from '$lib/i18n';
@@ -32,8 +45,8 @@
     Ship,
     Music,
     Bird,
+    Cat,
     Zap,
-    ChevronRight,
   } from '@lucide/svelte';
 
   interface Props {
@@ -46,22 +59,85 @@
   ensureEventTaxonomy();
 
   const HOURS = 24;
+  const HOUR_LIST = Array.from({ length: HOURS }, (_, hour) => hour);
 
-  // The birds are one row, and the row is not openable: the species table below
-  // is where a bird belongs, and duplicating forty rows here would recreate
-  // exactly the list this card exists to collapse.
+  // The same fixed scale upstream's summary uses, so a cell of a given colour
+  // means the same number of detections in both grids. A per-grid scale would
+  // read better inside a quiet category and would make the two tables
+  // incomparable, which is worse.
+  const MAX_HEAT_COUNT = 50;
+  const INTENSITY_LEVELS = 9;
+
+  function intensity(count: number): number {
+    if (count <= 0) return 0;
+    const step = MAX_HEAT_COUNT / INTENSITY_LEVELS;
+    return Math.min(INTENSITY_LEVELS, Math.max(1, Math.ceil(count / step)));
+  }
+
+  interface HourlyMove {
+    hour: number;
+    from: string;
+    to: string;
+    detections: number;
+  }
+
+  let moves = $state<HourlyMove[]>([]);
+
+  $effect(() => {
+    const day = date;
+    if (!day) return;
+
+    let current = true;
+    fetch(`/api/v2/soundnet/overview?date=${encodeURIComponent(day)}`)
+      .then(response => (response.ok ? response.json() : null))
+      .then((result: { hourlyMoves?: HourlyMove[] } | null) => {
+        if (current) moves = result?.hourlyMoves ?? [];
+      })
+      .catch(() => {
+        // Silent, and empty. SoundNet may be off, or this may be a stock
+        // BirdNET-Go server; in either case the acoustic reading below is still
+        // a true answer, just an uncorrected one.
+        if (current) moves = [];
+      });
+
+    return () => {
+      current = false;
+    };
+  });
+
+  // The birds are one row, and that row has no grid of its own: the species
+  // table below is where a bird belongs, and thirty more rows here would
+  // recreate exactly the list this card exists to collapse.
   const BIRDS = 'birds';
 
   interface Row {
     key: string;
     label: string;
     total: number;
+    /** What the classifier said, before any identification moved anything. */
+    heard: number;
     hours: number[];
     children: Row[];
+    /** Where detections went, and where they came from, by domain. */
+    movedTo: Map<string, number>;
+    movedFrom: Map<string, number>;
   }
 
   function emptyHours(): number[] {
     return new Array<number>(HOURS).fill(0);
+  }
+
+  function newRow(key: string, label: string): Row {
+    return {
+      key,
+      label,
+      total: 0,
+      heard: 0,
+      hours: emptyHours(),
+      children: [],
+      movedTo: new Map(),
+      movedFrom: new Map(),
+    };
   }
 
   function addInto(hours: number[], counts: number[] | undefined) {
@@ -74,60 +150,76 @@
     }
   }
 
+  function bump(tally: Map<string, number>, key: string, by: number) {
+    tally.set(key, (tally.get(key) ?? 0) + by);
+  }
+
   // Maps rather than plain objects throughout: every key here is a domain or a
   // class name that arrived from the database, and indexing an object with one
   // can reach Object.prototype.
   const rows = $derived.by<Row[]>(() => {
     const byDomain = new Map<string, Row>();
-    const birds: Row = {
-      key: BIRDS,
-      label: t('soundnet.hourly.birds'),
-      total: 0,
-      hours: emptyHours(),
-      children: [],
-    };
+    const birds = newRow(BIRDS, t('soundnet.hourly.birds'));
 
     for (const entry of data) {
       const klass = resolveEventClass(entry.scientific_name, entry.common_name);
       if (!klass) {
         birds.total += entry.count;
+        birds.heard += entry.count;
         addInto(birds.hours, entry.hourly_counts);
         continue;
       }
 
       let domain = byDomain.get(klass.domain);
       if (!domain) {
-        domain = {
-          key: klass.domain,
-          label: klass.domain,
-          total: 0,
-          hours: emptyHours(),
-          children: [],
-        };
+        domain = newRow(klass.domain, klass.domain);
         byDomain.set(klass.domain, domain);
       }
       domain.total += entry.count;
+      domain.heard += entry.count;
       addInto(domain.hours, entry.hourly_counts);
 
-      // The class rows, which are what the operator opens a category to see.
       // Two stored names can resolve to one class, so they are merged rather
       // than listed twice.
       let child = domain.children.find(c => c.key === klass.label);
       if (!child) {
-        child = {
-          key: klass.label,
-          label: klass.label,
-          total: 0,
-          hours: emptyHours(),
-          children: [],
-        };
+        child = newRow(klass.label, klass.label);
         domain.children.push(child);
       }
       child.total += entry.count;
+      child.heard += entry.count;
       addInto(child.hours, entry.hourly_counts);
     }
 
-    const out = [...byDomain.values()];
+    // The corrections, hour by hour. A move can only take detections the hour
+    // actually has: the enrichment window and the summary's day are not the
+    // same query, and an hour that reported negative weather would be worse
+    // than one that under-corrects.
+    for (const move of moves) {
+      if (!Number.isInteger(move.hour) || move.hour < 0 || move.hour >= HOURS) continue;
+      const source = byDomain.get(move.from);
+      if (!source) continue;
+
+      // move.hour is bounds-checked against HOURS just above, so every index
+      // below is a validated integer into a fixed-length local array.
+      const moved = Math.min(move.detections, source.hours[move.hour] ?? 0);
+      if (moved <= 0) continue;
+
+      source.hours[move.hour] -= moved;
+      source.total -= moved;
+      bump(source.movedTo, move.to, moved);
+
+      let target = byDomain.get(move.to);
+      if (!target) {
+        target = newRow(move.to, move.to);
+        byDomain.set(move.to, target);
+      }
+      target.hours[move.hour] += moved;
+      target.total += moved;
+      bump(target.movedFrom, move.from, moved);
+    }
+
+    const out = [...byDomain.values()].filter(row => row.total > 0 || row.heard > 0);
     for (const domain of out) {
       domain.children.sort((a, b) => b.total - a.total);
     }
@@ -135,6 +227,9 @@
     if (birds.total > 0) out.push(birds);
     return out;
   });
+
+  // The families that get a grid of their own: everything except the birds.
+  const families = $derived(rows.filter(row => row.key !== BIRDS && row.children.length > 0));
 
   const ICONS = new Map<string, typeof Plane>([
     ['aircraft', Plane],
@@ -146,7 +241,7 @@
     ['watercraft', Ship],
     ['music', Music],
     [BIRDS, Bird],
-    ['biological', Bird],
+    ['biological', Cat],
     ['impulse', Zap],
   ]);
 
@@ -154,110 +249,250 @@
     return ICONS.get(key) ?? Zap;
   }
 
-  let opened = $state<string | null>(null);
-
-  function toggle(row: Row) {
-    if (row.children.length === 0) return;
-    opened = opened === row.key ? null : row.key;
+  function browse(key: string) {
+    if (key === BIRDS) return;
+    navigation.navigate(`/ui/detections?category=${encodeURIComponent(key)}`);
   }
 
-  function browse(row: Row) {
-    if (row.key === BIRDS) return;
-    navigation.navigate(`/ui/detections?category=${encodeURIComponent(row.key)}`);
+  function cellTitle(label: string, hour: number, count: number): string {
+    return `${label} · ${String(hour).padStart(2, '0')}:00 · ${count}`;
   }
 
-  // Shading is per row, not across the card. One busy category would otherwise
-  // flatten every other row to nothing, which is the opposite of what a
-  // time-of-day view is for: the shape of a quiet category matters as much as
-  // the shape of a loud one.
-  function shade(count: number, peak: number): string {
-    if (count === 0) return 'opacity-0';
-    const share = peak > 0 ? count / peak : 0;
-    if (share > 0.66) return 'opacity-100';
-    if (share > 0.33) return 'opacity-70';
-    return 'opacity-40';
+  function movedSummary(row: Row): string {
+    const parts: string[] = [];
+    for (const [domain, count] of row.movedTo) {
+      parts.push(t('soundnet.overview.identifiedAs', { count, domain }));
+    }
+    for (const [domain, count] of row.movedFrom) {
+      parts.push(t('soundnet.overview.heardAs', { count, domain }));
+    }
+    return parts.join(' · ');
   }
 </script>
 
+{#snippet hourHeader()}
+  <div class="hourly-row">
+    <div class="label-col"></div>
+    <div class="hourly-grid">
+      {#each HOUR_LIST as hour (hour)}
+        <div class="hour-label">{String(hour).padStart(2, '0')}</div>
+      {/each}
+    </div>
+  </div>
+{/snippet}
+
+{#snippet heatRow(row: Row, clickable: boolean)}
+  <div class="hourly-row">
+    <div class="label-col">
+      {#if clickable}
+        {@const Icon = iconFor(row.key)}
+        <button type="button" class="row-label" onclick={() => browse(row.key)}>
+          <Icon class="size-4 shrink-0 opacity-70" aria-hidden="true" />
+          <span class="capitalize truncate">{row.label}</span>
+          <span class="row-total">{row.total}</span>
+        </button>
+      {:else}
+        <span class="row-label">
+          <span class="truncate">{row.label}</span>
+          <span class="row-total">{row.total}</span>
+        </span>
+      {/if}
+    </div>
+    <div class="hourly-grid">
+      {#each row.hours as count, hour (hour)}
+        <div
+          class="heat-cell heatmap-color-{intensity(count)}"
+          title={cellTitle(row.label, hour, count)}
+        >
+          {count || ''}
+        </div>
+      {/each}
+    </div>
+  </div>
+{/snippet}
+
 {#if rows.length > 0}
-  <section class="card bg-base-100 shadow-sm col-span-12">
-    <div class="card-body p-4 sm:p-6">
-      <h2 class="card-title text-base">{t('soundnet.hourly.title')}</h2>
-      <p class="text-sm opacity-70">{t('soundnet.hourly.intro')}</p>
-
-      <div class="overflow-x-auto mt-3">
-        <table class="table table-xs w-full">
-          <thead>
-            <tr>
-              <th class="text-left w-48">{t('soundnet.hourly.category')}</th>
-              <th class="text-right w-12">{t('soundnet.hourly.total')}</th>
-              {#each Array.from({ length: HOURS }, (_, hour) => hour) as hour (hour)}
-                <th class="text-center font-mono font-normal opacity-50 px-0">
-                  {String(hour).padStart(2, '0')}
-                </th>
-              {/each}
-            </tr>
-          </thead>
-          <tbody>
-            {#each rows as row (row.key)}
-              {@const peak = Math.max(...row.hours)}
-              {@const Icon = iconFor(row.key)}
-              <tr class="hover">
-                <td class="w-48">
-                  <button
-                    type="button"
-                    class="flex items-center gap-2 text-left w-full"
-                    aria-expanded={opened === row.key}
-                    onclick={() => toggle(row)}
-                  >
-                    {#if row.children.length > 0}
-                      <ChevronRight
-                        class="h-3 w-3 shrink-0 transition-transform {opened === row.key
-                          ? 'rotate-90'
-                          : ''}"
-                        aria-hidden="true"
-                      />
-                    {:else}
-                      <span class="w-3 shrink-0"></span>
-                    {/if}
-                    <Icon class="h-4 w-4 shrink-0 opacity-70" aria-hidden="true" />
-                    <span class="capitalize truncate">{row.label}</span>
-                  </button>
-                </td>
-                <td class="text-right font-mono">
-                  {#if row.key === BIRDS}
-                    {row.total}
-                  {:else}
-                    <button type="button" class="hover:underline" onclick={() => browse(row)}>
-                      {row.total}
-                    </button>
-                  {/if}
-                </td>
-                {#each row.hours as count, hour (hour)}
-                  <td class="text-center font-mono px-0 {shade(count, peak)}">{count || ''}</td>
-                {/each}
-              </tr>
-
-              {#if opened === row.key}
-                {#each row.children as child (child.key)}
-                  {@const childPeak = Math.max(...child.hours)}
-                  <tr class="text-xs opacity-80">
-                    <td class="w-48 pl-9 truncate">{child.label}</td>
-                    <td class="text-right font-mono">{child.total}</td>
-                    {#each child.hours as count, hour (hour)}
-                      <td class="text-center font-mono px-0 {shade(count, childPeak)}">
-                        {count || ''}
-                      </td>
-                    {/each}
-                  </tr>
-                {/each}
-              {/if}
-            {/each}
-          </tbody>
-        </table>
+  <section class="soundnet-hourly card col-span-12 bg-base-100 shadow-sm">
+    <div class="card-body p-4 sm:p-6 gap-3">
+      <div>
+        <h2 class="card-title text-base">{t('soundnet.hourly.title')}</h2>
+        <p class="text-sm opacity-70">{t('soundnet.hourly.intro')}</p>
       </div>
 
-      <p class="text-xs opacity-50 mt-2">{t('soundnet.hourly.footnote', { date })}</p>
+      <div class="grid-block">
+        {@render hourHeader()}
+        {#each rows as row (row.key)}
+          {@render heatRow(row, true)}
+        {/each}
+      </div>
+
+      <!--
+        One grid per family, which is the part a category view is actually for:
+        aircraft splits into Aircraft, Fixed-wing, Propeller and Helicopter, and
+        the shape of each is different.
+      -->
+      {#each families as family (family.key)}
+        {@const Icon = iconFor(family.key)}
+        {@const moved = movedSummary(family)}
+        <div class="grid-block">
+          <h3 class="family-heading">
+            <Icon class="size-4 opacity-70" aria-hidden="true" />
+            <span class="capitalize font-medium">{family.label}</span>
+            <span class="opacity-50 text-xs">
+              {t('soundnet.hourly.heard', { count: family.heard })}
+              {#if moved}· {moved}{/if}
+            </span>
+          </h3>
+          {@render hourHeader()}
+          {#each family.children as child (child.key)}
+            {@render heatRow(child, false)}
+          {/each}
+        </div>
+      {/each}
+
+      <div class="flex items-center justify-between gap-2 text-xs opacity-60">
+        <span>{t('soundnet.hourly.footnote')}</span>
+        <span class="flex items-center gap-1">
+          {t('soundnet.hourly.less')}
+          {#each [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] as level (level)}
+            <span class="legend-swatch heatmap-color-{level}"></span>
+          {/each}
+          {t('soundnet.hourly.more')}
+        </span>
+      </div>
     </div>
   </section>
 {/if}
+
+<style>
+  /*
+    The custom properties upstream's `:global(.heatmap-color-N)` rules read.
+    They are defined on the daily summary's own card and Svelte scopes them
+    there, so they have to be repeated rather than inherited. The rules
+    themselves are shared, which is what keeps the two grids looking alike.
+  */
+  .soundnet-hourly {
+    --grid-cell-radius: 4px;
+    --grid-gap: 4px;
+    --heatmap-color-0: #f0f9fc;
+    --heatmap-color-1: #e0f3f8;
+    --heatmap-color-2: #ccebf6;
+    --heatmap-color-3: #99d7ed;
+    --heatmap-color-4: #66c2e4;
+    --heatmap-color-5: #33ade1;
+    --heatmap-color-6: #0099d8;
+    --heatmap-color-7: #0077be;
+    --heatmap-color-8: #005595;
+    --heatmap-color-9: #036;
+  }
+
+  :global([data-theme='dark']) .soundnet-hourly {
+    --heatmap-color-0: #1e293b;
+    --heatmap-color-1: #164e63;
+    --heatmap-color-2: #0e7490;
+    --heatmap-color-3: #0891b2;
+    --heatmap-color-4: #06b6d4;
+    --heatmap-color-5: #22d3ee;
+    --heatmap-color-6: #38bdf8;
+    --heatmap-color-7: #60a5fa;
+    --heatmap-color-8: #93c5fd;
+    --heatmap-color-9: #bfdbfe;
+  }
+
+  .grid-block {
+    display: flex;
+    flex-direction: column;
+    gap: var(--grid-gap);
+  }
+
+  .family-heading {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--color-base-200);
+    font-size: 0.875rem;
+  }
+
+  /* Label column plus twenty-four equal hours, so the whole day fits the card
+     without a horizontal scrollbar. */
+  .hourly-row {
+    display: grid;
+    grid-template-columns: var(--label-col-width, 10rem) minmax(0, 1fr);
+    gap: var(--grid-gap);
+    align-items: center;
+  }
+
+  .hourly-grid {
+    display: grid;
+    grid-template-columns: repeat(24, minmax(0, 1fr));
+    gap: var(--grid-gap);
+  }
+
+  .label-col {
+    min-width: 0;
+  }
+
+  .row-label {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    width: 100%;
+    min-width: 0;
+    font-size: 0.8125rem;
+    text-align: left;
+  }
+
+  button.row-label:hover span:not(.row-total) {
+    text-decoration: underline;
+  }
+
+  .row-total {
+    margin-left: auto;
+    font-variant-numeric: tabular-nums;
+    font-family: ui-monospace, monospace;
+    font-size: 0.75rem;
+    opacity: 0.7;
+  }
+
+  .hour-label {
+    text-align: center;
+    font-family: ui-monospace, monospace;
+    font-size: 0.625rem;
+    opacity: 0.5;
+  }
+
+  .heat-cell {
+    height: 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.625rem;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    overflow: hidden;
+  }
+
+  .legend-swatch {
+    width: 0.75rem;
+    height: 0.75rem;
+    display: inline-block;
+  }
+
+  /* Narrow screens: the counts inside the cells are the first thing worth
+     losing, and a shorter label column keeps twenty-four cells readable. */
+  @media (max-width: 1024px) {
+    .hourly-row {
+      --label-col-width: 7.5rem;
+    }
+
+    .hour-label {
+      font-size: 0.5rem;
+    }
+
+    .heat-cell {
+      font-size: 0;
+    }
+  }
+</style>

@@ -4316,7 +4316,10 @@ export type TranslationKey =
   | 'soundnet.hourly.category'
   | 'soundnet.hourly.total'
   | 'soundnet.hourly.birds'
-  | 'soundnet.hourly.footnote'; // params: date;
+  | 'soundnet.hourly.footnote'
+  | 'soundnet.hourly.less'
+  | 'soundnet.hourly.more'
+  | 'soundnet.hourly.heard'; // params: count;
 
 /**
  * Parameter types for translations that require parameters
@@ -4796,7 +4799,7 @@ export type TranslationParams = {
   'soundnet.aircraftCard.detections': { count: string | number };
   'soundnet.aircraftCard.photoCredit': { photographer: string | number };
   'soundnet.counts.speciesAndEvents': { species: string | number; events: string | number };
-  'soundnet.hourly.footnote': { date: string | number };
+  'soundnet.hourly.heard': { count: string | number };
 };
 
 /**
