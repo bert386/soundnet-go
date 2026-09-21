@@ -606,6 +606,52 @@ credit budget, which is one more reason that budget is the thing to fix next.
 Nothing is discarded. Every row is a model's opinion about one window, and those
 opinions are the training corpus.
 
+## A second ADS-B source
+
+Added 2026-09-21 after OpenSky's 4000 credits ran out and the station spent a
+morning unable to identify anything - which cost more than identifications,
+since the domain correction and pass grouping are both built on them.
+
+**adsb.lol is the fallback, OpenSky stays primary.** Its limit is documented;
+adsb.lol's is "dynamic based on environment load". A known limit is the better
+thing to depend on. `FallbackSource` chains any number of `StateSource`s and
+falls through on *any* failure, not just the credit sentinel: a broken primary
+is a commoner failure than an exhausted one.
+
+**Proven live** at 10:38 with OpenSky still below its floor: detection 2343,
+`Vehicle 0.26`, identified as VH-DQV, a C208 at 4.76 km, with `source=adsb.lol`
+in the stored record. adsb.lol returns registration and ICAO type inline, which
+OpenSky needs a separate adsbdb lookup for.
+
+Three things this cost, all worth knowing:
+
+**The provider hard-coded `Source: "opensky"`.** True until a second source
+existed. Caught before it wrote a row, but only by asking what an identification
+would record rather than trusting that no error had been logged. Each `State`
+now carries the service that reported it.
+
+**The reuse window lived inside the OpenSky client.** So the new client
+inherited none of it, took every enrichment query raw - several a second during
+a pass - and was rate limited within minutes of going live, entirely fairly.
+It has its own window now, at ten seconds. *"Tested live, it works"* was true and
+was one curl; one request is no test of a component whose failure mode is how
+often it asks.
+
+**The limit is probabilistic, not a cooldown.** Measured: ten requests ten
+seconds apart, seven answered, three refused, no Retry-After. So a refusal now
+serves the most recent cached sky if it is under thirty seconds old, dead
+reckoned forward with `enrichment.Project` - the mirror of the BackProject the
+lag correction already uses. Replaying the stored position instead would not be
+stale data, it would be wrong data, since an aircraft covers several kilometres
+in thirty seconds.
+
+**The real fix is a receiver.** An RTL-SDR on the Pi removes the whole class of
+problem: unlimited local queries, no third party, no privacy question - and
+feeding the data back earns 8000 OpenSky credits and an adsb.lol key. `readsb`
+emits the same JSON schema `ADSBLolClient` already parses, `"ground"` string and
+all, so it would drop in as a third source ahead of both networks. The operator
+has a dongle somewhere but could not find it on 2026-09-21.
+
 ## Immediately resumable work
 
 Everything that was on this list on 2026-09-20 morning is done and running. What
@@ -686,6 +732,10 @@ station produces registrations, and a photo keyed on hex code is one fetch away.
   minutes was real speech near the microphone, not the gate misfiring. If
   detections thin out for a *sustained* stretch rather than minutes, this is the
   first thing to check - a privacy hit discards the whole window for every model.
+- **Whether OpenSky ever refills.** It did *not* reset at UTC midnight as
+  expected - the balance was still 188 at 10:11 AEST, an hour later. Something
+  other than a daily rollover governs it, and `credits_left` in the collector
+  heartbeat will show when it moves.
 - **The collector's first captures.** Running since 22:18 on 2026-09-20 and
   reporting every poll (first three at info, then hourly). An empty corpus is
   expected at night; an empty corpus after a day of daytime traffic is not.
