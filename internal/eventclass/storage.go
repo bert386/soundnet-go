@@ -220,6 +220,48 @@ func StorageNames(d Domain) []string {
 	return out
 }
 
+// StorageNamesAmbiguousWith returns the stored names of enabled classes that
+// belong to some other domain but could equally belong to one of these.
+//
+// It is what lets a request for aircraft reach the rows recorded as `Thunder`
+// and `Vehicle`. Those are the labels an aeroplane is most often filed under at
+// a real station, and a filter that returned only the classes whose own domain
+// is aircraft would miss most of the aircraft.
+//
+// Classes already in one of the given domains are left out: the caller has
+// those from StorageNamesForDomains and would otherwise filter on each twice.
+func StorageNamesAmbiguousWith(domains []Domain) []string {
+	wanted := make(map[Domain]struct{}, len(domains))
+	for _, d := range domains {
+		wanted[d] = struct{}{}
+	}
+
+	seen := make(map[string]struct{})
+	out := make([]string, 0, 8)
+	for _, c := range allClasses() {
+		if !c.DefaultEnabled {
+			continue
+		}
+		if _, already := wanted[c.Domain]; already {
+			continue
+		}
+		for _, candidate := range c.CandidateDomains() {
+			if _, hit := wanted[candidate]; !hit {
+				continue
+			}
+			name := StorageName(c.Label)
+			if _, dup := seen[name]; !dup {
+				seen[name] = struct{}{}
+				out = append(out, name)
+			}
+			break
+		}
+	}
+	// Deterministic without sorting: allClasses() walks a fixed table, which is
+	// also what StorageNamesForDomains relies on.
+	return out
+}
+
 // FilterableDomains lists the domains worth offering as a detection filter.
 //
 // DomainOther is excluded: it is the fallback for the rest of the AudioSet

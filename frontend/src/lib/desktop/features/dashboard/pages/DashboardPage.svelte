@@ -82,6 +82,7 @@ Performance Optimizations:
   import MiniSpectrogram from '$lib/desktop/features/dashboard/components/MiniSpectrogram.svelte';
   import DashboardEditMode from '$lib/desktop/features/dashboard/components/DashboardEditMode.svelte';
   import CategoryHourlyCard from '$lib/desktop/features/soundnet/components/CategoryHourlyCard.svelte';
+  import { ensureEventTaxonomy, resolveEventClass } from '$lib/stores/eventTaxonomy.svelte';
   import DailySummaryConfigForm from '$lib/desktop/features/dashboard/components/DailySummaryConfigForm.svelte';
   import {
     Image,
@@ -1342,6 +1343,22 @@ Performance Optimizations:
     queueDailySummaryUpdate(detection);
   }
 
+  // SOUNDNET: "Species detections by hour" is for species. Vehicle,
+  // Thunderstorm and Propeller were rows in it with a bird silhouette beside
+  // them, inside a table whose whole premise is one row per species.
+  //
+  // The full summary is still what the category card above reads, so nothing is
+  // lost - the events moved to the table that is about events. Before the
+  // taxonomy arrives every entry looks like a bird, which is exactly what this
+  // table showed before, so the transition is a narrowing rather than a flash
+  // of wrong content.
+  ensureEventTaxonomy();
+  const birdSummary = $derived(
+    dailySummary.filter(
+      species => resolveEventClass(species.scientific_name, species.common_name) === null
+    )
+  );
+
   // Handle detection click - reserved for future card navigation implementation
   // eslint-disable-next-line no-unused-vars
   function _handleDetectionClick(detection: Detection) {
@@ -1561,7 +1578,7 @@ Performance Optimizations:
         />
       {:else if element.type === 'daily-summary'}
         <DailySummaryCard
-          data={dailySummary}
+          data={birdSummary}
           loading={isLoadingSummary}
           error={summaryError}
           {selectedDate}

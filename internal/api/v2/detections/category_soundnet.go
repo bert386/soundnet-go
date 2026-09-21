@@ -63,10 +63,85 @@ func expandCategory(category string) (names []string, ok bool) {
 	}
 
 	names = eventclass.StorageNamesForDomains(domains)
+
+	// Widened by the ambiguity table, because the class a detection was
+	// recorded under is often not the domain it belongs to: most of this
+	// station's aircraft arrive as `Thunder` or `Vehicle` and are only settled
+	// afterwards by ADS-B. The extra rows this admits are removed again by
+	// filterByResolvedDomain once each one's resolved domain is known.
+	names = append(names, eventclass.StorageNamesAmbiguousWith(domains)...)
+
 	// A recognised domain with no enabled classes would otherwise produce an
 	// empty filter, which the store reads as "no restriction" - the opposite of
 	// what the user asked for.
 	return names, len(names) > 0
+}
+
+// requestedDomains parses the category parameter back into the domains it
+// names, for the second half of the filter.
+func requestedDomains(category string) map[string]struct{} {
+	out := make(map[string]struct{})
+	for part := range strings.SplitSeq(strings.TrimSpace(category), ",") {
+		part = strings.TrimSpace(part)
+		if part == "" {
+			continue
+		}
+		if strings.EqualFold(part, categoryEvents) {
+			for _, d := range eventclass.FilterableDomains() {
+				out[string(d)] = struct{}{}
+			}
+			continue
+		}
+		if d, valid := eventclass.ParseDomain(part); valid {
+			out[string(d)] = struct{}{}
+		}
+	}
+	return out
+}
+
+// filterByResolvedDomain keeps only the detections that actually belong to the
+// requested domains, judged by what an authority settled rather than by the
+// class name.
+//
+// This is the half of the category filter SQL cannot do. The resolved domain
+// lives in a JSON payload in one of this fork's own tables, and the two
+// datastores upstream supports do not even agree on what the detections table
+// is called, so there is no join to write. The page is annotated first and
+// filtered second.
+//
+// The consequence, stated plainly because it is visible: the total reported
+// beside the list is the count the database returned for the widened query, so
+// it is an upper bound. The rows are right; the total can read high.
+func filterByResolvedDomain(detections []DetectionResponse, category string) []DetectionResponse {
+	if category == "" {
+		return detections
+	}
+	wanted := requestedDomains(category)
+	if len(wanted) == 0 {
+		return detections
+	}
+
+	kept := make([]DetectionResponse, 0, len(detections))
+	for i := range detections {
+		domain := detections[i].ResolvedDomain
+		if domain == "" {
+			// Nothing identified it, so the acoustic class stands. This has to
+			// be checked rather than assumed: the query was widened to the
+			// classes this domain is ambiguous with, so an unidentified
+			// `Thunder` row reaches an aircraft request and would otherwise be
+			// waved through on the strength of a widening that exists only to
+			// find the identified ones.
+			class, found := eventclass.Resolve(detections[i].ScientificName)
+			if !found {
+				continue
+			}
+			domain = string(class.Domain)
+		}
+		if _, hit := wanted[domain]; hit {
+			kept = append(kept, detections[i])
+		}
+	}
+	return kept
 }
 
 // applyCategoryFilter narrows filters to an event domain.

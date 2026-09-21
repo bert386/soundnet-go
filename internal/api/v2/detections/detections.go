@@ -621,6 +621,13 @@ func (c *Handler) GetDetections(ctx echo.Context) error {
 
 	// Convert notes to response format
 	detections := c.convertNotesToDetectionResponses(notes, params.IncludeWeather)
+
+	// SOUNDNET: the second half of the category filter. The first half widened
+	// the query to the classes this domain is ambiguous with; this drops the
+	// rows an authority settled somewhere else, so the weather list stops
+	// showing the aeroplanes it recorded as thunder.
+	detections = filterByResolvedDomain(detections, params.Category)
+
 	c.stripSourceForUnauthenticated(ctx, detections)
 
 	// Create paginated response
