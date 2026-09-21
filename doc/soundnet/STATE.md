@@ -28,7 +28,7 @@ ENVIRONMENT.md (machines, toolchain, operational gotchas), GROUND_TRUTH.md
 | M3 DSP diagnostics | **done**, 24.8 ms/clip measured on the Pi against a 100 ms budget |
 | M5 enrichment / ADS-B | **done and proven live** - registration, type, operator, route; ambiguity resolution for `Vehicle`/`Engine`/`Thunder`; corroboration-gated thresholds |
 | M6 auto-label collector | **running and producing** - first two captures 2026-09-21, both RSCU208 (AW139) filed under `corpus/aircraft/A139`. Poll interval now 300 s: at 60 s it exhausted the API allowance in eight hours |
-| M7 web UI | detail panel, review queue, training export, confusion + threshold APIs, **event-domain filter (API + UI)**, **display names**, **resolved-domain correction**, **pass grouping** done; tuner UI and live re-compute remain |
+| M7 web UI | detail panel, review + training export routed, confusion + threshold APIs, **event-domain filter**, **display names**, **resolved-domain correction**, **pass grouping**, **category overview with aircraft cards** done; tuner UI and live re-compute remain |
 | M4 sub-classification heads | **not started** - correctly last, it trains on M6's corpus |
 | M8 enriched alerts | **not started** |
 
@@ -651,6 +651,48 @@ feeding the data back earns 8000 OpenSky credits and an adsb.lol key. `readsb`
 emits the same JSON schema `ADSBLolClient` already parses, `"ground"` string and
 all, so it would drop in as a third source ahead of both networks. The operator
 has a dongle somewhere but could not find it on 2026-09-21.
+
+## Reporting by category
+
+Added 2026-09-21, from the operator's screenshots. The inherited analytics are a
+species list, and on this station they showed `Vehicle`, `Thunderstorm`,
+`aircraft_and_airplane`, `car_(siren)`, `and_eructation` and `Purr` as birds -
+each behind a grey bird silhouette, inside a headline count of "45 species".
+
+Two of those are not names at all. The stored form is truncated on the way in,
+so the page read `and_airscrew` where the taxonomy says `Propeller, airscrew`.
+The detections list was taught the display name weeks ago; the analytics pages
+never were.
+
+`GET /api/v2/soundnet/overview?days=N` groups a period by domain, with the class
+breakdown inside each, always under the taxonomy's name. It reuses
+`GetSpeciesSummaryData` rather than adding a query: rows that resolve to an
+event class are grouped by domain, rows that do not are birds and are counted.
+Bird detections are reported beside the events rather than hidden, because the
+events only mean anything in proportion to them.
+
+First reading, seven days:
+
+    vehicle    192   Vehicle 190, Reversing beeps 1, Car 1
+    aircraft    82   Aircraft 50, Fixed-wing aircraft 25, Propeller 7
+    weather     66   Thunderstorm 36, Thunder 30
+    alarm        4   Police car (siren) 4
+    birds     1827
+    aircraft identified: 67
+
+**Sixty-seven aircraft by registration and type** - VH-VZL a B738, VH-OFS an
+A21N, VH-OHS an RV7, VH-DQV a C208 identified by *both* networks. Against nine
+the day before, which is what the second ADS-B source bought.
+
+Each aircraft card fetches its photograph from Planespotters **in the browser**,
+not proxied: their terms ask for that, and for the attribution and link back
+that the card carries. A missing photo is ordinary - military, private and newly
+registered aircraft are often absent. Each links to its track on globe.adsb.lol,
+keyed on the broadcast hex rather than a looked-up registration so the link
+always resolves, and to FlightRadar24 where a registration is known.
+
+Still species-shaped and worth doing next: the dashboard and the species
+analytics pages themselves, which is where the operator actually starts.
 
 ## Immediately resumable work
 
