@@ -1,6 +1,6 @@
 # Project state
 
-Written 2026-09-19 as a handoff. Everything needed to resume without the
+Written 2026-09-19 as a handoff; last brought current 2026-09-21 afternoon. Everything needed to resume without the
 originating conversation. Companion files: SCOPE.md (the brief), DECISIONS.md
 (resolved decisions), OPEN_DECISIONS.md (what still needs an answer),
 ENVIRONMENT.md (machines, toolchain, operational gotchas), GROUND_TRUTH.md
@@ -13,7 +13,7 @@ ENVIRONMENT.md (machines, toolchain, operational gotchas), GROUND_TRUTH.md
 | Authoritative repo | `/root/soundnet-go` inside WSL2 Ubuntu |
 | Windows access | `\\wsl.localhost\Ubuntu\root\soundnet-go` |
 | Push relay | `C:\Users\arnol\Projects\SoundNet\git\soundnet-go` (see ENVIRONMENT.md - pushes fail from WSL) |
-| Branch | `m1-m2-taxonomy-and-records`, pushed to origin |
+| Branch | `m1-m2-taxonomy-and-records`, 105 commits ahead of `main`. **Push from the Windows relay** (ENVIRONMENT.md): `git fetch "//wsl.localhost/Ubuntu/root/soundnet-go" m1-m2-taxonomy-and-records` then `git push origin FETCH_HEAD:refs/heads/m1-m2-taxonomy-and-records`. Whether origin has the latest was not verifiable from here |
 | `main` | M0 only |
 | Model mirror | https://github.com/bert386/soundnet-models |
 | Deployment | `pi@192.168.3.89` (`birdpi`), web UI on :8080 |
@@ -26,10 +26,10 @@ ENVIRONMENT.md (machines, toolchain, operational gotchas), GROUND_TRUTH.md
 | M1 taxonomy + models | **done** - taxonomy, catalog, fetch route, adapters. YAMNet 66-77 ms/window live; **CED-tiny live at 89 ms** |
 | M2 detection records | **done** |
 | M3 DSP diagnostics | **done**, 24.8 ms/clip measured on the Pi against a 100 ms budget |
-| M5 enrichment / ADS-B | **done and proven live** - registration, type, operator, route; ambiguity resolution; corroboration-gated thresholds; **two sources, OpenSky primary with adsb.lol fallback**. 67 aircraft in 7 days |
+| M5 enrichment / ADS-B | **done and proven live** - registration, type, operator, route; ambiguity resolution; corroboration-gated thresholds; two sources, OpenSky primary with adsb.lol fallback; **YAMNet-only labels need a second opinion; clipped audio is never confirmed**. 80+ aircraft in 7 days |
 | M6 auto-label collector | **running and producing** - 4 clips, two types (A139, P28A), filed by ICAO type with WAV + JSON sidecar. Poll interval 300 s: at 60 s it exhausted the API allowance in eight hours |
-| M7 web UI | detail panel, review + training export routed, confusion + threshold APIs, **event-domain filter**, **display names**, **resolved-domain correction**, **pass grouping**, **category overview with aircraft cards** done; tuner UI and live re-compute remain |
-| M4 sub-classification heads | **not started, but no longer data-blocked** - ~170 jet and ~90 prop detections with clips and ICAO type codes already on disk; helicopters thin at 3. CED's embeddings supersede the YAMNet blocker. See "M4: the data already exists" |
+| M7 web UI | **dashboard and lists are event-aware**: category heatmap with per-family grids and clickable cells, aircraft photo + flight link on every row (dashboard, list, detail, search), species counts split from event types, category filter on the *resolved* domain, rebranded SoundNet. Tuner UI and live re-compute remain |
+| M4 sub-classification heads | **corpus built** - 82 clean examples (66 jet / 13 prop / 3 helicopter; 221 at up to 3 per pass) from ADS-B-identified detections, via `scripts/soundnet/m4_backfill.py` and the `internal/aircrafttype` engine table. Helicopters are one aircraft. Next: CED embedding re-export, then the head |
 | M8 enriched alerts | **not started** |
 
 ## Packages added
@@ -41,6 +41,8 @@ ENVIRONMENT.md (machines, toolchain, operational gotchas), GROUND_TRUTH.md
     internal/enrichment/adsb OpenSky client, aircraft identity, metadata lookup
     internal/eventpipeline   orchestration: decides which layers run
     internal/autolabel       M6 corpus collector
+    internal/aircrafttype    ICAO type designator -> jet / prop / helicopter (CSV, embedded)
+    scripts/soundnet         M4 backfill: corpus from ADS-B-identified detections
     internal/classifier/yamnet.go               the YAMNet ModelInstance
     internal/classifier/orchestrator_yamnet.go  its loader
     internal/labels/nonbird/classes_soundnet.go AudioSet class categories
@@ -54,7 +56,8 @@ wrong twice when written by hand, so recount it rather than trust it
 conversation; `git diff --numstat main` and grouping by suffix is the whole of
 it).
 
-**Production Go: 14 files, +141 -5.** The number that matters for merges. Only
+**Production Go: 15 files, +253 -5** (recounted 2026-09-21 afternoon; the
+frontend is 21 upstream files, +780 -91, plus the message catalogue). The number that matters for merges. Only
 files that already exist on `main` are counted - a new fork-owned file is not a
 merge cost, an edited upstream file is.
 
@@ -205,29 +208,37 @@ files and touches no upstream line. Two cautions learned the hard way: anything
 because init order between files is not guaranteed, and upstream's exhaustive
 table tests will fail until the new entry is declared in them too.
 
-## The station, as of 2026-09-21 midday
+## The station, as of 2026-09-21 afternoon
 
-Three models, one source, 345 ms of inference per 3-second window - an 11% duty
-cycle on a Pi 4. Running continuously; the identification pipeline, the
-auto-label collector and the event UI are all live.
+Three models, one source, about 11% duty cycle on a Pi 4. Deployed binary
+`1a6407922808bdd7be275150d9c7a45f` was superseded several times this afternoon;
+check the md5 on the Pi rather than trusting a number here.
 
 **Where things stand in one screen:**
 
-    identification   two ADS-B sources, OpenSky primary, adsb.lol fallback
-                     67 aircraft by registration in 7 days (9 the day before)
-    collector        M6 running, 300 s poll, 4 clips captured, types A139 + P28A
-    events UI        /ui/events - domain cards, aircraft photo cards, review list
-    naming           every stored event name resolves on every page
-    thunder          50 reviewed, 0 real: every one an aircraft
+    identification   two ADS-B sources; YAMNet-only non-bird labels need CED's
+                     agreement or an authority; clipped audio never confirmed
+    dashboard        category heatmap (birds one row, a grid per family, cells
+                     link to the filtered list); aircraft photos on every row
+    lists            category filter uses the RESOLVED domain, paged after
+                     filtering - "aircraft at 11:00" reads 130, matching the cell
+    M4               82-example corpus in /home/pi/soundnet/corpus/backfill
+    thunder          never weather: aircraft (ADS-B) or wind (clipping)
+    cats             never cats: crows and cockatoos, via YAMNet
 
-**Operator settings on the Pi** (all reversible, a dated backup beside each):
+**Operator settings on the Pi** (all reversible, a dated `.bak-*` beside each
+edit of `~/.config/birdnet-go/config.yaml`):
 
-    soundnet.autolabel.enabled                 true, pollintervalsec 300
-    soundnet.thresholds.domains.aircraft       0.35
-    soundnet.enrichment.adsb.fallback.enabled  true  (adsb.lol)
-    soundnet.enrichment.corroborationthreshold 0.15
-    realtime.audio.sources[].gain              15
-    realtime.privacyfilter.vad                 enabled by the operator at 0.35
+    soundnet.autolabel.enabled                   true, pollintervalsec 300
+    soundnet.thresholds.domains.aircraft         0.35
+    soundnet.enrichment.adsb.fallback.enabled    true (adsb.lol)
+    soundnet.enrichment.corroborationthreshold   0.15
+    soundnet.enrichment.requiresecondopinion     [YAMNet]
+    soundnet.enrichment.rejectclipped            true
+    realtime.species.config.wind                 threshold 0.25, interval 300 s
+    realtime.species.config.car|truck|motorcycle threshold 0.2
+    realtime.audio.sources[].gain                15
+    realtime.privacyfilter.vad                   enabled by the operator at 0.35
 
 ## The station, as of 2026-09-20 evening
 
@@ -765,127 +776,177 @@ shows its domain's icon, tinted by family, with the domain where the scientific
 name would be - which for an event is a truncated half-label that never told
 anyone anything.
 
-## M4: the data already exists
+## YAMNet needs a second opinion
 
-Checked 2026-09-21, and it overturns the plan's assumption that M4 waits on M6.
+Two independent sets of the operator's reviews trace to one model. Every Thunder
+detection reviewed was an aircraft or wind; every Cat was a crow or a cockatoo.
+In both, the confident label came from YAMNet (0.92-0.97), and CED, run offline
+on the same clips (`ced_tiny_fused.onnx`, ten-second windows), disagreed: Wind
+0.25-0.47 on the "thunder", Owl 0.53 or Crow level with Cat on the "cats",
+Pigeon on the "Purr". The fingerprint is YAMNet's 8-bit quantisation - the same
+exact scores recur across unrelated classes: 0.74, 0.85, 0.92, 0.97.
 
-The scope has M4 training on M6's corpus, which is collecting a few clips a day.
-But **every identified detection already carries the aircraft's ICAO type code**
-in its enrichment, and its clip is still on disk. Three days of detections:
+`soundnet.enrichment.requiresecondopinion: [YAMNet]` makes a detection only
+YAMNet heard prove itself: kept if a trusted model heard it strongly enough to
+record it on its own, or an authority confirms it; otherwise discarded at flush
+and logged at info (`operation=soundnet_second_opinion`). It rides the
+corroboration path deliberately, because YAMNet's Thunder and Vehicle are also
+how most aircraft here reach ADS-B - within two minutes of going live it had
+kept Thunderstorm 0.96 and Thunder 0.89 as aircraft. Two bugs found on the
+station, both fixed: CED's candidate-level 0.2 was counted as agreement, and a
+CED-only detection fell through the loop and was discarded in YAMNet's name.
 
-    B738  117     A320  13     B789  10     B77W  10
-    P28A   53     DA40  28     A388   7     SF34   7
-    C208    4     A139   3     untyped 31
+Accepted cost: a real storm, cat or truck that only YAMNet heard is lost. Birds
+and speech are untouched, so the privacy filter behaves exactly as before.
 
-Roughly 170 jet and 90 prop detections with audio, today, scattered across the
-detections table rather than the corpus directory. Two caveats before believing
-it: those are *detections*, not passes - one flyby makes three to six, so real
-examples are perhaps a third, and pass grouping now allows a proper dedup. And
-**helicopters are the gap at 3**, so either M6 is told to prioritise them or the
-first head is a two-way jet/prop.
+## Distance cannot tell wind from an aircraft; clipping can
 
-**The feature-source blocker is also cheaper than OPEN_DECISIONS item 3 says.**
-That entry recommends mirroring a YAMNet build that exposes embeddings, because
-the MediaPipe artefact has only the 521 scores. CED supersedes it: it is a
-transformer with a penultimate representation, we own `export_ced_fused.py`, and
-`verify_exact.py` already checks a re-export against PyTorch to 1.3e-06. Adding
-a second output is a contained change to a script we control.
+The operator asked for a distance limit on the ADS-B cross-check. Every match on
+the station says it would not work:
+
+    recorded as   n    median   p95     furthest   clipped   clipped <2 km
+    aircraft     108   3.55 km  5.43    5.79        2/108      0/20
+    thunder      167   3.37 km  5.61    5.87       39/167     11/13
+    vehicle      247   3.98 km  5.61    5.84       10/247      2/14
+
+Nothing ever matched past 5.9 km (the MinQuality 0.25 floor cuts in before the
+7 km limit), and rescued thunder sits at the same distances as real aircraft -
+the sky here is airliners at ~3,000 m. What separates them is level: real
+aircraft essentially never clip this microphone, even overhead. So
+`rejectclipped` refuses to confirm a detection whose audio reached -0.1 dBFS,
+read back from the capture buffer at flush over the same five seconds the
+diagnostics analyse, before any authority is asked. An unreadable level is not
+treated as clipped.
+
+Corroboration base rates, from the station log: Vehicle confirmed 9.7% (about
+the chance of a plane simply being in range), Aircraft 11.5%, Thunder 23%,
+Thunderstorm 19%, Fixed-wing 92%, Propeller 100%.
+
+## Wind, and the privacy filter
+
+The remaining Thunder is wind on the capsule: 73% of unidentified weather rows
+clip, against 1.7% of Aircraft rows, and their RMS is higher. Raising the Thunder
+threshold is backwards - wind scores *higher* (median 0.85) than real aircraft
+(0.67). A windscreen and less gain attack the cause; the rules above attack the
+symptom.
+
+`Wind` / `Wind noise (microphone)` have a per-species threshold of 0.25 so wind
+records as itself, but **none has recorded yet**, and the likely reason is the
+privacy filter: it discards every pending detection it overlaps and engaged
+about 6,400 times in one day (2,571 VAD, 3,838 label, the label hits at a
+recurring 0.738 - YAMNet's fingerprint again) against ~9,800 pending
+detections. It is a privacy control: measure what triggers it and bring the
+operator numbers; never weaken it on a hunch.
+
+## The dashboard and lists, by category
+
+- **Category heatmap** (`CategoryHourlyCard`): birds as one row, a row per
+  family, then a grid per family with its classes. Reuses upstream's `:global`
+  heatmap colour classes - only the custom properties are repeated, so if
+  upstream's palette changes, change it here too. Cells link to
+  `/ui/detections?queryType=all&category=&date=&hour=[&species=<storageName>]`;
+  those parameters were checked against the live API. The top grid applies the
+  ADS-B corrections per hour (`hourlyMoves` from the overview endpoint, single
+  day only); the family grids stay as the classifier heard them.
+- **Category filter uses the resolved domain.** The query is widened to the
+  classes a domain is ambiguous with, the day is annotated and filtered, and
+  only then paged (`categoryDetections`) - the first version paged first and
+  read "1 to 14 of 176" on a cell that said 130.
+- **Aircraft on the row.** The detections API carries `aircraft` from the
+  enrichment; `EventThumbnail` shows the Planespotters photo (browser-fetched,
+  attributed, cached per page in `aircraftPhoto.ts`) or the family icon on the
+  dashboard cards, the list, the detail page and search. The live banner gets
+  the icon only - a pending detection has no identity yet.
+- **"Species detections by hour", "New Species" and the top-species chart are
+  birds only**; species and event types are counted separately.
+- **i18n placeholders are `{name}`, never `{{name}}`.** Every SoundNet string
+  used double braces for weeks and rendered `{66} heard`.
+- **Rebranded SoundNet** through upstream's `internal/branding` (the Taskfile
+  bakes the name) plus the strings that ignore it; six strings that credit
+  upstream's contributors, licence and repository keep "BirdNET-Go".
+
+## M4: the corpus is built
+
+The plan had M4 waiting on M6's slow collection. But every identified detection
+carries the aircraft's ICAO type and its clip is still on disk - 532 on the
+station, 95 aircraft - so `scripts/soundnet/m4_backfill.py` gathers them into
+M6's layout (`<out>/<TYPE>/<stamp>_<hex>_<callsign>.wav + .json`), read-only
+against the database, keeping an example only if one aircraft was in range, its
+type maps in `internal/aircrafttype/engine_types.csv`, the audio did not clip,
+and it is the closest window of its pass.
+
+    read 532   kept 82 (221 with --per-pass 3)
+      jet         66  (178)   63 aircraft
+      prop        13   (34)   10 aircraft
+      helicopter   3    (9)    1 aircraft - the same AW139
+    rejected: 304 other windows of a pass, 74 untyped,
+              44 more than one aircraft in range, 28 clipped
+
+Written to `/home/pi/soundnet/corpus/backfill` (113 MB). Helicopters are one
+machine, so a helicopter class trained on this learns that machine. The script
+and table live together in `/home/pi/soundnet/m4/` on the Pi; rerun it as data
+accumulates. An unmapped type is reported, never guessed - add it to the CSV.
+
+**The feature source is CED.** It is a transformer with a penultimate
+representation, we own `export_ced_fused.py`, and `verify_exact.py` checks a
+re-export against PyTorch to 1.3e-06, so adding an embedding output is a
+contained change. That supersedes OPEN_DECISIONS item 3 (a YAMNet embedding
+build). Note CED's positional embedding is fixed to ten-second input.
 
 **Aircraft sub-classing is nearly free; vehicle and tool sub-classing is not.**
-ADS-B labels the aircraft. Nothing labels a bin truck, so car/truck/bus and
-lawn mower can only come from the operator's annotations - which is why the
-review queue being unreachable mattered, and why it is now routed.
+ADS-B labels the aircraft. Nothing labels a bin truck, so car/truck/bus can only
+come from per-class thresholds (Car, Truck, Motorcycle at 0.2 since 2026-09-21,
+Bus enabled) or the operator's annotations.
 
 ## Immediately resumable work
 
-Rewritten 2026-09-21 midday. Everything on the previous list is done and
-running; what follows is what is left, in the order I would take it.
+Rewritten 2026-09-21 afternoon, in the order I would take it.
 
-**1. The dashboard and the summary counts** - the operator's stated next
-priority, and where they actually start. The names are right everywhere now, the
-framing is not: "Unique Species 45" counts event classes as species, the top-10
-chart puts `Vehicle` fourth above Eurasian Blackbird, and "New Species Detected"
-lists `car_(siren)`. Four pieces, smallest first:
+**1. Check today's live changes after a full day.** Minutes of running is not
+evidence. Grep `run.log` for `soundnet_second_opinion` and `soundnet_clipped`:
+is wind-only thunder being discarded, and has anything the operator would want
+been lost? Are Car / Truck / Motorcycle appearing under vehicles? Has any Wind
+row recorded?
 
-    a. split the headline count - "38 species, 12 event types"
-    b. separate or stack the top-10 chart by domain
-    c. colour detections-by-hour by domain, so traffic reads against birdsong
-    d. put the domain cards from /ui/events on the dashboard
+**2. The privacy filter.** See "Wind, and the privacy filter". Measure what
+triggers it (label vs VAD, which model, what the audio is), then take the
+numbers to the operator. Their decision, not ours.
 
-All frontend; the `/api/v2/soundnet/overview` endpoint already returns what (a),
-(b) and (d) need.
+**3. M4: the CED embedding export, then the head.** The corpus exists. Decide
+jet/prop first (helicopters are one aircraft), crop each example to the
+detection window (`detection_id` and `source_clip` are in every sidecar).
 
-**2. M4, starting with a backfill script.** See "M4: the data already exists".
-The step that turns "we might have data" into a number is: pull identified
-detections, read `type_code`, dedup by pass, copy clip plus label into the
-corpus. Then a type-code to engine-class table, then the CED embedding
-re-export, then the head itself.
+**4. Aircraft engine class on the dashboard now, from ADS-B.** The operator asked
+for jet / prop / helicopter rows. For *identified* aircraft that needs no model:
+`internal/aircrafttype` already maps the type code the row carries. The hourly
+family grid could split aircraft by it today.
 
-**3. Tune the remaining per-domain thresholds.** `aircraft` is set to 0.35 from
-the labelled negatives. `weather`, `alarm` and `vehicle` still inherit BirdNET's
-0.7 and are effectively silent unless corroboration rescues them. `vehicle`
-needs care: nothing can confirm it, so a low bar just fills the list.
+**5. Measure a day of API credits, then size the poll interval.** Unchanged; the
+second-opinion rule now sends high-confidence YAMNet thunder to corroboration at
+flush, so the spend may have moved.
 
-**4. Measure a day of API credits, then size the poll interval.** `credits_left`
-is in the collector heartbeat now. Runtime enrichment, not the collector, is the
-heavy consumer - it took the balance from 500 to 198 in ninety minutes. 300 s is
-a placeholder, and a measured number should replace it. Worth reviewing the
-corroboration spend at the same time.
+**6. Is `DomainAlarm` really not diagnosable?** A siren has Doppler exactly like a
+vehicle, but `Domain.Diagnosable()` returns false.
 
-**5. Extend the hierarchy rule across models, or decide not to.** It compares
-results inside one model's chunk, and the two readings of a sound are not always
-in the same model's: `Thunder` is YAMNet's at 0.74-0.89 while CED puts
-`Thunderstorm` at 0.000 and the aircraft classes at 0.15-0.38. ADS-B already
-resolves those, so the row is right even when its class name is not - which may
-be enough.
-
-**6. Carry the domain correction into search results.** Done for the list and
-the panel. `search.go` returns `datastore.DetectionRecord` rather than the API
-response type, so this means widening an upstream struct; weigh that against how
-often anyone reads a search result.
-
-**7. Is `DomainAlarm` really not diagnosable?** A siren has Doppler and a pass-by
-geometry exactly like a vehicle, but `Domain.Diagnosable()` returns false. Looks
-like an oversight rather than a decision.
-
-**Then, in rough value order:**
-
-- **M8 enriched alerts** - carry diagnostics and identity through the existing
-  alert engine.
-- **Threshold tuner UI** - its API (`/threshold-preview`) is done, and the
-  operator has now had three thresholds set on their behalf.
-- **De-bird the UI copy** - 215 hardcoded "BirdNET-Go" strings across 130 files.
+**Then:** M8 enriched alerts; the threshold tuner UI (`/threshold-preview` is
+done); other locales still say BirdNET-Go.
 
 ## Things to watch on the station
 
-- ~~**CED silence.**~~ **Answered 2026-09-20 and it was the opposite of the
-  worry.** `/api/v2/system/inference` carries a per-model feed of recent
-  above-threshold predictions, which is the only place the producing model is
-  recoverable - `datastore.Note.Model` is `gorm:"-"` and never persisted. CED
-  fires roughly every nine seconds, scores *higher* than YAMNet on the same
-  sound (Vehicle 0.54 against 0.33), and the low-confidence Vehicle rows being
-  saved are CED's. If that feed is unavailable, tell them apart by arithmetic:
-  YAMNet quantises to 1/256, so its scores are exact multiples of 0.00390625.
-- ~~**The collector's first captures.**~~ **Four clips, two aircraft types**
-  (A139 rescue helicopter, P28A), filed by ICAO type with WAV and JSON sidecar.
-  Working end to end.
-- **Whether OpenSky ever refills.** It did *not* reset at UTC midnight as
-  predicted - still 188 an hour later, and 190 after that. Something other than
-  a daily rollover governs it. `credits_left` is in the collector heartbeat, so
-  a day of logs will show when it moves and by how much. Until it does, ADS-B
-  runs entirely on the adsb.lol fallback.
-- **The adsb.lol limit is probabilistic.** Measured: seven requests in ten
-  answered at a ten-second interval, no Retry-After. A refusal falls back to a
-  dead-reckoned sky under thirty seconds old, so most are invisible - but if
-  identifications dry up, check for `passed over` lines naming *both* sources.
-- **The VAD speech gate**, enabled by the operator at 0.35. Baseline privacy
-  discards are 1-3/min; a burst to 7-16/min for four minutes was real speech,
-  not the gate misfiring. A *sustained* thinning of detections is the tell - a
-  privacy hit discards the whole window for every model.
-- **The music classes are new and untested in the field.** `Drum kit`, `Drum`
-  and `Cymbal` went live 2026-09-21 on a measurement, not on a day of running.
-  If drums start appearing constantly, or stop appearing while `Vehicle` rows
-  return at 0.8, that is where to look.
+- **The second-opinion and clipping rules** - new 2026-09-21, seen working for
+  minutes only. `soundnet_second_opinion` and `soundnet_clipped` at info.
+- **Wind rows never recording**, probably the privacy filter; see above.
+- **Vehicle sub-types at 0.2** - lowered on the operator's request. If Car /
+  Truck start splitting jets away from Aircraft, raise them.
+- **Whether OpenSky ever refills.** It did not reset at UTC midnight; ADS-B has
+  been running on the adsb.lol fallback. `credits_left` is in the collector
+  heartbeat.
+- **The adsb.lol limit is probabilistic** (seven in ten at ten-second spacing,
+  no Retry-After); a refusal serves a dead-reckoned sky under thirty seconds old.
+- **The music classes** (Drum kit, Drum, Cymbal) went live on a measurement,
+  not a day of running.
+- **Model attribution** is not persisted (`datastore.Note.Model` is
+  `gorm:"-"`). Use `/api/v2/system/inference`, or YAMNet's 1/256 quantisation.
 
 ## Do not rebuild the dashboard
 
@@ -896,8 +957,10 @@ functions carry almost all of it:
     getThumbnailUrl(s) -> /api/v2/media/species-image?name={s}
 
 `localizeSpeciesName` falls back to `commonName`, so fixing the DTO fixes every
-surface with no frontend change. `species-image` is name-keyed, so the server
-can return a bird photo for a species and a domain icon for an event class. A
+surface with no frontend change. Event pictures went the other way in the end:
+`EventThumbnail` is dropped in beside the bird `<img>` on each page (card,
+list, detail, search, live banner) rather than taught to `species-image`,
+because the aircraft photo needs the row's identity, not just its name. A
 rebuild would take the 45-line upstream footprint into the thousands and lose
 the bird features that work.
 
@@ -939,4 +1002,12 @@ the bird features that work.
   Taskfile supplies the TensorFlow header include path, and tests need
   `-tags noembed,skipfrontend`.
 - Nine of the Pi's test failures are environmental (8 from running as root, 1
-  from WSL's mount table). None come from fork code.
+  from WSL's mount table). None come from fork code. In WSL the same holds for
+  `internal/datastore` (`TestCheckWritePermission_FailsOnReadOnlyDir`,
+  `TestOpen_ClosesPoolOnPostConnectionFailure`) and
+  `internal/api/v2/imports` (`TestElevateImport_InsufficientSpace`) - checked
+  by stashing the change and rerunning.
+- **Measure before choosing a threshold, and check the negatives.** Three times
+  on 2026-09-21 the obvious fix was backwards: raising Thunder keeps the wind
+  (wind scores higher), a distance limit cuts real aircraft at the same rate as
+  false ones, and "CED agrees" counted a score CED would never have recorded.
