@@ -694,6 +694,53 @@ always resolves, and to FlightRadar24 where a registration is known.
 Still species-shaped and worth doing next: the dashboard and the species
 analytics pages themselves, which is where the operator actually starts.
 
+## Names and icons, everywhere a detection is shown
+
+The analytics pages were showing `and_airscrew`, `car_(siren)` and
+`and_eructation` as species, each behind a grey bird silhouette, in a count of
+"45 species". The detections list learned the display name weeks ago; nothing
+else did, because every analytics endpoint returns species rows and knows
+nothing of events.
+
+**Fixed in one function.** `localizeSpeciesName` is what the species page, the
+summary, the dashboard and every card already call, so it now consults the event
+taxonomy when the server supplied no display name. A bird resolves to nothing
+and falls through exactly as before, and so does everything else until the
+taxonomy has loaded.
+
+The taxonomy is fetched once per page load and `/api/v2/soundnet/taxonomy` now
+emits **all three forms** of every name - label, raw label, storage name. That is
+the point of doing it server-side: a detection is stored as two halves of a
+label split at its first underscore, and rebuilding it in the browser would mean
+reimplementing a splitter this project has already got wrong once, silently. The
+client does a lookup.
+
+Verified against the live taxonomy with `doc/soundnet/eval/check_name_resolution.py`:
+
+    propeller + and_airscrew        -> Propeller, airscrew    aircraft
+    police + car_(siren)            -> Police car (siren)     alarm
+    fixed-wing + aircraft_and_...   -> Fixed-wing aircraft    aircraft
+    reversing + beeps               -> Reversing beeps        vehicle
+    purr + Purr                     -> Purr                   biological
+    Turdus migratorius + Am. Robin  -> (species)              -
+
+`Purr` and `Meow` needed mapping: BirdNET emits them from its own label set and
+the taxonomy had never heard of them. Only the unambiguously non-bird animal
+labels were added - upstream's animal category also holds `crow` and
+`chirp_and_tweet`, and claiming those would mark real birds as non-birds, which
+is the worse mistake.
+
+**One name still does not resolve, and should not.** `burping + and_eructation`
+is a human vocalisation emitted only so the privacy filter can see it. It is
+dropped before storage now; the row on the operator's screen predates that fix.
+Adding it to the taxonomy would make it a recordable event, which is the
+opposite of why it is emitted.
+
+The species page also stops lending a Cessna a bird silhouette: an event row
+shows its domain's icon, tinted by family, with the domain where the scientific
+name would be - which for an event is a truncated half-label that never told
+anyone anything.
+
 ## Immediately resumable work
 
 Everything that was on this list on 2026-09-20 morning is done and running. What
@@ -731,7 +778,13 @@ corroboration rescues it. `weather`, `alarm` and `vehicle` are the ones worth
 measuring next - and `vehicle` needs care, because it has no authority to
 confirm it and a low bar would fill the list.
 
-**4. Carry the correction into search results.** Done for the detection list and
+**4. The dashboard and the summary counts.** Still species-shaped, and where
+the operator starts: "Unique Species 45" counts event classes as species, the
+top-10 chart mixes `Vehicle` in with `Common Myna`, and "New Species Detected"
+lists `car_(siren)` as a new species. The names are right everywhere now, but
+the framing is not.
+
+**4b. Carry the correction into search results.** Done for the detection list and
 the panel; `search.go` still shows the bare acoustic label. Its results are
 `datastore.DetectionRecord` rather than the API response type, so this means
 widening an upstream struct - weigh that footprint against how often anyone
