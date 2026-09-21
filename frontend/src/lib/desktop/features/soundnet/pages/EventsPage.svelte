@@ -27,6 +27,7 @@
   import { Activity, ListChecks, Download, Filter } from '@lucide/svelte';
 
   import EventReviewList from '../components/EventReviewList.svelte';
+  import DomainOverview from '../components/DomainOverview.svelte';
   import TrainingExport from '../components/TrainingExport.svelte';
   import CategoryFilter from '../components/CategoryFilter.svelte';
 
@@ -55,6 +56,10 @@
         <Filter class="h-4 w-4 opacity-60" aria-hidden="true" />
         <span class="text-sm opacity-70">{t('soundnet.events.browse')}</span>
         <CategoryFilter selected={category} onChange={browseCategory} />
+      </div>
+
+      <div class="mt-4">
+        <DomainOverview />
       </div>
     </div>
   </div>

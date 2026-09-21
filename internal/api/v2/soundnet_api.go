@@ -36,6 +36,7 @@ func (c *Controller) initSoundNetRoutes() {
 	g.GET("/detections/:id", c.GetSoundNetDetection)
 	g.GET("/detections", c.ListSoundNetDetections)
 	g.GET("/taxonomy", c.GetSoundNetTaxonomy)
+	g.GET("/overview", c.GetSoundNetOverview)
 	// Corrections change data, so they sit behind the same auth as other writes.
 	g.POST("/detections/:id/correction", c.PostSoundNetCorrection, c.AuthMiddleware)
 	g.GET("/confusions", c.GetSoundNetConfusions)

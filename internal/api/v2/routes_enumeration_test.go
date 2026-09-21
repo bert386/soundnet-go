@@ -123,6 +123,7 @@ var goldenRoutes = []string{
 	"GET /api/v2/soundnet/confusions",
 	"GET /api/v2/soundnet/detections",
 	"GET /api/v2/soundnet/detections/:id",
+	"GET /api/v2/soundnet/overview",
 	"GET /api/v2/soundnet/taxonomy",
 	"GET /api/v2/soundnet/threshold-preview",
 	"GET /api/v2/soundnet/training-export",

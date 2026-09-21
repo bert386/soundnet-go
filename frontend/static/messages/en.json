@@ -5851,6 +5851,26 @@
       "reviewLoadFailed": "Could not load detections to review: {{error}}",
       "reviewEmpty": "Nothing waiting. Every recent event has been reviewed.",
       "reviewCount": "{{count}} waiting, most recent first"
+    },
+    "overview": {
+      "period": "Period:",
+      "days": "{{count}} days",
+      "loading": "Summarising what the station heard...",
+      "loadFailed": "Could not load the overview: {{error}}",
+      "empty": "No non-bird detections in this period.",
+      "events": "Events",
+      "categories": "Categories",
+      "aircraftIdentified": "Aircraft identified",
+      "birds": "Bird detections",
+      "detections": "{{count}} detections",
+      "browse": "Browse these detections",
+      "aircraftHeading": "Aircraft identified in this period"
+    },
+    "aircraftCard": {
+      "detections": "{{count}} detections",
+      "track": "Flight path",
+      "registry": "Aircraft record",
+      "photoCredit": "Photo: {{photographer}} / Planespotters.net"
     }
   }
 }

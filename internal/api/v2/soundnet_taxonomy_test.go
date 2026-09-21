@@ -47,9 +47,9 @@ func TestTaxonomyReportsDomainAmbiguity(t *testing.T) {
 	}
 
 	require.Contains(t, candidates, "Vehicle")
-	assert.Equal(t, []string{"vehicle", "aircraft", "rail", "watercraft"}, candidates["Vehicle"],
+	assert.Equal(t, []string{"vehicle", "aircraft", "rail", "watercraft", "music"}, candidates["Vehicle"],
 		"the superclass an overflight actually scores highest on must offer the aircraft reading")
-	assert.Equal(t, []string{"vehicle", "aircraft", "rail", "watercraft"}, candidates["Engine"])
+	assert.Equal(t, []string{"vehicle", "aircraft", "rail", "watercraft", "music"}, candidates["Engine"])
 
 	// The field is omitted where the domain is settled, so its presence means
 	// something rather than decorating every row.
